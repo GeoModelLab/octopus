@@ -59,7 +59,7 @@ etc...
 
 Weather data series need to be in .csv format. Weather data are stored by default in "src/Files/Weather". It requires hourly data for temperature (°C), precipitation (mm), relative humidity (%), and leaf wetness (%). An example of a weather data for the Italian city of Bergamo is provided below.
 
-![Weather data example](WeatherDataTemplate.png)
+![Weather data example](assets/WeatherDataTemplate.png)
 
 Column [ 0 ] represents the site, columns [ 1 , 2 , 3 , 4 ] date and time, and columns [ 5 , 6 , 7 , 8 ] are the hourly temperature (°C), precipitation (mm), radiation, relative humidity (%), and leaf wetness (0-1), respectively.
 At the moment, in version 1.0, only hourly data are supported, but later releases will also include facilities to estimate hourly data from daily maximum and minimum temperatures. Multiple weather files can be used to perform simultaneous analysis on different locations by simply dropping them in the dedicated folder; however, some customization is required in the [3.4. JSON configuration file](#34-json-configuration-file) for it to work.
@@ -77,8 +77,7 @@ It classifies the crucial grapevine BBCH phases (from budbreak, BBCH 11, to matu
 
 The models configuration is by default in "src/Files/parametersData/octoPusParameters.csv". In this .csv file the parameters specific to each of the ten models (the eight primary infection models, the phenological model, and the susceptibility model) can be modified. The class column [ 0 ] contains the name of the model (it should not be modified), [ 1 ] is the specific parameter, columns [ 2 , 3 , 4 ] represent respectively the minimum and the maximum values, and the actual value to be used in the simulation, and column [ 5 ] is the measurement unit of each specific parameter. 
 
-<img src="" width="600" height="300"> 
-![](assets/octoPusParameters.png)
+![Parameters](assets/octoPusParameters.png)
 
 For an exaustive description of each model routine and their parameters we refer to the Supplementary material S1 of the scientific punlication this repository supplements --CITATION (Bregaglio et al., 2024)--.
 
@@ -113,7 +112,7 @@ The paths class explicitly defines the paths of input and output files. Noticeab
 
 After having completed this last step, the application is ready to be run with the specified user settings. Launch it and enjoy the *octoPus* at work!!
 
-![](assets/octopus_1.png)
+![Octopus pixel art](assets/octopus_1.png)
 
 ```
 \(^^)/ °  ~ |_(°°)_| ~  ° _(--)_ °  ~  ~(^^)~ °  ~ _(°°)_ °  ~  ~(**)~
