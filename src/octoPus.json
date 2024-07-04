@@ -1,0 +1,17 @@
+﻿{
+  "settings": {
+    "startYear": 2013,
+    "endYear": 2014,
+    "sites": [ "Macerata_short.csv" ],
+    "assistantRisk": 0,
+    "veryHighModelsThreshold": 0
+  },
+  "paths": {
+    "weatherDir": "..\\..\\..\\files\\weather",
+    "octoPusParametersPath": "..\\..\\..\\files\\Parameters\\octoPusParameters.csv",
+    "susceptibilityFileBBCH": "..\\..\\..\\files\\Parameters\\hostSusceptibilityParameters.csv",
+    "outputDir": "..\\..\\..\\outputs\\",
+    "LLMfile": "..\\..\\..\\..\\LLM\\Meta-Llama-3-8B-Instruct-Q8_0.gguf",
+    "Rversion": "R-4.3.3"
+  }
+}

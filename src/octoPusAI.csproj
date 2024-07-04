@@ -1,0 +1,60 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <ApplicationIcon>icon.ico</ApplicationIcon>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net7.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+	<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>   
+    <LangVersion>10.0</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Files\**" />
+    <EmbeddedResource Remove="Files\**" />
+    <None Remove="Files\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Files\Parameters\hostSusceptibilityParameters.csv" />
+    <None Include="Files\Parameters\octoPusParameters.csv" />
+    <None Include="Files\Weather\Bergamo.csv" />
+    <None Include="Files\Weather\Chieti.csv" />
+    <None Include="Files\Weather\Cuneo.csv" />
+    <None Include="Files\Weather\Gorizia.csv" />
+    <None Include="Files\Weather\Imperia.csv" />
+    <None Include="Files\Weather\Macerata_short.csv" />
+    <None Include="Files\Weather\Macerata.csv" />
+    <None Include="Files\Weather\Oristano.csv" />
+    <None Include="Files\Weather\Perugia.csv" />
+    <None Include="Files\Weather\Potenza.csv" />
+    <None Include="Files\Weather\Ravenna.csv" />
+    <None Include="Files\Weather\Treviso.csv" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="LLamaSharp" Version="0.11.2" />
+    <PackageReference Include="LLamaSharp.Backend.Cpu" Version="0.11.2" />
+    <PackageReference Include="MathNet.Numerics" Version="6.0.0-beta1" />
+    <PackageReference Include="R.NET" Version="1.9.0" />
+  </ItemGroup>
+
+
+  <ItemGroup>
+    <None Update="icon.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="LLN\ggml-model-BF16.gguf">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="octoPus.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>
