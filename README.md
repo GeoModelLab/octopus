@@ -12,9 +12,9 @@
 The *octoPus* is the first digital organism, released as a console application, that assists users in predicting and interpreting grapevine downy mildew (*Plasmopora viticola*) primary infections. The source code of the *octoPus* is written in C# and is freely available for use through proper citation and licensing. This git repository contains the code and the instructions to smoothly run it.
 The *octoPus* has two eyes, the grapevine phenology and susceptibility models, eight tentacles, represented by the primary infection models, a brain, which is a random forest model, and a voice, a large language model (LLM) that interprets the results of all the other organs and returns an user-supportive textual message. 
 
+## Folder structure
 ![Code structure](assets/codeStructure.png)
 
-## Folder structure
 The console application is structured in multiple folders, each containing either input files or classes and processes serving specific purposes. 
 - The **Files** folder should contain the input files that are needed to run the model: weather data and two parameter files.
 	- The weather file(s) should be named like the following: "name-of-the-location.csv"
