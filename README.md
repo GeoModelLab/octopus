@@ -20,7 +20,7 @@ The console application is structured in multiple folders, each containing eithe
 	- The weather file(s) should be named like the following: "name-of-the-location.csv"
 	- The first parameter file (hostSusceptibilityParameters.csv) is used to define the BBCH phases of grapevine
 	- The other parameter file (octoPusParameters.csv) is needed to parameterize the eight primary infection models.
-- The **LLM** folder should contain the LLama large language model files and will have to be created by the user after cloning the repository (you can download the model here [Download LLama](https://llama.meta.com/llama-downloads); see below for more details on how to set it up).
+- The **LLM** folder should contain the LLama large language model files and will have to be created by the user after cloning the repository.
 - The **ModelCaller** folder contains the code fro the calls to Llama, the pre-trained Random Forest model, and the code to iterate through the weather data.
 - **Models** stores the Datatype classes and the calls to both the eight epidemiology and the phenology models.
 - **Readers** stores the pipelines to read input parametes, **octoPus.json** is the configuration file, **icon.ico** contains the console icon, and **Program.cs** is the entry point main method. 
@@ -31,23 +31,23 @@ This Git repository is a supplement to the scientific article "Freeing the *octo
 ## Required packages and extensions
 The *octoPus* works on Windows, Linux, and macOS operating systems and requires a series of programs to properly run.
 * .NET core ≥ 7.0  
-Please visit the link https://learn.microsoft.com/en-us/dotnet/core/install/upgrade to learn how to update the .NET core version
+Please visit [this link](https://learn.microsoft.com/en-us/dotnet/core/install/upgrade) to learn how to update the .NET core version
 * R version ≥ R-4.3.2  
-Please visit the link https://cran.r-project.org/bin/windows/base/ to download the latest R version (windows)  
-Please visit the link https://cloud.r-project.org/bin/macosx/ to download the latest R version (macOS)
+Please visit [this link](https://cran.r-project.org/bin/windows/base/) to download the latest R version (windows)  
+Please visit [this link](https://cloud.r-project.org/bin/macosx/) to download the latest R version (macOS)
 * Llama Large Language Model ≥ Meta-Llama-3  
-Please visit the link https://huggingface.co/models?other=llama to download the latest Llama version
+Please visit [this link](https://huggingface.co/models?other=llama) to download the latest Llama version from [huggingface.co](https://huggingface.co/) or at [this link](https://llama.meta.com/llama-downloads) from the [Meta](https://ai.meta.com/meta-ai/) website. Once downloaded, create a folder called LLM as shown in [Folder structure](#folder-structure) and paste the downloaded file in it.
 
 The following are the dependencies used. The script includes lines to automatically download the dependencies and packages if not pre isntalled in the system.
 The following are the dependencies used. The app includes lines to automatically download the dependencies and packages if not pre isntalled in the system.
 * .NET libraries:
-  * 1. LLamaSharp 
-  * 2. MathNet.Numerics
-  * 3. R.NET
+  * LLamaSharp 
+  * MathNet.Numerics
+  * R.NET
 * R packages:
-  * 1. caret
-  * 2. randomForest
-  * 3. stats
+  * caret
+  * randomForest
+  * stats
 
 ## Inputs and customization
 
@@ -99,7 +99,7 @@ The JSON file can be found in "octoPusAI/octoPus.json". This file allows to fine
 
 Inside the setting class, it should be inserted the "startYear" and "endYear" of the simulation, as int; the "sites" is a list that contains the filenames for which the model should run (**only** the files written in the square brackets, separated by a comma, will be used as weather input data and for each of them an output file will be produced); the daily level of risk (is an int and levels go from 0 to 5, corresponding to very low, low, medium, high, and very high) at which the LLM assistant is called in the routine ("assistantRisk"); and the int number of models to predict very high risk for classifying that day as a day with very high risk of infection ("veryHighModelsThreshold").
 
-The paths class explicitly defines the paths of input and output files. Noticeable are the two properties "LLMfile" and "Rversion". The first one defines the location and the name of the LLM file, which is not provided in this repository therevore should be set by the user before running the app (see section [Required packages and extensions](#required-packages-and-extensions) for the instructions on how to download the Llama version). "Rversion" is a string that specifies the R version currently installed on the machine that uses the app. It is required to run the random forest model.
+The paths class explicitly defines the paths of input and output files. Noticeable are the two properties "LLMfile" and "Rversion". The first one defines the location and the name of the LLM file, which is not provided in this repository therefore should be set by the user before running the app (see section [Required packages and extensions](#required-packages-and-extensions) for the instructions on how to download Llama). "Rversion" is a string that specifies the R version currently installed on the machine that uses the app. It is required to run the random forest model.
 
 ### Launching the *octoPus*
 After having completed this last step, the model is ready to be run with the specified user settings. Launch it and enjoy the *octoPus* at work!!
