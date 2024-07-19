@@ -2,7 +2,7 @@
   "settings": {
     "startYear": 2013,
     "endYear": 2014,
-    "sites": [ "Macerata_short.csv" ],
+    "sites": [ "Cuneo.csv" ],
     "assistantRisk": 0,
     "veryHighModelsThreshold": 0
   },
