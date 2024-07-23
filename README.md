@@ -1,3 +1,5 @@
+![Work in progress](assets/work_in_progress.jpg)
+
 <div style="text-align: center;">
 <pre>
                                                    _        ____
