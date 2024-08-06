@@ -56,8 +56,8 @@ The *octoPus* needs to be fed with weather series in .csv format to run. Weather
 
 ![Weather data example](assets/WeatherDataTemplate.png)
 
-Column [ 0 ] represent the site, columns [ 1 , 2 , 3 , 4 ] are the date and time, and columns [ 5 , 6 , 7 , 8 ] are respectively the hourly temperature (°C), precipitation (mm), radiation, relative humidity (%), and leaf wetness (0-1). Multiple weather files can be used to perform simultaneous analysis on different locations by simply dropping them in the dedicated folder but some steps are required in the [JSON configuration file](#json-configuration-file) to properly use them.
-Once the climate data are in their dedicated folder, attention should be given to the host susceptibility parameterization.
+Column [ 0 , 1 , 2 , 3 ] are fixed in both the daily and hourly datasets and represent the site, year, month, and day. In the hourly dataset the hour is in column [ 4 ], and columns [ 5 , 6 , 7 , 8 ] are respectively the hourly temperature (°C), precipitation (mm), radiation, relative humidity (%), and leaf wetness (0-1). The daily datset only needs maximum [ 4 ] and minimum [ 5 ] temperatures (°C), and daily precipitation (mm) [ 6 ]. All other variables are estimated from these three. Multiple weather files, with the same temporal resolution, can be used to perform simultaneous analysis on different locations by uploading them in the dedicated folder ("octoPusAI/Files/Weather") but some steps are required in the [JSON configuration file](#json-configuration-file).
+Once the climate data are ready, attention should be given to the host susceptibility parameterization.
 
 ### Host susceptibilty data
 Host susceptibility data are stored by default in "octoPusAI/Files/parametersData/hostSusceptibilityParameters.csv". This .csv file is composed of two columns: BBCH [ 0 ] and susceptibility [ 1 ]. 
