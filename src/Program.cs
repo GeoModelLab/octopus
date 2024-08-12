@@ -1,5 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-using System.Text.Json;
+﻿using System.Text.Json;
 using LLama.Native;
 using Models.Datatype;
 using octoPusAI.ModelCallers;
@@ -61,7 +60,7 @@ string jsonString = File.ReadAllText(fileName);
 var config = JsonSerializer.Deserialize<root>(jsonString);
 
 #region assign json parameters to local variables
-//start and end year
+//start and end year 
 int startYear = config.settings.startYear.GetValueOrDefault();
 int endYear = config.settings.endYear.GetValueOrDefault();
 //sites
@@ -75,6 +74,8 @@ string hostSusceptibilityFile = config.paths.susceptibilityFileBBCH;
 string weatherDir = config.paths.weatherDir;
 string LLMfile = config.paths.LLMfile;
 string Rversion = config.paths.Rversion;
+//type of weather data (either hourly or daily)
+string WeatherTimeStep = config.settings.WeatherTimeStep.ToLower();
 
 Console.WriteLine("I am ready to start the simulation for the following sites: {0}.", string.Join(", ", sites));
 Console.WriteLine("The simulation will run from {0} to {1}", startYear, endYear);
@@ -100,15 +101,13 @@ var BBCH_susceptibility = paramReader.BBCH_Susceptibility(hostSusceptibilityFile
 #endregion
 
 #region weather data files
-DirectoryInfo directoryInfo = new DirectoryInfo(weatherDir);
+DirectoryInfo directoryInfo = new DirectoryInfo(weatherDir + "/" + WeatherTimeStep);
 FileInfo[] files = directoryInfo.GetFiles();
 List<string> availableSites = files.Select(x => x.Name).ToList();
 #endregion
 
 //instantiate the Runner class and populate its properties
 var _runner = new octoPusRunner();
-_runner.modelPath = LLMfile;
-_runner.Rversion = Rversion;
 
 #region execute epidemiological models (the tentacles)
 foreach (var site in availableSites)
@@ -127,38 +126,16 @@ foreach (var site in availableSites)
         Console.WriteLine("SIMULATION STARTED ON FILE {0}", site);
 
         //set runner properties
+        _runner.modelPath = LLMfile;
+        _runner.Rversion = Rversion;
+        _runner.WeatherTimeStep = WeatherTimeStep;
         _runner.BBCH_Susceptibility = BBCH_susceptibility;
-        _runner.weatherFile = weatherDir + "\\" + site;
-        //check the availability of at least 12 months for executing EPI and DM-CAST
-        checkWeatherAvailability checkWeatherAvailability   = new checkWeatherAvailability();
-        float numberOfYear = 0;
-        
-
+        _runner.weatherFile = weatherDir + "\\" + WeatherTimeStep + "\\" + site; //edit euge
         _runner.octoPusParameters = octoPusParameters;
         _runner.startYear = startYear;
         _runner.endYear = endYear;
         _runner.assistantRisk = assistantRisk;
         _runner.veryHighModelsThreshold = veryHighModelsThreshold;
-        _runner.areEPIDMCASTexecutable = checkWeatherAvailability.areEPIDMCASTexecutable(_runner.weatherFile, out numberOfYear);
-
-        #region manage EPI and DMcast execution with low number of weather data (at least 10 years should be available!)
-        if (numberOfYear <1)
-        {
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine("The weather file has less than one year of data!!!!");
-            Console.WriteLine("The EPI and DMCAST models cannot be executed");
-        }
-        else if (numberOfYear < 10)
-        {
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine("The weather file has {0} years", numberOfYear);
-            Console.WriteLine("The EPI and DMCAST models will be executed even if less than 10 years are available.");
-        }
-        Console.ForegroundColor = ConsoleColor.White;
-        #endregion
-
-
-
         #region run octoPus
         //empty list of dates and SWELL outputs
         var dateOutputs = new Dictionary<DateTime, OutputsDaily>();
@@ -170,9 +147,7 @@ foreach (var site in availableSites)
     }
 }
 
-
 #endregion
-
 
 #region json interfacing classes 
 
@@ -192,6 +167,7 @@ public class settings
     public List<string>? sites { get; set; }
     public float? assistantRisk { get; set; }
     public int? veryHighModelsThreshold { get; set; }
+    public string? WeatherTimeStep { get; set; }
 }
 
 //contains the paths in the json configuration file
@@ -203,66 +179,6 @@ public class paths
     public string? susceptibilityFileBBCH { get; set; }
     public string? LLMfile { get; set; }
     public string? Rversion { get; set; }
-}
-
-#endregion
-
-#region check weather data availability
-
-public class checkWeatherAvailability
-{
-    public bool areEPIDMCASTexecutable(string weatherFile, out float numberOfYear)
-    {
-
-        bool areEPIDMCASTexecutable = false;
-
-        //open the stream
-        StreamReader sr = new StreamReader(weatherFile);
-        //read the header
-        sr.ReadLine();
-
-        //create an index variable
-        int line = 0;
-        //first and last date
-        DateTime firstDate = new DateTime();
-        DateTime lastDate = new DateTime();
-
-        while(!sr.EndOfStream)
-        {
-            string[] lineString = sr.ReadLine().Split(',');
-
-            //date elements
-            int year = int.Parse(lineString[1]);
-            int month = int.Parse(lineString[2]);
-            int day = int.Parse(lineString[3]);
-            int hour = int.Parse(lineString[4]);
-
-            //first line
-            if (line == 0)
-            {
-                //set the date
-                firstDate = new DateTime(year, month, day).AddHours(hour - 1);
-            }
-            lastDate = new DateTime(year, month, day).AddHours(hour - 1);
-            line++;
-        }
-        sr.Close();
-
-        TimeSpan timeSpan = lastDate-firstDate;
-
-        numberOfYear = timeSpan.Days / 365;
-
-        if(numberOfYear<1)
-        {
-            areEPIDMCASTexecutable = false;
-        }
-        else
-        {
-            areEPIDMCASTexecutable = true;
-        }
-        return areEPIDMCASTexecutable;
-
-    }
 }
 
 #endregion

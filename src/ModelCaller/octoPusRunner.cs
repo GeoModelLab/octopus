@@ -4,16 +4,15 @@ using Models.Infections;
 using Models.Phenology;
 using System.Text;
 using octoPusAI.Readers;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace octoPusAI.ModelCallers
 {
     //this class calls the octoPus models, the RandomForest model and the LLama model
     internal class octoPusRunner
     {
-      
-        #region instance of RandomForest model (the brain)
-        RInterface Rinterface = new RInterface();
-        #endregion
+        //instance of RandomForest model (the brain)
+        RInterface MLmodel = new RInterface();
 
         #region instances of phenology models (the eyes)
         Dormancy chilling = new Dormancy();
@@ -45,32 +44,30 @@ namespace octoPusAI.ModelCallers
 
         #endregion
 
-        #region local variables 
-        // instance of the weather reader class
+        #region instance of the weather reader class
         WeatherReader weatherReader = new WeatherReader();
-        public string weatherFile;
-        //dictionary to store the parameters
+        #endregion
+
+        #region local variables 
         public Dictionary<string, float> octoPusParameters = new Dictionary<string, float>();
-        //dictionary to store the susceptibility parameters
         public Dictionary<int, parametersSusceptibility> BBCH_Susceptibility = new Dictionary<int, parametersSusceptibility>();
         public Dictionary<DateTime, OutputsDaily> date_outputs = new Dictionary<DateTime, OutputsDaily>();
-        //these variables are set from the json configuration file
+        public string weatherFile;
         public int startYear;
         public int endYear; 
         public float assistantRisk;
         public int veryHighModelsThreshold;
         public string Rversion;
         public string modelPath;
-        public bool areEPIDMCASTexecutable;
+        public string WeatherTimeStep;
         #endregion
 
-        #region private variables 
+        #region local variables to compute daily data
         //list of hourly variables to compute daily data
         List<double> Temperatures = new List<double>();
         List<double> Precipitation = new List<double>();
         List<double> RelativeHumidity = new List<double>();
         List<double> Leafwetness = new List<double>();
-        //specific variables for the detailed run
         List<double> EPI_ke = new List<double>();
         List<double> EPI_pe = new List<double>();
         List<double> DMCast_Pom = new List<double>();
@@ -88,15 +85,14 @@ namespace octoPusAI.ModelCallers
        //this is the main call method of the octoPus model
         public void octoPus(out Dictionary<DateTime, OutputsDaily> date_outputs)
         {
-            //instance of LLama interface (the voice)
+            
+            //instance of LLama interface (the mouth)
             LLamaInterface LLamaInterface = new LLamaInterface(modelPath);
 
              //reinitialize the date_outputs object
              date_outputs = new Dictionary<DateTime, OutputsDaily>();
 
-            #region assign parameters to octoPus models
-            
-            #region assign infection model parameters
+            #region assign parameters
 
             #region instance of the parameters class
             Parameters parameters = new Parameters();
@@ -259,27 +255,45 @@ namespace octoPusAI.ModelCallers
             parameters = _detailedCropParameters;
             parameters.bbchSusceptibilityParameters = BBCH_Susceptibility;
             #endregion
-            
-            #endregion
+
+
 
             //read weather data
-            Dictionary<DateTime, Input> weatherData = weatherReader.readHourly(weatherFile, startYear, endYear);
-
-            if (!areEPIDMCASTexecutable)
+            var weatherData = new Dictionary<DateTime, Input>();
+            switch (WeatherTimeStep)
             {
-                //the infection models that require climatic averages
-                epi = new EPI();
-                dmcast = new DMCast();
-                //read the weather data for the climatic averages for EPI and DMCAST
-                historicalRun(weatherData);
+                case "hourly":
+                    weatherData = weatherReader.readHourly(weatherFile, startYear, endYear);
+                    
+                    break;
+                
+                case "daily":
+                    Dictionary<DateTime, InputDaily> weatherDataH = weatherReader.readDaily(weatherFile, startYear, endYear);
+                    foreach (var day in weatherDataH.Keys)
+                    {
+                        weatherData.AddRange(weatherReader.estimateHourly(weatherDataH[day], day));
+                    }
+                    break;
+
+                default:
+                    Console.WriteLine("Check the WeatherTimeStep in the octoPus.json file, available choices are: \"daily\" or \"hourly\"");
+                    break;
             }
 
-            //initialize variables for each site
-            var outputs = new Output();
+            //for the PEMs that require climatic averages
+            epi = new EPI();
+            dmcast = new DMCast();
+            //historicalRun(weatherData);
+
+            bool isFlowered = false;
+
             //reinitialize the date_outputs object
             date_outputs = new Dictionary<DateTime, OutputsDaily>();
+
             //initialize the daily outputs object
             OutputsDaily outputsDaily = new OutputsDaily();
+            //reinitialize variables for each site
+            var outputs = new Output();
 
             //assign the file of the LLM
             LLamaInterface.modelPath = modelPath;
@@ -288,7 +302,7 @@ namespace octoPusAI.ModelCallers
             foreach (var hour in weatherData.Keys)
             {
                 //call the octoPus model
-                modelCall(weatherData[hour], parameters, outputs, out outputsDaily, LLamaInterface);
+                modelCall(weatherData[hour], parameters, isFlowered, outputs, out outputsDaily, LLamaInterface);
 
                 //add weather data to output object
                 output.weatherInputHourly.Temperature = weatherData[hour].Temperature;
@@ -305,9 +319,42 @@ namespace octoPusAI.ModelCallers
 
             //write the outputs from the octoPus models
             writeOctoPusOutputs(weatherFile, date_outputs);
+
+            if (WeatherTimeStep == "daily")
+            {
+                //write the estimated weather data to csv
+                writeEstimatedToCsv(weatherFile, weatherData);
+            }
+            
         }
 
-        //this method computes the climatic monthly averages for the EPI and DMCAST models
+        //method to write estimated weather data to csv
+        public void writeEstimatedToCsv(string site, Dictionary<DateTime, Input> estimated_hourly)
+        {
+            //empty list to store outputs
+            List<string> ToWrite = new List<string>();
+
+            //define the file header
+            string Header = "site,Date,temp,prec,RH,lw";
+            ToWrite.Add(Header);
+
+            //loop over the rows
+            foreach (var value in estimated_hourly.Keys)
+            {
+                var Line = new StringBuilder();
+                Line.Append($"{weatherFile},");
+                Line.Append($"{estimated_hourly[value].Date},");
+                Line.Append($"{estimated_hourly[value].Temperature},");
+                Line.Append($"{estimated_hourly[value].Precipitation},");
+                Line.Append($"{estimated_hourly[value].RelativeHumidity},");
+                Line.Append($"{estimated_hourly[value].LeafWetness},");
+
+                ToWrite.Add(Line.ToString());
+                //save the file
+                System.IO.File.WriteAllLines(@"outputs//diseaseModels//estimatedHourly.csv", ToWrite);
+            }
+        }
+
         public void historicalRun(Dictionary<DateTime, Input> weatherData)
         {
             #region for EPI and DMCAST model, dictionaries to store climatic averages
@@ -340,7 +387,7 @@ namespace octoPusAI.ModelCallers
                 #endregion
 
                 //add variables to the dictionary in the corresponding key
-                ClimaticMonthlyRainfall[Input.Date.Month].Add(Input.Precipitation);
+                //ClimaticMonthlyRainfall[Input.Date.Month].Add(Input.Precipitation);
                 ClimaticMonthlyTemperature[Input.Date.Month].Add(Input.Temperature);
                 if (Input.Date.Hour >= 18 || Input.Date.Hour <= 9)
                 {
@@ -380,33 +427,31 @@ namespace octoPusAI.ModelCallers
             #endregion
 
             #region model and parameters instances
-
-            if (areEPIDMCASTexecutable)
+            #region EPI
+            //assign climatic data
+            for (int i = 1; i <= 12; i++)
             {
-                #region EPI
-                //assign climatic data
-                for (int i = 1; i <= 12; i++)
-                {
-                    epi.ClimaticAverageTemperature.Add(i, ClimaticMonthlyTemperature[i].Average());
-                    epi.ClimaticRainfallSum.Add(i, ClimaticMonthlyRainfall[i].Average());
-                    epi.ClimaticRainyDays.Add(i, ClimaticMonthlyRainyDays[i].Average());
-                    epi.ClimaticRelativeHumidityNight.Add(i, ClimaticMonthlyRelativeHumidityNight[i].Average());
+                epi.ClimaticAverageTemperature.Add(i, ClimaticMonthlyTemperature[i].Average());
+                epi.ClimaticRainfallSum.Add(i, ClimaticMonthlyRainfall[i].Average());
+                epi.ClimaticRainyDays.Add(i, ClimaticMonthlyRainyDays[i].Average());
+                epi.ClimaticRelativeHumidityNight.Add(i, ClimaticMonthlyRelativeHumidityNight[i].Average());
 
-                }
-                #endregion
-
-                #region DMCast
-                //assign climatic data
-                for (int i = 1; i <= 12; i++)
-                {
-                    dmcast.ClimaticRainfallSum.Add(i, ClimaticMonthlyRainfall[i].Average());
-                    dmcast.ClimaticRainyDays.Add(i, ClimaticMonthlyRainyDays[i].Average());
-                    dmcast.ClimaticStdRainfallSum.Add(i, ClimaticMonthlyRainfall[i].StandardDeviation());
-                }
-
-                #endregion
             }
             #endregion
+
+            #region DMCast
+            //assign climatic data
+            for (int i = 1; i <= 12; i++)
+            {
+                dmcast.ClimaticRainfallSum.Add(i, ClimaticMonthlyRainfall[i].Average());
+                dmcast.ClimaticRainyDays.Add(i, ClimaticMonthlyRainyDays[i].Average());
+                dmcast.ClimaticStdRainfallSum.Add(i, ClimaticMonthlyRainfall[i].StandardDeviation());
+            }
+
+            #endregion
+
+            #endregion
+
         }
 
         #region write output files
@@ -430,9 +475,11 @@ namespace octoPusAI.ModelCallers
             // Main model outputs (pressure)
             "pressureRule310,pressureEpi,pressureIpi,pressureDmcast,pressureMagarey,pressureUCSC,pressureMisfits,pressureLaore";
             
+
             //add the header to the list
             toWrite.Add(header);
 
+          
             //loop over days
             foreach (var date in date_outputs.Keys)
             { 
@@ -440,7 +487,6 @@ namespace octoPusAI.ModelCallers
                 {
                     var line = new StringBuilder();
                     line.Append($"{date_outputs[date].Input.Site},");
-
                     #region Weather data
                     line.Append($"{date},");
                     line.Append($"{date_outputs[date].Input.Tmax},");
@@ -450,8 +496,7 @@ namespace octoPusAI.ModelCallers
                     line.Append($"{date_outputs[date].Input.RHmax},");
                     line.Append($"{date_outputs[date].Input.RHmin},");
                     #endregion
-
-                    #region phenology model outputs
+                    //phenology
                     line.Append($"{date_outputs[date].chillState},");
                     line.Append($"{date_outputs[date].chillRate},");
                     line.Append($"{date_outputs[date].antiChillRate},");
@@ -460,7 +505,6 @@ namespace octoPusAI.ModelCallers
                     line.Append($"{date_outputs[date].cycleCompletionPercentage},");
                     line.Append($"{date_outputs[date].bbchCode},");
                     line.Append($"{date_outputs[date].bbchPhase},");
-                    #endregion
 
                     #region Main model outputs
                     line.Append($"{date_outputs[date].plantSusceptibility},");
@@ -483,7 +527,7 @@ namespace octoPusAI.ModelCallers
                     line.Append($"{date_outputs[date].pressureLaore},");
                     #endregion
 
-                    #region Model suboutputs (detailed run, now commented)
+                    #region Model suboutputs
                     // EPI
                     //line.Append($"{date_outputs[date].EPI_ke},");
                     //line.Append($"{date_outputs[date].EPI_pe},");
@@ -510,7 +554,6 @@ namespace octoPusAI.ModelCallers
 
                 }
             }
-
             // Find the last occurrence of the directory separator character
             int lastIndex = site.LastIndexOf('\\');
             string siteShort = site.Substring(lastIndex + 1);
@@ -523,28 +566,29 @@ namespace octoPusAI.ModelCallers
         }
         #endregion
 
+
         // Execute a single hourly timestep
-        public void modelCall(Input inputs, Parameters parameters, Output outputs, out OutputsDaily modelsOutput, LLamaInterface LLamaInterface)
+        public void modelCall(Input weatherData, Parameters parameters, bool isFlowered, Output outputs, out OutputsDaily modelsOutput,
+            LLamaInterface LLamaInterface)
         {
             //initialize the daily output object
             modelsOutput = new OutputsDaily();
 
             //add weather data to the lists
-            Temperatures.Add(inputs.Temperature);
-            Precipitation.Add(inputs.Precipitation);
-            RelativeHumidity.Add(inputs.RelativeHumidity);
-            Leafwetness.Add(inputs.LeafWetness);
+            Temperatures.Add(weatherData.Temperature);
+            Precipitation.Add(weatherData.Precipitation);
+            RelativeHumidity.Add(weatherData.RelativeHumidity);
+            Leafwetness.Add(weatherData.LeafWetness);
 
             //reinizialize objects at the start of the year
-            if (inputs.Date.DayOfYear == 1)
+            if (weatherData.Date.DayOfYear == 1)
             {
+                isFlowered = false;
                 outputs.outputsMagarey = new OutputsMagarey();
-
                 //reinitialize the models at first day of the year
                 laore = new Laore();
-                misfits = new Misfits();
+                misfits = new Misfits();               
                 ipi = new IPI();
-
                 #region reinitialize pressure
                 pressureRule310 = 0;
                 pressureEPI = 0;
@@ -557,28 +601,27 @@ namespace octoPusAI.ModelCallers
                 #endregion
             }
 
-            //reinitialize outputsPhenology each year at the start of the season DOY 300 (25th October)
-            if (inputs.Date.DayOfYear == 300 && inputs.Date.Hour == 0)
+            //reinitialize outputsPhenology each year
+            if (weatherData.Date.DayOfYear == 300 && weatherData.Date.Hour==0)
             {
                 outputs.outputsPhenology = new OutputsPhenology();
                 //reinitialize the UCSC model at the start of the season
                 ucsc = new UCSC();
             }
 
-
-            //call the octoPus infection models (tentacles)            
-            magarey.run(inputs, parameters, outputs);
-            if (areEPIDMCASTexecutable)
+            //if bud burst occurred, call the models
+            if (outputs.outputsPhenology.bbchPhenophaseCode>10)
             {
-                epi.run(inputs, parameters, outputs);
-                dmcast.run(inputs, parameters, outputs);
+                //call the octoPus models
+                magarey.run(weatherData, parameters, outputs);
+                //epi.run(weatherData, parameters, outputs);
+                ipi.run(weatherData, parameters, outputs);
+                ucsc.run(weatherData, parameters, outputs);
+                //dmcast.run(weatherData, parameters, outputs);
+                rule310.run(weatherData, parameters, outputs);
+                misfits.run(weatherData, parameters, outputs);
+                laore.run(weatherData, parameters, outputs);
             }
-            ipi.run(inputs, parameters, outputs);
-            ucsc.run(inputs, parameters, outputs);         
-            rule310.run(inputs, parameters, outputs);
-            misfits.run(inputs, parameters, outputs);
-            laore.run(inputs, parameters, outputs);
-
 
             #region detailed run
             double EPI_index = 0;
@@ -586,44 +629,41 @@ namespace octoPusAI.ModelCallers
             double IPI_index_sum = 0;
             double UCSC_HT = 0;
 
-            if (areEPIDMCASTexecutable)
+            #region EPI                                               
+            EPI_ke.Add(outputs.outputsEPI.ke);
+            EPI_pe.Add(outputs.outputsEPI.pe);
+            //to cumulate EPI
+            EPI_index = outputs.outputsEPI.epi;
+            //reinitialize EPI_index sum each year on 1st october						
+            if (weatherData.Date.Month == 10 && weatherData.Date.Day == 1)
             {
-                #region EPI                                               
-                EPI_ke.Add(outputs.outputsEPI.ke);
-                EPI_pe.Add(outputs.outputsEPI.pe);
-                //to cumulate EPI
-                EPI_index = outputs.outputsEPI.epi;
-                //reinitialize EPI_index sum each year on 1st October						
-                if (inputs.Date.Month == 10 && inputs.Date.Day == 1)
-                {
-                    EPI_index = 0;
-                }
-                #endregion
-
-                #region DMCast                        
-                DMCast_Pom.Add(dmcast.Pom(inputs, parameters.dmcastParameters));
-                DMCast_Ra.Add(dmcast.RAi(inputs));
-                //to cumulate Pom
-                DMCast_PomSum = outputs.outputsDMCast.pomsum;
-                //reinitialize DMCast each year on 1st October (as in the updated version of the model)
-                //See "Plant Health Progress, 2007, 8.1: 66"
-                if (inputs.Date.Month == 09 && inputs.Date.Day == 22) //change this to 1 Oct in updated model
-                {
-                    DMCast_PomSum = 0;
-                }
-                #endregion
+                EPI_index = 0;
             }
+            #endregion
+
+            #region DMCast                        
+            //DMCast_Pom.Add(dmcast.Pom(weatherData, parameters.dmcastParameters));
+            //DMCast_Ra.Add(dmcast.RAi(weatherData));
+            //to cumulate Pom
+            //DMCast_PomSum = outputs.outputsDMCast.pomsum;
+            //reinitialize DMCast each year on 1st October (as in the updated version of the model)
+            //See "Plant Health Progress, 2007, 8.1: 66"
+            if (weatherData.Date.Month == 09 && weatherData.Date.Day == 22) //change this to 1 Oct in updated model
+            {
+                DMCast_PomSum = 0;
+            }
+            #endregion
 
             #region IPI                        
-            IPI_Ri.Add(ipi.Ri(inputs, parameters.ipiParameters));
-            IPI_Tmeani.Add(ipi.Tmeani(inputs, parameters.ipiParameters));
-            IPI_Lwi.Add(ipi.Lwi(inputs, parameters.ipiParameters));
-            IPI_Rhi.Add(ipi.Rhi(inputs, parameters.ipiParameters));
-            IPI_index.Add(ipi.IPI_index(inputs, parameters.ipiParameters));
+            IPI_Ri.Add(ipi.Ri(weatherData, parameters.ipiParameters));
+            IPI_Tmeani.Add(ipi.Tmeani(weatherData, parameters.ipiParameters));
+            IPI_Lwi.Add(ipi.Lwi(weatherData, parameters.ipiParameters));
+            IPI_Rhi.Add(ipi.Rhi(weatherData, parameters.ipiParameters));
+            IPI_index.Add(ipi.IPI_index(weatherData, parameters.ipiParameters));
             //to cumulate IPI index
             IPI_index_sum = outputs.outputsIPI.ipisum;
             //reinitialize IPI each year
-            if (inputs.Date.DayOfYear == 1)
+            if (weatherData.Date.DayOfYear == 1)
             {
                 IPI_index_sum = 0;
             }
@@ -637,7 +677,7 @@ namespace octoPusAI.ModelCallers
             UCSC_HT = outputs.outputsUCSC.hts;
 
             //reinitialize HT each year
-            if (inputs.Date.Month == 1)
+            if (weatherData.Date.Month == 1)
             {
                 UCSC_HT = 0; ;
             }
@@ -646,26 +686,24 @@ namespace octoPusAI.ModelCallers
             #endregion
 
             //phenology run (daily time step)
-            if (inputs.Date.Hour == 00)
+            if (weatherData.Date.Hour == 00)
             {
                 //call phenology model
                 InputDaily inputDaily = new InputDaily();
                 inputDaily.Tmax = (float)Temperatures.Max();
                 inputDaily.Tmin = (float)Temperatures.Min();
-                inputDaily.Date = inputs.Date;
+                inputDaily.Date = weatherData.Date;
                 //call phenology models
                 chilling.runDormancy(inputDaily, parameters, outputs);
                 forcing.runForcing(inputDaily, parameters, outputs);
             }
 
             //each day
-            if (inputs.Date.Hour == 00)
+            if (weatherData.Date.Hour == 00)
             {
                 #region Populate daily model outputs
-                //initialize the daily output object
                 modelsOutput = new OutputsDaily();
-                //populate the properties of the daily output object with synthetic input weather data
-                modelsOutput.Input.Date = inputs.Date;
+                modelsOutput.Input.Date = weatherData.Date;
                 modelsOutput.Input.Site = weatherFile;
                 modelsOutput.Input.Tmax = (float)Temperatures.Max();
                 modelsOutput.Input.Tmin = (float)Temperatures.Min();
@@ -675,7 +713,7 @@ namespace octoPusAI.ModelCallers
                 modelsOutput.RHmean = RelativeHumidity.Average();
                 modelsOutput.Input.Precipitation = (float)Precipitation.Sum();
                 modelsOutput.Input.LeafWetnessDuration = (float)Leafwetness.Sum();
-                //populate the outputs of the phenological model
+                
                 modelsOutput.chillRate = outputs.outputsPhenology.chillRate;
                 modelsOutput.chillState = outputs.outputsPhenology.chillState;
                 modelsOutput.antiChillRate = outputs.outputsPhenology.antiChillRate;
@@ -684,92 +722,84 @@ namespace octoPusAI.ModelCallers
                 modelsOutput.cycleCompletionPercentage = outputs.outputsPhenology.cycleCompletionPercentage;
                 modelsOutput.bbchCode = outputs.outputsPhenology.bbchPhenophaseCode;
                 modelsOutput.bbchPhase = outputs.outputsPhenology.bbchPhenophase;
-                //populate the output of the susceptibility model
                 modelsOutput.plantSusceptibility = outputs.outputsPhenology.plantSusceptibility;
 
                 #region binary outputs outputs (Final outputs)
-                //Rule 310
-                modelsOutput.infectionRule310 = outputs.outputsRule310.infectionEvents.
-                    Any(rule310Infection =>
-                rule310Infection.infectionDate > inputs.Date.AddHours(-24)) ? 1 : 0;
-                pressureRule310 += modelsOutput.infectionRule310;
+                // 310
+                modelsOutput.infectionRule310 = outputs.outputsRule310.infectionEvents.Any(rule310Infection =>
+                rule310Infection.infectionDate > weatherData.Date.AddHours(-24)) ? 1 : 0;
+                pressureRule310+= modelsOutput.infectionRule310;
                 modelsOutput.pressureRule310 += pressureRule310;
                 // EPI
-                modelsOutput.infectionEPI = outputs.outputsEPI.infectionEvents.
-                    Any(epiInfection => epiInfection.infectionDate > inputs.Date.AddHours(-24)) ? 1 : 0;
+                modelsOutput.infectionEPI = outputs.outputsEPI.infectionEvents.Any(epiInfection => epiInfection.infectionDate > weatherData.Date.AddHours(-24)) ? 1 : 0;
                 pressureEPI += modelsOutput.infectionEPI;
                 modelsOutput.pressureEPI += pressureEPI;
                 // IPI
-                modelsOutput.infectionIPI = outputs.outputsIPI.infectionEvents.
-                    Any(ipiInfection => ipiInfection.infectionDate > inputs.Date.AddHours(-24)) ? 1 : 0;
+                modelsOutput.infectionIPI = outputs.outputsIPI.infectionEvents.Any(ipiInfection => ipiInfection.infectionDate > weatherData.Date.AddHours(-24)) ? 1 : 0;
                 pressureIPI += modelsOutput.infectionIPI;
                 modelsOutput.pressureIPI += pressureIPI;
                 // DMCast
-                modelsOutput.infectionDMCast = outputs.outputsDMCast.infectionEvents.
-                    Any(dmcastInfection => dmcastInfection.infectionDate > inputs.Date.AddHours(-24)) ? 1 : 0;
+                modelsOutput.infectionDMCast = outputs.outputsDMCast.infectionEvents.Any(dmcastInfection => dmcastInfection.infectionDate > weatherData.Date.AddHours(-24)) ? 1 : 0;
                 pressureDMCast += modelsOutput.infectionDMCast;
                 modelsOutput.pressureDMCast += pressureDMCast;
                 // Magarey
-                modelsOutput.infectionMagarey = outputs.outputsMagarey.infectionEvents.
-                    Any(magareyInfection => magareyInfection.infectionDate > inputs.Date.AddHours(-24)) ? 1 : 0;
+                modelsOutput.infectionMagarey = outputs.outputsMagarey.infectionEvents.Any(magareyInfection => magareyInfection.infectionDate > weatherData.Date.AddHours(-24)) ? 1 : 0;
                 pressureMagarey += modelsOutput.infectionMagarey;
                 modelsOutput.pressureMagarey += pressureMagarey;
                 // UCSC
                 var uCSCInfectionsToRemove = outputs.outputsUCSC.infectionEvents
-                    .Where(uCSCInfection => uCSCInfection.infectionDate > inputs.Date.AddHours(-24))
+                    .Where(rossiInfection => rossiInfection.infectionDate > weatherData.Date.AddHours(-24))
                     .ToList();
                 modelsOutput.infectionUCSC = uCSCInfectionsToRemove.Any() ? 1 : 0;
-                foreach (var uCSCInfection in uCSCInfectionsToRemove)
+                foreach (var rossiInfection in uCSCInfectionsToRemove)
                 {
-                    outputs.outputsUCSC.infectionEvents.Remove(uCSCInfection);
+                    outputs.outputsUCSC.infectionEvents.Remove(rossiInfection);
                 }
                 pressureUCSC += modelsOutput.infectionUCSC;
                 modelsOutput.pressureUCSC += pressureUCSC;
                 // Misfits
-                modelsOutput.infectionMisfits = outputs.outputsMisfits.infectionEvents.
-                    Any(misfitsInfection => misfitsInfection.infectionDate > inputs.Date.AddHours(-24)) ? 1 : 0;
+                modelsOutput.infectionMisfits = outputs.outputsMisfits.infectionEvents.Any(misfitsInfection => misfitsInfection.infectionDate > weatherData.Date.AddHours(-24)) ? 1 : 0;
                 pressureMisfits += modelsOutput.infectionMisfits;
                 modelsOutput.pressureMisfits += pressureMisfits;
                 // Laore
-                modelsOutput.infectionLaore = outputs.outputsLaore.infectionEvents.
-                    Any(laoreInfection => laoreInfection.infectionDate > inputs.Date.AddHours(-24)) ? 1 : 0;
+                modelsOutput.infectionLaore = outputs.outputsLaore.infectionEvents.Any(laoreInfection => laoreInfection.infectionDate > weatherData.Date.AddHours(-24)) ? 1 : 0;
                 pressureLaore += modelsOutput.infectionLaore;
                 modelsOutput.pressureLaore += pressureLaore;
                 #endregion
 
                 #region Intermediate model outputs
-                if (EPI_ke.Count > 0)
+                if(EPI_ke.Count>0)
                 {
                     modelsOutput.EPI_ke = EPI_ke.Last();
                     modelsOutput.EPI_pe = EPI_pe.Last();
                 }
-
-                modelsOutput.EPI_index = EPI_index;
+               
+                //modelsOutput.EPI_index = EPI_index;
                 //DMCast
-                if (DMCast_Ra.Count > 0)
+                if(DMCast_Ra.Count>0)
                 {
                     modelsOutput.DMCast_Ra = DMCast_Ra.Max();
                     modelsOutput.DMCast_Pom = DMCast_Pom.Max();
                 }
-
-                modelsOutput.DMCast_PomSum = DMCast_PomSum;
+               
+                //modelsOutput.DMCast_PomSum = DMCast_PomSum;
                 //IPI
-                if (IPI_Tmeani.Count > 0)
+                if(IPI_Tmeani.Count>0)
                 {
                     modelsOutput.IPI_Tmeani = IPI_Tmeani.Max();
                     modelsOutput.IPI_Ri = IPI_Ri.Max();
                     modelsOutput.IPI_Lwi = IPI_Lwi.Max();
                     modelsOutput.IPI_Rhi = IPI_Rhi.Max();
                     modelsOutput.IPI_index = IPI_index.Max();
-
+                   
                 }
-
-                modelsOutput.IPI_index_sum = IPI_index_sum;
+               
+                //modelsOutput.IPI_index_sum = IPI_index_sum;
                 //UCSC
-                if (UCSC_HTi.Count > 0)
+                if(UCSC_HTi.Count>0)
                 {
                     modelsOutput.UCSC_HTi = UCSC_HTi.Max();
-                    modelsOutput.UCSC_HT = UCSC_HT;
+                    //modelsOutput.UCSC_HT = UCSC_HT;
                     modelsOutput.UCSC_DOR = UCSC_DOR.Max();
                     modelsOutput.UCSC_GER = UCSC_GER.Max();
                 }
@@ -778,54 +808,52 @@ namespace octoPusAI.ModelCallers
                 #endregion
 
                 #region populate data structure for machine learning
-                //create an instance of the machine learning model outputs
+
                 ModelOutputsML ModelOutputsML = new ModelOutputsML();
-                //assign the outputs of the single infection models to the instance of the machine learning model outputs
                 ModelOutputsML.model_date_infection.Add("Rule310", new Dictionary<DateTime, int>());
-                ModelOutputsML.model_date_infection["Rule310"].Add(inputs.Date, modelsOutput.infectionRule310);
+                ModelOutputsML.model_date_infection["Rule310"].Add(weatherData.Date, modelsOutput.infectionRule310);
                 ModelOutputsML.model_date_infection.Add("Epi", new Dictionary<DateTime, int>());
-                ModelOutputsML.model_date_infection["Epi"].Add(inputs.Date, modelsOutput.infectionEPI);
+                ModelOutputsML.model_date_infection["Epi"].Add(weatherData.Date, modelsOutput.infectionEPI);
                 ModelOutputsML.model_date_infection.Add("Ipi", new Dictionary<DateTime, int>());
-                ModelOutputsML.model_date_infection["Ipi"].Add(inputs.Date, modelsOutput.infectionIPI);
+                ModelOutputsML.model_date_infection["Ipi"].Add(weatherData.Date, modelsOutput.infectionIPI);
                 ModelOutputsML.model_date_infection.Add("Dmcast", new Dictionary<DateTime, int>());
-                ModelOutputsML.model_date_infection["Dmcast"].Add(inputs.Date, modelsOutput.infectionDMCast);
+                ModelOutputsML.model_date_infection["Dmcast"].Add(weatherData.Date, modelsOutput.infectionDMCast);
                 ModelOutputsML.model_date_infection.Add("Magarey", new Dictionary<DateTime, int>());
-                ModelOutputsML.model_date_infection["Magarey"].Add(inputs.Date, modelsOutput.infectionMagarey);
+                ModelOutputsML.model_date_infection["Magarey"].Add(weatherData.Date, modelsOutput.infectionMagarey);
                 ModelOutputsML.model_date_infection.Add("UCSC", new Dictionary<DateTime, int>());
-                ModelOutputsML.model_date_infection["UCSC"].Add(inputs.Date, modelsOutput.infectionUCSC);
+                ModelOutputsML.model_date_infection["UCSC"].Add(weatherData.Date, modelsOutput.infectionUCSC);
                 ModelOutputsML.model_date_infection.Add("misfits", new Dictionary<DateTime, int>());
-                ModelOutputsML.model_date_infection["misfits"].Add(inputs.Date, modelsOutput.infectionMisfits);
+                ModelOutputsML.model_date_infection["misfits"].Add(weatherData.Date, modelsOutput.infectionMisfits);
                 ModelOutputsML.model_date_infection.Add("laore", new Dictionary<DateTime, int>());
-                ModelOutputsML.model_date_infection["laore"].Add(inputs.Date, modelsOutput.infectionLaore);
+                ModelOutputsML.model_date_infection["laore"].Add(weatherData.Date, modelsOutput.infectionLaore);
                 ModelOutputsML.model_date_pressure.Add("Rule310", new Dictionary<DateTime, int>());
-                ModelOutputsML.model_date_pressure["Rule310"].Add(inputs.Date, modelsOutput.pressureRule310);
+                ModelOutputsML.model_date_pressure["Rule310"].Add(weatherData.Date, modelsOutput.pressureRule310);
                 ModelOutputsML.model_date_pressure.Add("Epi", new Dictionary<DateTime, int>());
-                ModelOutputsML.model_date_pressure["Epi"].Add(inputs.Date, modelsOutput.pressureEPI);
+                ModelOutputsML.model_date_pressure["Epi"].Add(weatherData.Date, modelsOutput.pressureEPI);
                 ModelOutputsML.model_date_pressure.Add("Ipi", new Dictionary<DateTime, int>());
-                ModelOutputsML.model_date_pressure["Ipi"].Add(inputs.Date, modelsOutput.pressureIPI);
+                ModelOutputsML.model_date_pressure["Ipi"].Add(weatherData.Date, modelsOutput.pressureIPI);
                 ModelOutputsML.model_date_pressure.Add("Dmcast", new Dictionary<DateTime, int>());
-                ModelOutputsML.model_date_pressure["Dmcast"].Add(inputs.Date, modelsOutput.pressureDMCast);
+                ModelOutputsML.model_date_pressure["Dmcast"].Add(weatherData.Date, modelsOutput.pressureDMCast);
                 ModelOutputsML.model_date_pressure.Add("Magarey", new Dictionary<DateTime, int>());
-                ModelOutputsML.model_date_pressure["Magarey"].Add(inputs.Date, modelsOutput.pressureMagarey);
+                ModelOutputsML.model_date_pressure["Magarey"].Add(weatherData.Date, modelsOutput.pressureMagarey);
                 ModelOutputsML.model_date_pressure.Add("UCSC", new Dictionary<DateTime, int>());
-                ModelOutputsML.model_date_pressure["UCSC"].Add(inputs.Date, modelsOutput.pressureUCSC);
+                ModelOutputsML.model_date_pressure["UCSC"].Add(weatherData.Date, modelsOutput.pressureUCSC);
                 ModelOutputsML.model_date_pressure.Add("misfits", new Dictionary<DateTime, int>());
-                ModelOutputsML.model_date_pressure["misfits"].Add(inputs.Date, modelsOutput.pressureMisfits);
+                ModelOutputsML.model_date_pressure["misfits"].Add(weatherData.Date, modelsOutput.pressureMisfits);
                 ModelOutputsML.model_date_pressure.Add("laore", new Dictionary<DateTime, int>());
-                ModelOutputsML.model_date_pressure["laore"].Add(inputs.Date, modelsOutput.pressureLaore);
+                ModelOutputsML.model_date_pressure["laore"].Add(weatherData.Date, modelsOutput.pressureLaore);
                 //assign BBCH code and plant susceptibility to the RandomForest model
                 ModelOutputsML.BBCH = modelsOutput.bbchCode;
                 ModelOutputsML.susceptibility = modelsOutput.plantSusceptibility;
-                Rinterface.modelOutputsML = ModelOutputsML;
+                MLmodel.modelOutputsML = ModelOutputsML;
                 //call the machine learning model
-                ModelOutputsML = Rinterface.MLmodelCall(Rversion);
+                ModelOutputsML = MLmodel.MLmodelCall(Rversion);
 
-                //the Llama assistant is called only if BBCH code is > 11 and the date is before July 31 (212) 
-                if (modelsOutput.bbchCode > 10 && inputs.Date.DayOfYear < 212)
+
+                if (modelsOutput.bbchCode > 11 && weatherData.Date.DayOfYear<214) //remove day<214
                 {
-                    //call the Llama assistant
-                    LLamaInterface.CallAsyncAndWaitOnResult(weatherFile, inputs.Date, 
-                        ModelOutputsML, assistantRisk, veryHighModelsThreshold);
+                     LLamaInterface.CallAsyncAndWaitOnResult(weatherFile, weatherData.Date, ModelOutputsML, assistantRisk,
+                        veryHighModelsThreshold);
                 }
                 #endregion
 
@@ -851,14 +879,12 @@ namespace octoPusAI.ModelCallers
             }
         }
 
+   
         #region detailed bbch parameters
-        //this static method generates the detailed phenology parameters by linear interpolation of the BBCH parameters in the octoPusParameters.csv file
         private static Parameters generateDetailedPhenologyParameters(Parameters simpleParameters)
         {
-            //instance of the detailed parameters
             Parameters detailedParameters = (Parameters)simpleParameters;
             detailedParameters = new Parameters();
-            //the parameters of the infection models are passed to the detailed parameters
             detailedParameters.rule310Parameters = simpleParameters.rule310Parameters;
             detailedParameters.magareyParameters = simpleParameters.magareyParameters;
             detailedParameters.epiParameters = simpleParameters.epiParameters;
@@ -869,40 +895,39 @@ namespace octoPusAI.ModelCallers
             detailedParameters.dmcastParameters = simpleParameters.dmcastParameters;
             detailedParameters.phenologyParameters = simpleParameters.phenologyParameters;
 
-            //if bbch99 is not present, include it as the last key
+            //if bbch99 is not present, include it
             if (!simpleParameters.bbchParameters.ContainsKey(99))
             {
                 simpleParameters.bbchParameters.Add(99, new parametersBBCH());
                 simpleParameters.bbchParameters[99].cycleCompletion = 100;
             }
-            //get the keys of the simple parameters
+
             List<int> keys = simpleParameters.bbchParameters.Keys.AsEnumerable().ToList();
 
-            //loop over the keys of the simple parameters
             for (int i = 0; i < keys.Count; i++)
             {
                 //get current key
                 int currentBbch = keys[i];
                 int nextBbch = 0;
-                //NOTE: assumption, simulations only before bbch 99
+                //NOTE: assumption, simulations only before bbch 90
                 if (currentBbch < 99)
                 {
-                    //get the next key
                     nextBbch = keys[i + 1];
-                    //compute the BBCH gap between the two keys
+
                     int bbchGap = nextBbch - currentBbch;
-                    //loop over the BBCH gap
+
                     for (int availableBbch = 0; availableBbch < bbchGap; availableBbch++)
                     {
-                        //compute the current BBCH code
                         int thisBbch = currentBbch + availableBbch;
-                        //add the BBCH code to the detailed parameters
-                        detailedParameters.bbchParameters.Add(thisBbch, new parametersBBCH());
-                        //initialize the parametersBBCH object
+                        detailedParameters.bbchParameters.Add(thisBbch,
+                            new parametersBBCH());
+
                         parametersBBCH phenologyParameters = new parametersBBCH();
-                        
+                        //compute the growing degree days at flowering
+                        float gddFlowering = simpleParameters.bbchParameters[65].cycleCompletion / 100 *
+                      simpleParameters.phenologyParameters.CycleLength;
+
                         float floweringFraction = simpleParameters.bbchParameters[65].cycleCompletion / 100;
-                        //these are the BBCH codes before flowering
                         if (nextBbch < 65)
                         {
                             phenologyParameters.cycleCompletion =
@@ -911,7 +936,6 @@ namespace octoPusAI.ModelCallers
                             floweringFraction;
 
                         }
-                        //this is the BBCH code for flowering
                         else if (nextBbch == 65)
                         {
                             phenologyParameters.cycleCompletion =
@@ -919,66 +943,82 @@ namespace octoPusAI.ModelCallers
                             nextBbch, 100, thisBbch) *
                             floweringFraction;
                         }
-                        //these are the BBCH codes after flowering
                         else if (nextBbch < 99)
                         {
+
                             phenologyParameters.cycleCompletion =
                                 linearInterpolator(currentBbch, simpleParameters.bbchParameters[currentBbch].cycleCompletion,
                            nextBbch, floweringFraction * 100 +
                            simpleParameters.bbchParameters[nextBbch].cycleCompletion / 100 *
                            (100 - simpleParameters.bbchParameters[currentBbch].cycleCompletion),
                            thisBbch);
+
                         }
-                        else //this is the BBCH code for senescence
+                        else
                         {
                             float start = (floweringFraction * 100) + simpleParameters.bbchParameters[currentBbch].cycleCompletion *
                            (1 - floweringFraction);
+
                             phenologyParameters.cycleCompletion =
                            linearInterpolator(currentBbch, start,
                            nextBbch, 100, thisBbch);
-                        }                    
+                        }
+
+                    
                         //add the istance to the dictionary
                         detailedParameters.bbchParameters[thisBbch] = phenologyParameters;
                     }
                 }
+
             }
-            //return the detailed parameters
+
+
             return detailedParameters;
+
         }
 
-        //this static method computes the linear interpolation between two values
         public static float linearInterpolator(int currentBbch, float currentValue, int nextBbch, float nextValue, int thisBbch)
         {
-            //initialize the interpolated value
             float interpolatedValue = 0;
-            //the linear interpolation formula
+
+
             int x1 = currentBbch;
             float y1 = currentValue;
             int x2 = nextBbch;
             float y2 = nextValue;
 
-            //if the difference between the two BBCH codes is 0, the interpolated value is the average of the two values
             if ((x2 - x1) == 0)
             {
                 interpolatedValue = (y2 + y1) / 2;
             }
-            else //otherwise, the interpolated value is computed using the linear interpolation formula
+            else
             {
                 interpolatedValue = y1 + (thisBbch - x1) * (y2 - y1) / (x2 - x1);
             }
-            //return the interpolated value
+
+
             return interpolatedValue;
         }
         #endregion
+
+
     }
 
-    //extend the IEnumerable class to compute the standard deviation
+
     public static class Extend
     {
         public static double StandardDeviation(this IEnumerable<double> values)
         {
             double avg = values.Average();
             return Math.Sqrt(values.Average(v => Math.Pow(v - avg, 2)));
+        }
+
+        public static void AddRange(this Dictionary<DateTime, Input> dictionary, IEnumerable<KeyValuePair<DateTime, Input>> items)
+        {
+            foreach (var item in items)
+            {
+                dictionary.Add(item.Key, item.Value);
+            }
         }
     }
 }

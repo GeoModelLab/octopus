@@ -1,4 +1,4 @@
-﻿//the input class for the weather data (Input) and the daily weather data to be added to the Output class (InputDaily)
+﻿//the input class for the weather data (Input) and the daily weather data to estimate hourly data and to be added to the Output class (InputDaily)
 namespace Models.Datatype
 {
     //input class for the weather data
@@ -35,6 +35,8 @@ namespace Models.Datatype
         public float RHmin { get; set; }
         //name of the weather station
         public string Site { get; set; }
+        //dewpoint (for hourly estimates)
+        public float dewPoint { get; set; }
 
     }
 }

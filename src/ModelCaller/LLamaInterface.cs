@@ -6,14 +6,12 @@ namespace octoPusAI.ModelCallers
     //This class is the interface to the LLama model
     internal class LLamaInterface
     {
-        #region private properties
+        //private properties
         public string modelPath;  // change it to your own model path in the octoPus.json file
         private LLamaWeights LLamaWeights; // The model weights
         private InteractiveExecutor executor; // The executor to run the Llama model
         private ModelParams parameters; // The LLama model parameters
-        private InferenceParams InferenceParams; // The LLama inference parameters                                            
-        List<string> answers = new List<string>(); //this list stores the answers of the Llama assistant
-        #endregion
+        private InferenceParams InferenceParams; // The LLama inference parameters
 
         //Llama interface constructor to initialize the model
         public LLamaInterface(string modelPath)
@@ -73,8 +71,7 @@ namespace octoPusAI.ModelCallers
         public void consoleMessages(string site, DateTime date, ModelOutputsML mLmodel, int veryHighModelsTreshold, 
             out int infectionModelsToday, out string pressureText, out string infectionText)
         {
-            #region extract daily information from model outputs
-            // Count the number of models that simulated an infection for the specific date
+
             infectionModelsToday =  mLmodel.model_date_infection
             .SelectMany(kv => kv.Value)
             .Where(kv => kv.Key == date && kv.Value == 1)
@@ -87,12 +84,9 @@ namespace octoPusAI.ModelCallers
                 .Select(kv => kv.Key)
                 .ToList();
 
-            // Use LINQ to extract the keys and values for the specific date
             var pressureModelsNames = mLmodel.model_date_pressure
                 .ToDictionary(kv => kv.Key, kv => kv.Value);
-            #endregion
 
-            // Create strings for the infection and pressure models
             infectionText = string.Join(" ", infectionModelsNames.Select(model => $"{model}"));
             
             pressureText = string.Join(" ", pressureModelsNames.Select(kv =>
@@ -208,6 +202,9 @@ namespace octoPusAI.ModelCallers
             #endregion
         }
 
+        //this list stores the answers of the Llama assistant
+        List<string> answers = new List<string>();
+
         //call the Llama model
         public async Task callLLama(string site, DateTime date, ModelOutputsML mLmodel, float assistantRisk, int riskModels)
         {
@@ -221,7 +218,6 @@ namespace octoPusAI.ModelCallers
             //These parameters are set in the octoPus.json file
             if (mLmodel.predictedRisk > assistantRisk || infectionModelsCount > riskModels)
             {
-                #region interfacing with the Llama model
                 // Add chat histories as prompt to tell AI how to act.
                 var chatHistory = new ChatHistory();
 
@@ -312,24 +308,21 @@ namespace octoPusAI.ModelCallers
                     writer.WriteLine(message);
                 }
                 answers.Add(message);
-                #endregion
             }
 
-            //wait for x millisecond (optional)
-            Thread.Sleep(0); 
+            //wait for .2 second
+            Thread.Sleep(0); // Pause for 1000 milliseconds (1 second)
         }
 
-        //Asynchronous method to call the Llama model and wait for the result
-        public Task CallAsyncAndWaitOnResult(string site, DateTime date, ModelOutputsML mlModel, float assistantRisk, int veryHighModelsThreshold)
+        public Task CallAsyncAndWaitOnResult(string site, DateTime date, ModelOutputsML mlModel, float assistantRisk, int veryHighModelsTreshold)
         {
-            string siteShort = ExtractSiteName(site);
-            var task = callLLama(siteShort, date, mlModel, assistantRisk, veryHighModelsThreshold);
+            string siteShort = ExtractCityName(site);
+            var task = callLLama(siteShort, date, mlModel, assistantRisk, veryHighModelsTreshold);
             task.Wait();
             return task;
         }
 
-        //static method to extract the site name from the path
-        static string ExtractSiteName(string input)
+        static string ExtractCityName(string input)
         {
             // Find the last occurrence of the backslash and the period
             int lastBackslashIndex = input.LastIndexOf('\\');

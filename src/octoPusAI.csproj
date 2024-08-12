@@ -20,18 +20,23 @@
   <ItemGroup>
     <None Include="Files\Parameters\hostSusceptibilityParameters.csv" />
     <None Include="Files\Parameters\octoPusParameters.csv" />
-    <None Include="Files\Weather\Bergamo.csv" />
-    <None Include="Files\Weather\Chieti.csv" />
-    <None Include="Files\Weather\Cuneo.csv" />
-    <None Include="Files\Weather\Gorizia.csv" />
-    <None Include="Files\Weather\Imperia.csv" />
-    <None Include="Files\Weather\Macerata_short.csv" />
-    <None Include="Files\Weather\Macerata.csv" />
-    <None Include="Files\Weather\Oristano.csv" />
-    <None Include="Files\Weather\Perugia.csv" />
-    <None Include="Files\Weather\Potenza.csv" />
-    <None Include="Files\Weather\Ravenna.csv" />
-    <None Include="Files\Weather\Treviso.csv" />
+    <None Include="Files\Weather\daily\Abruzzo_Chieti_41.90_14.20.csv" />
+    <None Include="Files\Weather\daily\rome.csv" />
+    <None Include="Files\Weather\daily\stockholm.csv" />
+    <None Include="Files\Weather\Dati_Bugiani\bazzano_2024.csv" />
+    <None Include="Files\Weather\Dati_Bugiani\bomporto_2024.csv" />
+    <None Include="Files\Weather\Dati_Bugiani\camerlona_2024.csv" />
+    <None Include="Files\Weather\hourly\Bergamo.csv" />
+    <None Include="Files\Weather\hourly\Chieti.csv" />
+    <None Include="Files\Weather\hourly\Cuneo.csv" />
+    <None Include="Files\Weather\hourly\Gorizia.csv" />
+    <None Include="Files\Weather\hourly\Imperia.csv" />
+    <None Include="Files\Weather\hourly\Macerata.csv" />
+    <None Include="Files\Weather\hourly\Oristano.csv" />
+    <None Include="Files\Weather\hourly\Perugia.csv" />
+    <None Include="Files\Weather\hourly\Potenza.csv" />
+    <None Include="Files\Weather\hourly\Ravenna.csv" />
+    <None Include="Files\Weather\hourly\Treviso.csv" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,17 +1,18 @@
 ﻿{
   "settings": {
-    "startYear": 2013,
-    "endYear": 2014,
-    "sites": [ "Cuneo.csv" ],
-    "assistantRisk": 0,
-    "veryHighModelsThreshold": 0
+    "startYear": 2016,
+    "endYear": 2016,
+    "sites": [ "BergamoDaily.csv" ],
+    "assistantRisk": 5,
+    "veryHighModelsThreshold": 8,
+    "WeatherTimeStep": "daily"
   },
   "paths": {
     "weatherDir": "..\\..\\..\\files\\weather",
     "octoPusParametersPath": "..\\..\\..\\files\\Parameters\\octoPusParameters.csv",
     "susceptibilityFileBBCH": "..\\..\\..\\files\\Parameters\\hostSusceptibilityParameters.csv",
     "outputDir": "..\\..\\..\\outputs\\",
-    "LLMfile": "..\\..\\..\\..\\LLM\\Meta-Llama-3-8B-Instruct-Q8_0.gguf",
-    "Rversion": "R-4.3.3"
+    "LLMfile": "..\\..\\..\\LLM\\Meta-Llama-3-8B-Instruct-correct-pre-tokenizer-and-EOS-token-Q8_0.gguf",
+    "Rversion": "R-4.3.2"
   }
 }
