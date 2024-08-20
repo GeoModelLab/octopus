@@ -20,12 +20,7 @@
   <ItemGroup>
     <None Include="Files\Parameters\hostSusceptibilityParameters.csv" />
     <None Include="Files\Parameters\octoPusParameters.csv" />
-    <None Include="Files\Weather\daily\Abruzzo_Chieti_41.90_14.20.csv" />
     <None Include="Files\Weather\daily\rome.csv" />
-    <None Include="Files\Weather\daily\stockholm.csv" />
-    <None Include="Files\Weather\Dati_Bugiani\bazzano_2024.csv" />
-    <None Include="Files\Weather\Dati_Bugiani\bomporto_2024.csv" />
-    <None Include="Files\Weather\Dati_Bugiani\camerlona_2024.csv" />
     <None Include="Files\Weather\hourly\Bergamo.csv" />
     <None Include="Files\Weather\hourly\Chieti.csv" />
     <None Include="Files\Weather\hourly\Cuneo.csv" />
