@@ -257,7 +257,6 @@ namespace octoPusAI.ModelCallers
             #endregion
 
 
-
             //read weather data
             var weatherData = new Dictionary<DateTime, Input>();
             switch (WeatherTimeStep)
@@ -283,7 +282,7 @@ namespace octoPusAI.ModelCallers
             //for the PEMs that require climatic averages
             epi = new EPI();
             dmcast = new DMCast();
-            //historicalRun(weatherData);
+            historicalRun(weatherData);
 
             bool isFlowered = false;
 
@@ -609,15 +608,17 @@ namespace octoPusAI.ModelCallers
                 ucsc = new UCSC();
             }
 
+            //these models are run over the whole year
+            epi.run(weatherData, parameters, outputs);
+            ucsc.run(weatherData, parameters, outputs);
+            dmcast.run(weatherData, parameters, outputs);
+
             //if bud burst occurred, call the models
             if (outputs.outputsPhenology.bbchPhenophaseCode>10)
             {
                 //call the octoPus models
-                magarey.run(weatherData, parameters, outputs);
-                //epi.run(weatherData, parameters, outputs);
+                magarey.run(weatherData, parameters, outputs);        
                 ipi.run(weatherData, parameters, outputs);
-                ucsc.run(weatherData, parameters, outputs);
-                //dmcast.run(weatherData, parameters, outputs);
                 rule310.run(weatherData, parameters, outputs);
                 misfits.run(weatherData, parameters, outputs);
                 laore.run(weatherData, parameters, outputs);
@@ -642,10 +643,10 @@ namespace octoPusAI.ModelCallers
             #endregion
 
             #region DMCast                        
-            //DMCast_Pom.Add(dmcast.Pom(weatherData, parameters.dmcastParameters));
-            //DMCast_Ra.Add(dmcast.RAi(weatherData));
+            DMCast_Pom.Add(dmcast.Pom(weatherData, parameters.dmcastParameters));
+            DMCast_Ra.Add(dmcast.RAi(weatherData));
             //to cumulate Pom
-            //DMCast_PomSum = outputs.outputsDMCast.pomsum;
+            DMCast_PomSum = outputs.outputsDMCast.pomsum;
             //reinitialize DMCast each year on 1st October (as in the updated version of the model)
             //See "Plant Health Progress, 2007, 8.1: 66"
             if (weatherData.Date.Month == 09 && weatherData.Date.Day == 22) //change this to 1 Oct in updated model

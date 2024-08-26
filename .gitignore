@@ -13,6 +13,7 @@ x64/
 [Oo]bj/
 LLM/
 .vs/
+optimizer
 
 # MSTest test Results
 [Tt]est[Rr]esult*/
