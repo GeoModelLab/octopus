@@ -60,6 +60,7 @@ namespace octoPusAI.ModelCallers
         public string Rversion;
         public string modelPath;
         public string WeatherTimeStep;
+        public bool areEPIDMCASTexecutable;
         #endregion
 
         #region local variables to compute daily data
@@ -279,10 +280,13 @@ namespace octoPusAI.ModelCallers
                     break;
             }
 
-            //for the PEMs that require climatic averages
-            epi = new EPI();
-            dmcast = new DMCast();
-            historicalRun(weatherData);
+            if (areEPIDMCASTexecutable)
+            {
+                //for the PEMs that require climatic averages
+                epi = new EPI();
+                dmcast = new DMCast();
+                historicalRun(weatherData);
+            }
 
             bool isFlowered = false;
 
@@ -349,9 +353,10 @@ namespace octoPusAI.ModelCallers
                 Line.Append($"{estimated_hourly[value].LeafWetness},");
 
                 ToWrite.Add(Line.ToString());
-                //save the file
-                System.IO.File.WriteAllLines(@"outputs//diseaseModels//estimatedHourly.csv", ToWrite);
+               
             }
+            //save the file
+            System.IO.File.WriteAllLines(@"outputs//diseaseModels//estimatedHourly.csv", ToWrite);
         }
 
         public void historicalRun(Dictionary<DateTime, Input> weatherData)
@@ -586,7 +591,7 @@ namespace octoPusAI.ModelCallers
                 outputs.outputsMagarey = new OutputsMagarey();
                 //reinitialize the models at first day of the year
                 laore = new Laore();
-                misfits = new Misfits();               
+                misfits = new Misfits();
                 ipi = new IPI();
                 #region reinitialize pressure
                 pressureRule310 = 0;
@@ -601,59 +606,60 @@ namespace octoPusAI.ModelCallers
             }
 
             //reinitialize outputsPhenology each year
-            if (weatherData.Date.DayOfYear == 300 && weatherData.Date.Hour==0)
+            if (weatherData.Date.DayOfYear == 300 && weatherData.Date.Hour == 0)
             {
                 outputs.outputsPhenology = new OutputsPhenology();
                 //reinitialize the UCSC model at the start of the season
                 ucsc = new UCSC();
             }
 
-            //these models are run over the whole year
-            epi.run(weatherData, parameters, outputs);
-            ucsc.run(weatherData, parameters, outputs);
-            dmcast.run(weatherData, parameters, outputs);
-
-            //if bud burst occurred, call the models
-            if (outputs.outputsPhenology.bbchPhenophaseCode>10)
+            //call the octoPus models
+            magarey.run(weatherData, parameters, outputs);
+            if (areEPIDMCASTexecutable)
             {
-                //call the octoPus models
-                magarey.run(weatherData, parameters, outputs);        
-                ipi.run(weatherData, parameters, outputs);
-                rule310.run(weatherData, parameters, outputs);
-                misfits.run(weatherData, parameters, outputs);
-                laore.run(weatherData, parameters, outputs);
+                epi.run(weatherData, parameters, outputs);
+                dmcast.run(weatherData, parameters, outputs);
             }
+
+            ucsc.run(weatherData, parameters, outputs);
+            ipi.run(weatherData, parameters, outputs);
+            rule310.run(weatherData, parameters, outputs);
+            misfits.run(weatherData, parameters, outputs);
+            laore.run(weatherData, parameters, outputs);
+
 
             #region detailed run
             double EPI_index = 0;
             double DMCast_PomSum = 0;
             double IPI_index_sum = 0;
             double UCSC_HT = 0;
-
-            #region EPI                                               
-            EPI_ke.Add(outputs.outputsEPI.ke);
-            EPI_pe.Add(outputs.outputsEPI.pe);
-            //to cumulate EPI
-            EPI_index = outputs.outputsEPI.epi;
-            //reinitialize EPI_index sum each year on 1st october						
-            if (weatherData.Date.Month == 10 && weatherData.Date.Day == 1)
+            if (areEPIDMCASTexecutable)
             {
-                EPI_index = 0;
-            }
-            #endregion
+                #region EPI                                               
+                EPI_ke.Add(outputs.outputsEPI.ke);
+                EPI_pe.Add(outputs.outputsEPI.pe);
+                //to cumulate EPI
+                EPI_index = outputs.outputsEPI.epi;
+                //reinitialize EPI_index sum each year on 1st october						
+                if (weatherData.Date.Month == 10 && weatherData.Date.Day == 1)
+                {
+                    EPI_index = 0;
+                }
+                #endregion
 
-            #region DMCast                        
-            DMCast_Pom.Add(dmcast.Pom(weatherData, parameters.dmcastParameters));
-            DMCast_Ra.Add(dmcast.RAi(weatherData));
-            //to cumulate Pom
-            DMCast_PomSum = outputs.outputsDMCast.pomsum;
-            //reinitialize DMCast each year on 1st October (as in the updated version of the model)
-            //See "Plant Health Progress, 2007, 8.1: 66"
-            if (weatherData.Date.Month == 09 && weatherData.Date.Day == 22) //change this to 1 Oct in updated model
-            {
-                DMCast_PomSum = 0;
+                #region DMCast                        
+                DMCast_Pom.Add(dmcast.Pom(weatherData, parameters.dmcastParameters));
+                DMCast_Ra.Add(dmcast.RAi(weatherData));
+                //to cumulate Pom
+                DMCast_PomSum = outputs.outputsDMCast.pomsum;
+                //reinitialize DMCast each year on 1st October (as in the updated version of the model)
+                //See "Plant Health Progress, 2007, 8.1: 66"
+                if (weatherData.Date.Month == 09 && weatherData.Date.Day == 22) //change this to 1 Oct in updated model
+                {
+                    DMCast_PomSum = 0;
+                }
+                #endregion
             }
-            #endregion
 
             #region IPI                        
             IPI_Ri.Add(ipi.Ri(weatherData, parameters.ipiParameters));
@@ -697,6 +703,20 @@ namespace octoPusAI.ModelCallers
                 //call phenology models
                 chilling.runDormancy(inputDaily, parameters, outputs);
                 forcing.runForcing(inputDaily, parameters, outputs);
+
+                if(outputs.outputsPhenology.bbchPhenophase <=10)
+                {
+                    #region reinitialize pressure
+                    pressureRule310 = 0;
+                    pressureEPI = 0;
+                    pressureIPI = 0;
+                    pressureDMCast = 0;
+                    pressureMagarey = 0;
+                    pressureUCSC = 0;
+                    pressureMisfits = 0;
+                    pressureLaore = 0;
+                    #endregion
+                }
             }
 
             //each day
@@ -714,7 +734,7 @@ namespace octoPusAI.ModelCallers
                 modelsOutput.RHmean = RelativeHumidity.Average();
                 modelsOutput.Input.Precipitation = (float)Precipitation.Sum();
                 modelsOutput.Input.LeafWetnessDuration = (float)Leafwetness.Sum();
-                
+
                 modelsOutput.chillRate = outputs.outputsPhenology.chillRate;
                 modelsOutput.chillState = outputs.outputsPhenology.chillState;
                 modelsOutput.antiChillRate = outputs.outputsPhenology.antiChillRate;
@@ -729,7 +749,7 @@ namespace octoPusAI.ModelCallers
                 // 310
                 modelsOutput.infectionRule310 = outputs.outputsRule310.infectionEvents.Any(rule310Infection =>
                 rule310Infection.infectionDate > weatherData.Date.AddHours(-24)) ? 1 : 0;
-                pressureRule310+= modelsOutput.infectionRule310;
+                pressureRule310 += modelsOutput.infectionRule310;
                 modelsOutput.pressureRule310 += pressureRule310;
                 // EPI
                 modelsOutput.infectionEPI = outputs.outputsEPI.infectionEvents.Any(epiInfection => epiInfection.infectionDate > weatherData.Date.AddHours(-24)) ? 1 : 0;
@@ -769,35 +789,35 @@ namespace octoPusAI.ModelCallers
                 #endregion
 
                 #region Intermediate model outputs
-                if(EPI_ke.Count>0)
+                if (EPI_ke.Count > 0)
                 {
                     modelsOutput.EPI_ke = EPI_ke.Last();
                     modelsOutput.EPI_pe = EPI_pe.Last();
                 }
-               
+
                 //modelsOutput.EPI_index = EPI_index;
                 //DMCast
-                if(DMCast_Ra.Count>0)
+                if (DMCast_Ra.Count > 0)
                 {
                     modelsOutput.DMCast_Ra = DMCast_Ra.Max();
                     modelsOutput.DMCast_Pom = DMCast_Pom.Max();
                 }
-               
+
                 //modelsOutput.DMCast_PomSum = DMCast_PomSum;
                 //IPI
-                if(IPI_Tmeani.Count>0)
+                if (IPI_Tmeani.Count > 0)
                 {
                     modelsOutput.IPI_Tmeani = IPI_Tmeani.Max();
                     modelsOutput.IPI_Ri = IPI_Ri.Max();
                     modelsOutput.IPI_Lwi = IPI_Lwi.Max();
                     modelsOutput.IPI_Rhi = IPI_Rhi.Max();
                     modelsOutput.IPI_index = IPI_index.Max();
-                   
+
                 }
-               
+
                 //modelsOutput.IPI_index_sum = IPI_index_sum;
                 //UCSC
-                if(UCSC_HTi.Count>0)
+                if (UCSC_HTi.Count > 0)
                 {
                     modelsOutput.UCSC_HTi = UCSC_HTi.Max();
                     //modelsOutput.UCSC_HT = UCSC_HT;
@@ -851,10 +871,10 @@ namespace octoPusAI.ModelCallers
                 ModelOutputsML = MLmodel.MLmodelCall(Rversion);
 
 
-                if (modelsOutput.bbchCode > 11 && weatherData.Date.DayOfYear<214) //remove day<214
+                if (modelsOutput.bbchCode > 11 && weatherData.Date.DayOfYear < 214) //remove day<214
                 {
-                     LLamaInterface.CallAsyncAndWaitOnResult(weatherFile, weatherData.Date, ModelOutputsML, assistantRisk,
-                        veryHighModelsThreshold);
+                    LLamaInterface.CallAsyncAndWaitOnResult(weatherFile, weatherData.Date, ModelOutputsML, assistantRisk,
+                       veryHighModelsThreshold);
                 }
                 #endregion
 

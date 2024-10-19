@@ -108,6 +108,8 @@ List<string> availableSites = files.Select(x => x.Name).ToList();
 
 //instantiate the Runner class and populate its properties
 var _runner = new octoPusRunner();
+_runner.modelPath = LLMfile;
+_runner.Rversion = Rversion;
 
 #region execute epidemiological models (the tentacles)
 foreach (var site in availableSites)
@@ -136,6 +138,30 @@ foreach (var site in availableSites)
         _runner.endYear = endYear;
         _runner.assistantRisk = assistantRisk;
         _runner.veryHighModelsThreshold = veryHighModelsThreshold;
+        //check the availability of at least 12 months for executing EPI and DM-CAST
+        checkWeatherAvailability checkWeatherAvailability = new checkWeatherAvailability();
+        float numberOfYear = 0;
+        _runner.areEPIDMCASTexecutable = checkWeatherAvailability.areEPIDMCASTexecutable(_runner.weatherFile, out numberOfYear);
+
+
+        #region manage EPI and DMcast execution with low number of weather data (at least 10 years should be available!)
+        if (numberOfYear < 1)
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine("The weather file has less than one year of data!!!!");
+            Console.WriteLine("The EPI and DMCAST models cannot be executed");
+        }
+        else if (numberOfYear < 10)
+        {
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine("The weather file has {0} years", numberOfYear);
+            Console.WriteLine("The EPI and DMCAST models will be executed even if less than 10 years are available.");
+        }
+        Console.ForegroundColor = ConsoleColor.White;
+        #endregion
+
+
+
         #region run octoPus
         //empty list of dates and SWELL outputs
         var dateOutputs = new Dictionary<DateTime, OutputsDaily>();
@@ -179,6 +205,66 @@ public class paths
     public string? susceptibilityFileBBCH { get; set; }
     public string? LLMfile { get; set; }
     public string? Rversion { get; set; }
+}
+
+#endregion
+
+#region check weather data availability
+
+public class checkWeatherAvailability
+{
+    public bool areEPIDMCASTexecutable(string weatherFile, out float numberOfYear)
+    {
+
+        bool areEPIDMCASTexecutable = false;
+
+        //open the stream
+        StreamReader sr = new StreamReader(weatherFile);
+        //read the header
+        sr.ReadLine();
+
+        //create an index variable
+        int line = 0;
+        //first and last date
+        DateTime firstDate = new DateTime();
+        DateTime lastDate = new DateTime();
+
+        while (!sr.EndOfStream)
+        {
+            string[] lineString = sr.ReadLine().Split(',');
+
+            //date elements
+            int year = int.Parse(lineString[1]);
+            int month = int.Parse(lineString[2]);
+            int day = int.Parse(lineString[3]);
+            int hour = int.Parse(lineString[4]);
+
+            //first line
+            if (line == 0)
+            {
+                //set the date
+                firstDate = new DateTime(year, month, day).AddHours(hour - 1);
+            }
+            lastDate = new DateTime(year, month, day).AddHours(hour - 1);
+            line++;
+        }
+        sr.Close();
+
+        TimeSpan timeSpan = lastDate - firstDate;
+
+        numberOfYear = timeSpan.Days / 365;
+
+        if (numberOfYear < 1)
+        {
+            areEPIDMCASTexecutable = false;
+        }
+        else
+        {
+            areEPIDMCASTexecutable = true;
+        }
+        return areEPIDMCASTexecutable;
+
+    }
 }
 
 #endregion
