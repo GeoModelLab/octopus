@@ -2,9 +2,9 @@
   "settings": {
     "startYear": 2014,
     "endYear": 2014,
-    "sites": [ "Oristano.csv" ],
-    "assistantRisk": 5,
-    "veryHighModelsThreshold": 8,
+    "sites": [ "Imperia.csv" ],
+    "assistantRisk": 4,
+    "veryHighModelsThreshold": 4,
     "WeatherTimeStep": "hourly"
   },
   "paths": {
