@@ -8,7 +8,7 @@
 </pre>
 </div>
 
-![Work in progress](assets/work_in_progress.jpg)
+![video](video/octoPus.mp4)
 
 ## The octoPus
 The *octoPus* is the first digital organism, released as a console application, that assists users in predicting and interpreting grapevine downy mildew (*Plasmopora viticola*) primary infections. The source code of the *octoPus* is written in C# and is freely available for use through proper citation and licensing. This git repository contains the code and the instructions to smoothly run it.
@@ -28,7 +28,7 @@ The console application is structured in multiple folders, each containing eithe
 - **Readers** stores the pipelines to read the parametes, the .JSON configuration file, the console icon, and the entry point main method (Program.cs).
 
 This document will guide users through the steps needed to successfully run *octoPus* on their machines. First, the [Required packages and extensions](#required-packages-and-extensions) needed to run the console app will be expained in detail. Then, the inputs required and their structure will be analysed together with the user customizations in [Inputs and customization](#inputs-and-customization).
-This Git repository is a supplement to the scientific article "Releasing the *octoPus*, an open-source digital tool to promote Integrated Pest Management" (DOI: ), published on ............., in which the *octoPus* is introduced, calibrated, and tested in Italy. Another publication on SoftwareX "*octoPus*: an open-source software for supporting farmers in the control of grapevine downy mildew" (DOI: ) delves into the technical details of the console application. 
+This Git repository is a supplement to the scientific article "Releasing the *octoPus*, an open-source digital tool to promote Integrated Pest Management" (DOI: ............), published on ............., in which the *octoPus* is introduced, calibrated, and tested in Italy. Another publication on SoftwareX "*octoPus*: an open-source software for supporting farmers in the control of grapevine downy mildew" (DOI:............) delves into the technical details of the console application. 
 
 ## Required packages and extensions
 The *octoPus* works on Windows, Linux, and macOS operating systems and requires a series of programs, packages, and extensions to run.
@@ -71,7 +71,7 @@ The models configuration is stored by default in "octoPusAI/Files/parametersData
 
 ![Parameters](assets/octoPusParameters.png)
 
-For an exaustive description of each model routine and their parameters we refer to the Supplementary material S1 of Bregaglio et al., 2024 ___ADD DOI OF PREPRINT___.
+For an exaustive description of each model routine and their parameters we refer to the Supplementary material S1 of Bregaglio et al., 2024.
 
 ### JSON configuration file
 The JSON file can be found in "octoPusAI/Readers/octoPus.json" and it allows to fine-tune additional settings of the *octoPus*. The JSON file is divided in two classes: one used to define model settings and one to explicit filepaths. Below is reported the structure of the JSON file with example values and a brief explanation of each attribute.
