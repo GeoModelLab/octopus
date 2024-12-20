@@ -8,7 +8,7 @@
 </pre>
 </div>
 
-![video](video/octoPus.mp4)
+[![Video Thumbnail](assets/octoPus_Video.png)](https://vimeo.com/984158457)
 
 ## The octoPus
 The *octoPus* is the first digital organism, released as a console application, that assists users in predicting and interpreting grapevine downy mildew (*Plasmopora viticola*) primary infections. The source code of the *octoPus* is written in C# and is freely available for use through proper citation and licensing. This git repository contains the code and the instructions to smoothly run it.
