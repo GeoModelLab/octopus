@@ -114,7 +114,7 @@ After having completed this last step, the model is ready to be run with the spe
 Show your appreciation to those who have contributed to the project.
 
 ## License
-For open source projects, say how it is licensed.
+Attribution-NonCommercial-NoDerivatives 4.0 International
 
 ## References
 Bregaglio, S., Savian, F., Raparelli, E., Morelli, D., Epifani, R., Pietrangeli, F., Nigro, C., Bugiani, R., Pini, S., Culatti, P., Tognetti, D., Spanna, F.,   Gerardi, M., Delillo, I., Bajocco, S., Fanchini, D., Fila, G., Ginaldi, F., Manici, L.M., 2022. Journal of Environmental Management 317, 115365. https://doi.org/10.1016/j.jenvman.2022.115365 
