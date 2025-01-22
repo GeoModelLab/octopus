@@ -1,18 +1,43 @@
 ﻿{
-  "settings": {
-    "startYear": 2014,
-    "endYear": 2014,
-    "sites": [ "Oristano.csv" ],
-    "assistantRisk": 5,
-    "veryHighModelsThreshold": 8,
-    "WeatherTimeStep": "hourly"
-  },
-  "paths": {
-    "weatherDir": "..\\..\\..\\files\\weather",
-    "octoPusParametersPath": "..\\..\\..\\files\\Parameters\\octoPusParameters.csv",
-    "susceptibilityFileBBCH": "..\\..\\..\\files\\Parameters\\hostSusceptibilityParameters.csv",
-    "outputDir": "..\\..\\..\\outputs\\",
-    "LLMfile": "..\\..\\..\\LLM\\Meta-Llama-3-8B-Instruct-Q8_0.gguf",
-    "Rversion": "R-4.3.3"
-  }
+    "settings": {
+        "startYear": 2020,
+        "endYear": 2020,
+        "sites": [ "Bergamo.csv" ],
+        "assistantRisk": 8,
+        "veryHighModelsThreshold": 8,
+        "WeatherTimeStep": "hourly",
+        "colorScale": "Traditional",
+        "consoleTextColor":  "Cyan"
+    },
+    "paths": {
+        "weatherDir": "..\\..\\..\\files\\weather",
+        "octoPusParametersPath": "..\\..\\..\\files\\Parameters\\octoPusParameters.csv",
+        "susceptibilityFileBBCH": "..\\..\\..\\files\\Parameters\\hostSusceptibilityParameters.csv",
+        "outputDir": "..\\..\\..\\outputs\\",
+        "LLMfile": "..\\.\\..\\..\\LLM\\Meta-Llama-3-8B-Instruct-correct-pre-tokenizer-and-EOS-token-Q8_0.gguf",
+        "Rversion": "R-4.4.2"
+    },
+    "colorScales": {
+        "Viridis": [ "DarkMagenta", "DarkBlue", "Cyan", "Green", "Yellow" ],
+
+        "Cividis": [ "DarkBlue", "Blue", "Gray", "Yellow", "DarkYellow" ],
+
+        "Magma": [ "Black", "DarkMagenta", "Magenta", "Red", "Yellow" ],
+
+        "Plasma": [ "DarkMagenta", "Magenta", "Red", "DarkYellow", "Yellow" ],
+
+        "Turbo": [ "DarkMagenta", "Blue", "Green", "Yellow", "Red" ],
+
+        "Grayscale": [ "White", "Gray", "DarkGray", "Black", "Black" ],
+
+        "Traditional": [ "Green", "Yellow", "DarkYellow", "Red", "DarkRed" ],
+
+        "ColorblindFriendly": [ "Blue", "Cyan", "Gray", "Yellow", "White" ],
+
+        "Heatmap": [ "Black", "DarkRed", "Red", "Yellow", "White" ],
+
+        "Cool": [ "DarkBlue", "Blue", "Cyan", "Green", "White" ]
+    }
+   
+
 }

@@ -1,13 +1,21 @@
-﻿using System.Text.Json;
+﻿using System.Collections.Generic;
+using System.Text.Json;
 using LLama.Native;
 using Models.Datatype;
 using octoPusAI.ModelCallers;
 using octoPusAI.Readers;
+using Utils;
+
 
 //config Llama
 NativeLibraryConfig.Instance.WithLogCallback(delegate (LLamaLogLevel level, string message) { Console.Write($"{level}: {message}"); });
 
+
 #region Console welcome message
+// Load color configuration
+ColorConfig colorConfig = new ColorConfig("octoPus.json");
+List<ConsoleColor> selectedColors = colorConfig.SelectedColors;
+
 Console.Title = "octoPus";
 Console.ForegroundColor = ConsoleColor.White;
 Console.WriteLine("                                                      _        ____");
@@ -15,7 +23,7 @@ Console.ForegroundColor = ConsoleColor.Cyan;
 Console.WriteLine("                                            ___   ___| |_ ___ |  _ \\ _   _ ___ ");
 Console.ForegroundColor = ConsoleColor.DarkCyan;
 Console.WriteLine("                                           / _ \\ / __| __/ _ \\| |_) | | | / __|   ");
-Console.ForegroundColor = ConsoleColor.White;
+Console.ForegroundColor = ConsoleColor.Cyan;
 Console.WriteLine("   \\(^^)/ °  ~ |_(°°)_| ~  ° _(--)_ °  ~  | (_) | (__| | |(_) |  __/| |_| \\__ \\ ~  ° ~(^^)~ °  ~ _(°°)_ °  ~  ~(**)~");
 Console.ForegroundColor = ConsoleColor.Cyan;
 Console.WriteLine("   ((())) ~  °   (())   °  ~ |||||| ~  °   \\___/ \\___|\\__\\___/|_|    \\__,_|___/ °  ~ ((())) ~  ° //()\\\\ ~  °  ((()))  ");
@@ -23,33 +31,33 @@ Console.ForegroundColor = ConsoleColor.White;
 Console.WriteLine("");
 
 Console.WriteLine("RISK LEGEND");
-Console.ForegroundColor = ConsoleColor.Blue;
+Console.ForegroundColor = selectedColors[0];
 Console.WriteLine(" very low  |");
 Console.WriteLine("  \\(^^)/   |    HELLO! I am octoPus your decision support system for grapevine primary downy mildew (Plasmopara viticola). ");
 Console.WriteLine("  ((()))   |");
 Console.WriteLine("           |");
-Console.ForegroundColor = ConsoleColor.Cyan;
+Console.ForegroundColor = selectedColors[1];
 Console.WriteLine("   low     |");
 Console.WriteLine("  ~(^^)~   |    My eyes are models to simulate grapevine phenology and host susceptibility to the pathogen.");
 Console.WriteLine("  ((()))   |");
 Console.WriteLine("           |");
-Console.ForegroundColor = ConsoleColor.Yellow;
+Console.ForegroundColor = selectedColors[2];
 Console.WriteLine("  medium   |");
 Console.WriteLine(" |_(°°)_|  |    My eight tentacles are disease models sensing the weather suitability to pathogens infection.");
 Console.WriteLine("   (())    |");
 Console.WriteLine("           |");
-Console.ForegroundColor = ConsoleColor.Red;
+Console.ForegroundColor = selectedColors[3];
 Console.WriteLine("   high    |");
 Console.WriteLine("  _(°°)_   |    My brain is a machine learning model elaborating these information to predict the daily infection risk.");
 Console.WriteLine("  //()\\\\   |");
 Console.WriteLine("           |");
-Console.ForegroundColor = ConsoleColor.DarkRed;
+Console.ForegroundColor = selectedColors[4];
 Console.WriteLine(" very high |");
 Console.WriteLine("  _(--)_   |    My mouth is a large language model elaborating a decision support message for farmers.");
 Console.WriteLine("  ||||||   |\r\n");
 
-Console.ForegroundColor = ConsoleColor.White;
-
+Console.ForegroundColor = colorConfig.ConsoleTextColor;
+ 
 
 #endregion
 
@@ -58,6 +66,8 @@ Console.ForegroundColor = ConsoleColor.White;
 string fileName = "octoPus.json";
 string jsonString = File.ReadAllText(fileName);
 var config = JsonSerializer.Deserialize<root>(jsonString);
+
+
 
 #region assign json parameters to local variables
 //start and end year 
@@ -85,11 +95,12 @@ Console.WriteLine("");
 Console.WriteLine("To change these settings, edit the octoPus.json configuration file.\nMore information on https://gitlab.com/octoPus README\n");
 
 Console.ReadLine();
-Console.ForegroundColor = ConsoleColor.DarkGray;
+Console.ForegroundColor = ConsoleColor.White;
 
 #endregion
 
 #endregion
+
 
 #region parameters files
 //instantiate the ParamReader class
@@ -124,7 +135,7 @@ foreach (var site in availableSites)
         //message to console
         Console.WriteLine("");
         Console.WriteLine("");
-        Console.ForegroundColor = ConsoleColor.White;
+        Console.ForegroundColor = colorConfig.ConsoleTextColor;
         Console.WriteLine("SIMULATION STARTED ON FILE {0}", site);
 
         //set runner properties
@@ -157,7 +168,7 @@ foreach (var site in availableSites)
             Console.WriteLine("The weather file has {0} years", numberOfYear);
             Console.WriteLine("The EPI and DMCAST models will be executed even if less than 10 years are available.");
         }
-        Console.ForegroundColor = ConsoleColor.White;
+        Console.ForegroundColor = colorConfig.ConsoleTextColor;
         #endregion
 
 
@@ -182,6 +193,7 @@ public class root
 {
     public settings? settings { get; set; }
     public paths? paths { get; set; }
+    
 
 }
 
@@ -194,6 +206,7 @@ public class settings
     public float? assistantRisk { get; set; }
     public int? veryHighModelsThreshold { get; set; }
     public string? WeatherTimeStep { get; set; }
+   
 }
 
 //contains the paths in the json configuration file
@@ -268,3 +281,4 @@ public class checkWeatherAvailability
 }
 
 #endregion
+

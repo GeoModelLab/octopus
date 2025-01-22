@@ -1,5 +1,6 @@
 ﻿using LLama.Common;
 using LLama;
+using Utils;
 
 namespace octoPusAI.ModelCallers
 {
@@ -96,12 +97,15 @@ namespace octoPusAI.ModelCallers
             }));
 
             #region change color of the console based on the infection risk 
-            Console.ForegroundColor = ConsoleColor.White;
-            Console.WriteLine("     {0}", date.ToString("MMM dd yyyy"));
+            ColorConfig colorConfig = new ColorConfig("octoPus.json");
+            List<ConsoleColor> selectedColors = colorConfig.SelectedColors; //instance for infection tisk scale colors
 
+            Console.ForegroundColor = colorConfig.ConsoleTextColor;
+            Console.WriteLine("     {0}", date.ToString("MMM dd yyyy"));
+          
             if (mLmodel.predictedRiskLabel == "VERY LOW" && infectionModelsToday < veryHighModelsTreshold)
             {
-                Console.ForegroundColor = ConsoleColor.Blue;
+                Console.ForegroundColor = selectedColors[0];
                 Console.Beep(200,240);
                 Console.WriteLine("");
                 Console.WriteLine(" very low  | BBCH {0} SUSCEPTIBILITY {1}% RISK {2}",
@@ -123,7 +127,7 @@ namespace octoPusAI.ModelCallers
             }
             else if (mLmodel.predictedRiskLabel == "LOW" && infectionModelsToday < veryHighModelsTreshold)
             {
-                Console.ForegroundColor = ConsoleColor.Cyan;
+                Console.ForegroundColor = selectedColors[1];
                 Console.Beep(300, 240);
                 Console.WriteLine("");
                 Console.WriteLine("   low     | BBCH {0} SUSCEPTIBILITY {1}% RISK {2}",
@@ -146,7 +150,7 @@ namespace octoPusAI.ModelCallers
             }
             else if (mLmodel.predictedRiskLabel == "MEDIUM" && infectionModelsToday < veryHighModelsTreshold)
             {
-                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.ForegroundColor = selectedColors[2];
                 Console.Beep(400,240);
                 Console.WriteLine("");
                 Console.WriteLine("  medium    | BBCH {0} SUSCEPTIBILITY {1}% RISK {2}",
@@ -168,7 +172,7 @@ namespace octoPusAI.ModelCallers
             }
             else if (mLmodel.predictedRiskLabel == "HIGH" && infectionModelsToday < veryHighModelsTreshold)
             {
-                Console.ForegroundColor = ConsoleColor.Red;
+                Console.ForegroundColor = selectedColors[3];
                 Console.Beep(500, 240);
                 Console.WriteLine("");
                 Console.WriteLine("   high    | BBCH {0} SUSCEPTIBILITY {1}% RISK {2}",
@@ -189,7 +193,7 @@ namespace octoPusAI.ModelCallers
             }
             else if (mLmodel.predictedRiskLabel == "VERY HIGH" || infectionModelsToday >= veryHighModelsTreshold)
             {
-                Console.ForegroundColor = ConsoleColor.DarkRed;
+                Console.ForegroundColor = selectedColors[4];
                 Console.Beep(600, 240);
                 Console.WriteLine("");
                 Console.WriteLine(" very high | BBCH {0} SUSCEPTIBILITY {1}% RISK {2}",
@@ -204,7 +208,7 @@ namespace octoPusAI.ModelCallers
 
         //this list stores the answers of the Llama assistant
         List<string> answers = new List<string>();
-
+        
         //call the Llama model
         public async Task callLLama(string site, DateTime date, ModelOutputsML mLmodel, float assistantRisk, int riskModels)
         {
@@ -214,12 +218,15 @@ namespace octoPusAI.ModelCallers
             string pressureText = "";
             consoleMessages(site, date, mLmodel, riskModels, out infectionModelsCount, out pressureText, out infectionText);
 
+            
             //the assistant will answer only if the risk is higher than the assistantRisk variable or if the number of models that simulated an infection is higher than the risk models.
             //These parameters are set in the octoPus.json file
             if (mLmodel.predictedRisk > assistantRisk || infectionModelsCount > riskModels)
             {
                 // Add chat histories as prompt to tell AI how to act.
                 var chatHistory = new ChatHistory();
+                ColorConfig colorConfig = new ColorConfig("octoPus.json");
+                List<ConsoleColor> selectedColors = colorConfig.SelectedColors; //instance for text color
 
                 //static message (this message is always the same and is informed by the analysis conducted with octoPus in Italy)
                 chatHistory.AddMessage(AuthorRole.System, "You are octoPus, a decision support system for primary grapevine downy mildew " +
@@ -296,7 +303,7 @@ namespace octoPusAI.ModelCallers
                 string message = "";
                 await foreach (var text in session.ChatAsync(new ChatHistory.Message(AuthorRole.User, userInput), InferenceParams))
                 {
-                    Console.ForegroundColor = ConsoleColor.White;
+                    Console.ForegroundColor = colorConfig.ConsoleTextColor;
                     Console.Write(text);
                     message += text;
                 }
