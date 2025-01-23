@@ -6,8 +6,9 @@
         "assistantRisk": 8,
         "veryHighModelsThreshold": 8,
         "WeatherTimeStep": "hourly",
-        "colorScale": "Traditional",
-        "consoleTextColor":  "Cyan"
+        "colorScale": "Viridis",
+        "consoleTextColor": "Magenta",
+        "consoleBackgroundColor": "Blue"
     },
     "paths": {
         "weatherDir": "..\\..\\..\\files\\weather",

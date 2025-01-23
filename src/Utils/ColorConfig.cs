@@ -11,6 +11,8 @@ namespace Utils
         public List<ConsoleColor> SelectedColors { get; private set; } //risk level colors
         public ConsoleColor ConsoleTextColor { get; private set; } //Text color
 
+        public ConsoleColor ConsoleBackground { get; private set; } //background color
+
         // Color mapping with System.ConsoleColor 
         private readonly Dictionary<string, ConsoleColor> ColorMapping = new()
     {
@@ -45,11 +47,13 @@ namespace Utils
                 string jsonString = File.ReadAllText(fileName);
                 var colorConfig = JsonSerializer.Deserialize<Root>(jsonString);
 
+                //scale colors for welcome message and risk classification in the console
                 string selectedColorScale = colorConfig?.settings?.colorScale ?? "Viridis"; //Viridis is the default color scale
                 SelectedColors = new List<ConsoleColor>();
                 ConsoleTextColor = new();
-
-                if (colorConfig.colorScales.TryGetValue(selectedColorScale, out var colorNames))
+                ConsoleBackground = new();
+                
+                if (colorConfig.colorScales.TryGetValue(selectedColorScale, out var colorNames)) 
                 {
                     foreach (var colorName in colorNames)
                     {
@@ -72,6 +76,7 @@ namespace Utils
                     ConsoleColor.DarkMagenta, ConsoleColor.DarkBlue, ConsoleColor.Cyan, ConsoleColor.Green, ConsoleColor.Yellow
                     };
                 }
+                //color for console text
                 string consoleTextColor = colorConfig?.settings?.consoleTextColor ?? "White"; //White is the default color 
                 if (ColorMapping.TryGetValue(consoleTextColor, out var textColor))
                 {
@@ -79,8 +84,19 @@ namespace Utils
                 }
                 else
                 {
-                    Console.WriteLine($"Warning: '{consoleTextColor}' is not a valid ConsoleColor. Using White as fallback.");
+                    Console.WriteLine($"Warning: '{consoleTextColor}' is not a valid ConsoleColor. Using White as fallback."); //setting Text console color
                     ConsoleTextColor = ConsoleColor.White;
+                }
+                //color for console background
+                string consoleBackground = colorConfig?.settings?.consoleBackgroundColor ?? "Black"; //Black is the default color 
+                if (ColorMapping.TryGetValue(consoleBackground, out var backgroundcolor))
+                {
+                    ConsoleBackground = backgroundcolor;
+                }
+                else
+                {
+                    Console.WriteLine($"Warning: '{consoleBackground}' is not a valid ConsoleColor. Using Black as fallback.");
+                    ConsoleBackground = ConsoleColor.Black;
                 }
             }
             catch (Exception ex)
@@ -102,5 +118,6 @@ namespace Utils
     {
         public string colorScale { get; set; }
         public string consoleTextColor { get; set; }
+        public string consoleBackgroundColor { get; set; }
     }
 }

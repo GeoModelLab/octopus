@@ -10,10 +10,16 @@ using Utils;
 //config Llama
 NativeLibraryConfig.Instance.WithLogCallback(delegate (LLamaLogLevel level, string message) { Console.Write($"{level}: {message}"); });
 
+//config colors
+ColorConfig colorConfig = new ColorConfig("octoPus.json"); 
+
+Console.BackgroundColor = colorConfig.ConsoleBackground; //console backgroundcolor
+Console.Clear();
+
+
 
 #region Console welcome message
-// Load color configuration
-ColorConfig colorConfig = new ColorConfig("octoPus.json");
+// config scale colors
 List<ConsoleColor> selectedColors = colorConfig.SelectedColors;
 
 Console.Title = "octoPus";
@@ -57,9 +63,12 @@ Console.WriteLine("  _(--)_   |    My mouth is a large language model elaboratin
 Console.WriteLine("  ||||||   |\r\n");
 
 Console.ForegroundColor = colorConfig.ConsoleTextColor;
- 
+
+
 
 #endregion
+
+
 
 #region json settings
 //read json configuration file
@@ -164,7 +173,7 @@ foreach (var site in availableSites)
         }
         else if (numberOfYear < 10)
         {
-            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.ForegroundColor = ConsoleColor.Red;
             Console.WriteLine("The weather file has {0} years", numberOfYear);
             Console.WriteLine("The EPI and DMCAST models will be executed even if less than 10 years are available.");
         }
