@@ -74,32 +74,50 @@ The models configuration is stored by default in "octoPusAI/Files/parametersData
 For an exaustive description of each model routine and their parameters we refer to the Supplementary material S1 of Bregaglio et al., 2024.
 
 ### JSON configuration file
-The JSON file can be found in "octoPusAI/Readers/octoPus.json" and it allows to fine-tune additional settings of the *octoPus*. The JSON file is divided in two classes: one used to define model settings and one to explicit filepaths. Below is reported the structure of the JSON file with example values and a brief explanation of each attribute.
+The JSON file can be found in "octoPusAI/Readers/octoPus.json" and it allows to fine-tune additional settings of the *octoPus*. The JSON file is divided in three classes: one used to define model settings, one to explicit filepaths, and one to personalize the console colors. Below is reported the structure of the JSON file with example values and a brief explanation of each attribute.
 
 <pre><code class = "language-json">
 {
-  "settings": {
-    "startYear": 2003,          
-    "endYear": 2021,            
-    "sites": [ "Bergamo.csv" , "Chieti.csv" ], 
-    "assistantRisk": 4,         
-    "veryHighModelsThreshold": 4,
-    "WeatherTimeStep": "daily"
-  },
-  "paths": {
-    "weatherDir": "..\\..\\..\\files\\weather",                                                          
-    "octoPusParametersPath": "..\\..\\..\\files\\parametersData\\octoPusParameters.csv",                 
-    "susceptibilityFileBBCH": "..\\..\\..\\files\\parametersData\\hostSusceptibilityParameters.csv",     
-    "outputDir": "..\\..\\..\\outputs\\",                                                                
-    "LLMfile": "..\\..\\..\\LLM\\Meta-Llama-3-8B-Instruct-correct-pre-tokenizer-and-EOS-token-Q8_0.gguf",
-    "Rversion" : "R-4.3.2"                                                                               
-  }
+    "settings": {
+        "startYear": 2020,
+        "endYear": 2020,
+        "sites": [ "Bergamo.csv" ],
+        "assistantRisk": 8,
+        "veryHighModelsThreshold": 8,
+        "WeatherTimeStep": "hourly",
+        "colorScale": "Viridis",
+        "consoleTextColor": "Magenta",
+        "consoleBackgroundColor": "Blue"
+    },
+    "paths": {
+        "weatherDir": "..\\..\\..\\files\\weather",
+        "octoPusParametersPath": "..\\..\\..\\files\\Parameters\\octoPusParameters.csv",
+        "susceptibilityFileBBCH": "..\\..\\..\\files\\Parameters\\hostSusceptibilityParameters.csv",
+        "outputDir": "..\\..\\..\\outputs\\",
+        "LLMfile": "..\\.\\..\\..\\LLM\\Meta-Llama-3-8B-Instruct-correct-pre-tokenizer-and-EOS-token-Q8_0.gguf",
+        "Rversion": "R-4.4.2"
+    },
+    "colorScales": {
+        "Viridis": [ "DarkMagenta", "DarkBlue", "Cyan", "Green", "Yellow" ],
+        "Cividis": [ "DarkBlue", "Blue", "Gray", "Yellow", "DarkYellow" ],
+        "Magma": [ "Black", "DarkMagenta", "Magenta", "Red", "Yellow" ],
+        "Plasma": [ "DarkMagenta", "Magenta", "Red", "DarkYellow", "Yellow" ],
+        "Turbo": [ "DarkMagenta", "Blue", "Green", "Yellow", "Red" ],
+        "Grayscale": [ "White", "Gray", "DarkGray", "Black", "Black" ],
+        "Traditional": [ "Green", "Yellow", "DarkYellow", "Red", "DarkRed" ],
+        "ColorblindFriendly": [ "Blue", "Cyan", "Gray", "Yellow", "White" ],
+        "Heatmap": [ "Black", "DarkRed", "Red", "Yellow", "White" ],
+        "Cool": [ "DarkBlue", "Blue", "Cyan", "Green", "White" ]
+    }
 }
+
 </code></pre>
 
-Inside the *settings* class, it should be inserted the "startYear" and "endYear" of the simulation, as int. The "sites" is a list that contains the filenames of the weather data files for which the model should run (**only** the files written in the square brackets, separated by a comma, will be used as weather input data and for each of them an output file will be produced). "assistantRisk" (is an int from 0 to 5, corresponding to very low, low, medium, high, and very high) defines the daily level of risk at which the LLM assistant is called in the routine and "veryHighModelsThreshold" (again as an int, from 0 to 8) is number of models that predict very high risk needed to classify that day as a one with very high risk of infection. The "WeatherTimeStep" property accepts strings that are either "daily" or "hourly" and should match the format of the weather data used.
+Inside the *settings* class, the "startYear" and "endYear" of the simulation should be inserted as int. The "sites" is a list that contains the filenames of the weather data files for which the model should run (**only** the files written in the square brackets, separated by a comma, will be used as input weather data and for each of them an output file will be produced). "assistantRisk" (is an int from 0 to 5, corresponding to very low, low, medium, high, and very high) defines the daily level of risk at which the LLM assistant is called in the routine and "veryHighModelsThreshold" (again as an int, from 0 to 8) is the required number of models that predict very high risk needed to classify that day as a very high risk of infection day. The "WeatherTimeStep" property accepts strings that are either "daily" or "hourly" and should match the format of the weather data used. "colorScale" allows users to personalize the colors of the five risk classes selecting from a list of pre-defined color combinations, "consoleTextColor" changes the color of the printed console text, and "consoleBackgroundColor" modifies the background color of the console.
 
 The *paths* class explicitly defines the paths of input and output files. Noticeable are the two properties "LLMfile" and "Rversion". The first one defines the location and the name of the LLM file, which is **not** provided in this repository therefore should be created by the user before running the app (see section [Required packages and extensions](#required-packages-and-extensions) for the instructions on how to download Llama). "Rversion" is a string that specifies the R version currently installed on the machine and it is required to run the RF model.
+
+Finally, the *colorScales* class contains the ten default color scales that can be selected through the "colorScale" property. Among these, the "ColorblindFriendly" property contains an accessible color scale for color-blind people, but users can modify them or add new ones according to likings/needs. To add a new color scale, a new property should be created followed by a list of five colors wrapped in squared brackets and separated by commas (e.g., "personalized1" : ["blue", "green", "yellow", "red"]).
 
 ### Launching the *octoPus*
 After having completed this last step, the model is ready to be run with the specified user settings. Launch it and enjoy the *octoPus* at work!!
