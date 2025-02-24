@@ -28,7 +28,7 @@ The console application is structured in multiple folders, each containing eithe
 - **Readers** stores the pipelines to read the parametes, the .JSON configuration file, the console icon, and the entry point main method (Program.cs).
 
 This document will guide users through the steps needed to successfully run *octoPus* on their machines. First, the [Required packages and extensions](#required-packages-and-extensions) needed to run the console app will be expained in detail. Then, the inputs required and their structure will be analysed together with the user customizations in [Inputs and customization](#inputs-and-customization).
-This Git repository is a supplement to the scientific article "Releasing the *octoPus*, an open-source digital tool to promote Integrated Pest Management" (DOI: ............), published on ............., in which the *octoPus* is introduced, calibrated, and tested in Italy. Another publication on SoftwareX "*octoPus*: an open-source software for supporting farmers in the control of grapevine downy mildew" (DOI:[https://doi.org/10.1016/j.softx.2025.102085](https://doi.org/10.1016/j.softx.2025.102085)) delves into the technical details of the console application. 
+This Git repository is a supplement to the scientific article "Releasing the *octoPus*, an open-source digital tool to promote Integrated Pest Management" (DOI preprint: [https://doi.org/10.1101/2024.08.07.606987](https://doi.org/10.1101/2024.08.07.606987)), published on ............., in which the *octoPus* is introduced, calibrated, and tested in Italy. Another publication on SoftwareX "*octoPus*: an open-source software for supporting farmers in the control of grapevine downy mildew" (DOI: [https://doi.org/10.1016/j.softx.2025.102085](https://doi.org/10.1016/j.softx.2025.102085)) delves into the technical details of the console application. 
 
 ## Required packages and extensions
 The *octoPus* works on Windows, Linux, and macOS operating systems and requires a series of programs, packages, and extensions to run.
@@ -127,9 +127,6 @@ After having completed this last step, the model is ready to be run with the spe
 \(^^)/ °  ~ |_(°°)_| ~  ° _(--)_ °  ~  ~(^^)~ °  ~ _(°°)_ °  ~  ~(**)~ °  ~ \(^^)/ °  ~ |_(°°)_| ~  ° _(--)_ °  ~  ~(^^)~ °  ~ _(°°)_ °  ~  ~(**)~
 ((())) ~  °   (())   °  ~ |||||| ~  °  ((())) ~  ° //()\\ ~  °  ((())) ~  ° ((())) ~  °   (())   °  ~ |||||| ~  °  ((())) ~  ° //()\\ ~  °  ((()))
 ```
-
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
 
 ## License
 Attribution-NonCommercial-NoDerivatives 4.0 International
