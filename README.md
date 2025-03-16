@@ -87,7 +87,10 @@ The JSON file can be found in "octoPusAI/Readers/octoPus.json" and it allows to 
         "WeatherTimeStep": "hourly",
         "colorScale": "Viridis",
         "consoleTextColor": "Magenta",
-        "consoleBackgroundColor": "Blue"
+        "consoleBackgroundColor": "Blue",
+        "useLLM": false,
+        "useRandomForest": false,
+        "useConsole": false
     },
     "paths": {
         "weatherDir": "..\\..\\..\\files\\weather",
@@ -113,7 +116,7 @@ The JSON file can be found in "octoPusAI/Readers/octoPus.json" and it allows to 
 
 </code></pre>
 
-Inside the *settings* class, the "startYear" and "endYear" of the simulation should be inserted as int. The "sites" is a list that contains the filenames of the weather data files for which the model should run (**only** the files written in the square brackets, separated by a comma, will be used as input weather data and for each of them an output file will be produced). "assistantRisk" (is an int from 0 to 5, corresponding to very low, low, medium, high, and very high) defines the daily level of risk at which the LLM assistant is called in the routine and "veryHighModelsThreshold" (again as an int, from 0 to 8) is the required number of models that predict very high risk needed to classify that day as a very high risk of infection day. The "WeatherTimeStep" property accepts strings that are either "daily" or "hourly" and should match the format of the weather data used. "colorScale" allows users to personalize the colors of the five risk classes selecting from a list of pre-defined color combinations, "consoleTextColor" changes the color of the printed console text, and "consoleBackgroundColor" modifies the background color of the console.
+Inside the *settings* class, the "startYear" and "endYear" of the simulation should be inserted as int. The "sites" is a list that contains the filenames of the weather data files for which the model should run (**only** the files written in the square brackets, separated by a comma, will be used as input weather data and for each of them an output file will be produced). "assistantRisk" (is an int from 0 to 5, corresponding to very low, low, medium, high, and very high) defines the daily level of risk at which the LLM assistant is called in the routine and "veryHighModelsThreshold" (again as an int, from 0 to 8) is the required number of models that predict very high risk needed to classify that day as a very high risk of infection day. The "WeatherTimeStep" property accepts strings that are either "daily" or "hourly" and should match the format of the weather data used. "colorScale" allows users to personalize the colors of the five risk classes selecting from a list of pre-defined color combinations, "consoleTextColor" changes the color of the printed console text, and "consoleBackgroundColor" modifies the background color of the console. The "useLLM" (bool) property Determines whether the LLM is used in the simulation. If false, the assistant will not be involved in decision-making or risk evaluation. The "useRandomForest" (bool) property indicates whether the Random Forest model is used for predictions. If false, the simulation will not use Random Forest-based predictions for risk assessment. The 'useConsole' (bool) property controls whether console output is enabled. If false, the program will suppress console logs, preventing textual outputs from appearing in the terminal.
 
 The *paths* class explicitly defines the paths of input and output files. Noticeable are the two properties "LLMfile" and "Rversion". The first one defines the location and the name of the LLM file, which is **not** provided in this repository therefore should be created by the user before running the app (see section [Required packages and extensions](#required-packages-and-extensions) for the instructions on how to download Llama). "Rversion" is a string that specifies the R version currently installed on the machine and it is required to run the RF model.
 
