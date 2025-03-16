@@ -76,8 +76,6 @@ string fileName = "octoPus.json";
 string jsonString = File.ReadAllText(fileName);
 var config = JsonSerializer.Deserialize<root>(jsonString);
 
-
-
 #region assign json parameters to local variables
 //start and end year 
 int startYear = config.settings.startYear.GetValueOrDefault();
@@ -95,6 +93,9 @@ string LLMfile = config.paths.LLMfile;
 string Rversion = config.paths.Rversion;
 //type of weather data (either hourly or daily)
 string WeatherTimeStep = config.settings.WeatherTimeStep.ToLower();
+bool useLLM = (bool)config.settings.useLLM;
+bool useRandomForest = (bool)config.settings.useRandomForest;
+bool useConsole = (bool)config.settings.useConsole;
 
 Console.WriteLine("I am ready to start the simulation for the following sites: {0}.", string.Join(", ", sites));
 Console.WriteLine("The simulation will run from {0} to {1}", startYear, endYear);
@@ -158,6 +159,9 @@ foreach (var site in availableSites)
         _runner.endYear = endYear;
         _runner.assistantRisk = assistantRisk;
         _runner.veryHighModelsThreshold = veryHighModelsThreshold;
+        _runner.useLLM = useLLM;
+        _runner.useRandomForest = useRandomForest;
+        _runner.useConsole = useConsole;
         //check the availability of at least 12 months for executing EPI and DM-CAST
         checkWeatherAvailability checkWeatherAvailability = new checkWeatherAvailability();
         float numberOfYear = 0;
@@ -215,7 +219,11 @@ public class settings
     public float? assistantRisk { get; set; }
     public int? veryHighModelsThreshold { get; set; }
     public string? WeatherTimeStep { get; set; }
-   
+
+    public bool? useLLM { get; set; }
+    public bool? useRandomForest { get; set; }
+    public bool? useConsole { get; set; }
+
 }
 
 //contains the paths in the json configuration file

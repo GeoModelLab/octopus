@@ -61,6 +61,9 @@ namespace octoPusAI.ModelCallers
         public string modelPath;
         public string WeatherTimeStep;
         public bool areEPIDMCASTexecutable;
+        public bool useLLM;
+        public bool useRandomForest;
+        public bool useConsole;
         #endregion
 
         #region local variables to compute daily data
@@ -86,9 +89,18 @@ namespace octoPusAI.ModelCallers
        //this is the main call method of the octoPus model
         public void octoPus(out Dictionary<DateTime, OutputsDaily> date_outputs)
         {
+            LLamaInterface LLamaInterface = null;
+
+            if (useLLM)
+            {
+                //instance of LLama interface (the mouth)
+                LLamaInterface = new LLamaInterface(modelPath);
+            }
+            else
+            {
+                LLamaInterface = new NullLLamaInterface();
+            }
             
-            //instance of LLama interface (the mouth)
-            LLamaInterface LLamaInterface = new LLamaInterface(modelPath);
 
              //reinitialize the date_outputs object
              date_outputs = new Dictionary<DateTime, OutputsDaily>();
@@ -867,15 +879,26 @@ namespace octoPusAI.ModelCallers
                 ModelOutputsML.BBCH = modelsOutput.bbchCode;
                 ModelOutputsML.susceptibility = modelsOutput.plantSusceptibility;
                 MLmodel.modelOutputsML = ModelOutputsML;
-                //call the machine learning model
-                ModelOutputsML = MLmodel.MLmodelCall(Rversion);
 
+                if (useRandomForest)
+                {
+                    //call the machine learning model
+                    ModelOutputsML = MLmodel.MLmodelCall(Rversion);
+                }
 
                 if (modelsOutput.bbchCode > 11 && weatherData.Date.DayOfYear < 214) //remove day<214
                 {
-                    LLamaInterface.CallAsyncAndWaitOnResult(weatherFile, weatherData.Date, ModelOutputsML, assistantRisk,
-                       veryHighModelsThreshold);
+                    if (useConsole)
+                    {
+                        LLamaInterface.CallAsyncAndWaitOnResult(weatherFile, weatherData.Date, ModelOutputsML, assistantRisk,
+                           veryHighModelsThreshold, useLLM);
+                    }
+                    else
+                    {
+                        Console.WriteLine("octoPus is running without console messaging! {0}", weatherData.Date.ToString());
+                    }
                 }
+
                 #endregion
 
                 #region Reinitialize list of variables
@@ -900,7 +923,6 @@ namespace octoPusAI.ModelCallers
             }
         }
 
-   
         #region detailed bbch parameters
         private static Parameters generateDetailedPhenologyParameters(Parameters simpleParameters)
         {

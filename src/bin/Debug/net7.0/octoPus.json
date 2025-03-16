@@ -3,12 +3,15 @@
         "startYear": 2020,
         "endYear": 2020,
         "sites": [ "Bergamo.csv" ],
-        "assistantRisk": 8,
-        "veryHighModelsThreshold": 8,
+        "assistantRisk": 2,
+        "veryHighModelsThreshold": 2,
         "WeatherTimeStep": "hourly",
         "colorScale": "Viridis",
         "consoleTextColor": "Magenta",
-        "consoleBackgroundColor": "Blue"
+        "consoleBackgroundColor": "Blue",
+        "useLLM": false,
+        "useRandomForest": false,
+        "useConsole": false
     },
     "paths": {
         "weatherDir": "..\\..\\..\\files\\weather",

@@ -5,6 +5,13 @@ using Utils;
 namespace octoPusAI.ModelCallers
 {
     //This class is the interface to the LLama model
+
+    internal class NullLLamaInterface : LLamaInterface
+    {
+        public NullLLamaInterface() : base("") { }
+    }
+
+
     internal class LLamaInterface
     {
         //private properties
@@ -17,7 +24,20 @@ namespace octoPusAI.ModelCallers
         //Llama interface constructor to initialize the model
         public LLamaInterface(string modelPath)
         {
-            InitializeLLama(modelPath);
+            if (string.IsNullOrWhiteSpace(modelPath))
+            {
+                Console.WriteLine("Warning: Model path is empty. Skipping LLama initialization.");
+                return; // Prevent initialization if no model path is provided.
+            }
+
+            try
+            {
+                InitializeLLama(modelPath);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error initializing LLama model: {ex.Message}");
+            }
         }
 
         //Initialize the LLama model
@@ -321,11 +341,13 @@ namespace octoPusAI.ModelCallers
             Thread.Sleep(0); // Pause for 1000 milliseconds (1 second)
         }
 
-        public Task CallAsyncAndWaitOnResult(string site, DateTime date, ModelOutputsML mlModel, float assistantRisk, int veryHighModelsTreshold)
+        public Task CallAsyncAndWaitOnResult(string site, DateTime date, ModelOutputsML mlModel,
+            float assistantRisk, int veryHighModelsTreshold, bool useLLM)
         {
             string siteShort = ExtractCityName(site);
             var task = callLLama(siteShort, date, mlModel, assistantRisk, veryHighModelsTreshold);
-            task.Wait();
+
+            if (useLLM){task.Wait();}
             return task;
         }
 
