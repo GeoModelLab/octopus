@@ -1,14 +1,14 @@
 ﻿{
     "settings": {
-        "startYear": 2020,
-        "endYear": 2020,
-        "sites": [ "Bergamo.csv" ],
+        "startYear": 2013,
+        "endYear": 2014,
+        "sites": [ "rome.csv" ],
         "assistantRisk": 2,
         "veryHighModelsThreshold": 2,
-        "WeatherTimeStep": "hourly",
+        "WeatherTimeStep": "daily",
         "colorScale": "Viridis",
-        "consoleTextColor": "Magenta",
-        "consoleBackgroundColor": "Blue",
+        "consoleTextColor": "White",
+        "consoleBackgroundColor": "Black",
         "useLLM": false,
         "useRandomForest": false,
         "useConsole": false

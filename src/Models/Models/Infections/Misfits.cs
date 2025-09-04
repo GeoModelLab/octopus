@@ -1,4 +1,5 @@
 ﻿using Models.Datatype;
+using Utils;
 
 namespace Models.Infections
 {
@@ -37,7 +38,7 @@ namespace Models.Infections
 
 
             //Compute temperature function for macrosporangia
-            Output.outputsMisfits.macrosporangia_temperature_function = temperature_function(
+            Output.outputsMisfits.macrosporangia_temperature_function = utilities.temperature_function(
                 Input.Temperature, Parameters.misfitsParameters.TmaxMacrosporangiaFormation,
                 Parameters.misfitsParameters.TminMacrosporangiaFormation,
                 Parameters.misfitsParameters.ToptMacrosporangiaFormation);
@@ -210,7 +211,7 @@ namespace Models.Infections
             }
             else
             {
-                double Tfunction = temperature_function(Input.Temperature,
+                double Tfunction = utilities.temperature_function(Input.Temperature,
                     _parameters.TmaxMacrosporangiaInfection, _parameters.TminMacrosporangiaInfection, _parameters.ToptMacrosporangiaInfection);
 
                 outputsMisfits.macrosporangia_infection_temp_moisture_function = _parameters.LWminMacrosporangiaInfection /
@@ -289,28 +290,7 @@ namespace Models.Infections
 
         }
 
-        private double temperature_function(double Temperature, double Tmax,
-       double Tmin, double Topt)
-        {
-            double Tfunction = 0;
-
-            if (Temperature < Tmin || Temperature > Tmax)
-            {
-                Tfunction = 0;
-            }
-            else
-            {
-                double firstTerm = (Tmax - Temperature) /
-                        (Tmax - Topt);
-                double secondTerm = (Temperature - Tmin) /
-                                     (Topt - Tmin);
-                double Exponential = (Topt - Tmin) /
-                                     (Tmax - Topt);
-
-                Tfunction = firstTerm * Math.Pow(secondTerm, Exponential);
-            }
-            return Tfunction;
-        }
+       
         #endregion
     }
 }

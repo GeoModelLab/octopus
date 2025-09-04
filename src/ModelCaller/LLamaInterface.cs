@@ -117,7 +117,7 @@ namespace octoPusAI.ModelCallers
             }));
 
             #region change color of the console based on the infection risk 
-            ColorConfig colorConfig = new ColorConfig("octoPus.json");
+            Utils.Utils colorConfig = new Utils.Utils("octoPus.json");
             List<ConsoleColor> selectedColors = colorConfig.SelectedColors; //instance for infection tisk scale colors
 
             Console.ForegroundColor = colorConfig.ConsoleTextColor;
@@ -245,7 +245,7 @@ namespace octoPusAI.ModelCallers
             {
                 // Add chat histories as prompt to tell AI how to act.
                 var chatHistory = new ChatHistory();
-                ColorConfig colorConfig = new ColorConfig("octoPus.json");
+                Utils.Utils colorConfig = new Utils.Utils("octoPus.json");
                 List<ConsoleColor> selectedColors = colorConfig.SelectedColors; //instance for text color
 
                 //static message (this message is always the same and is informed by the analysis conducted with octoPus in Italy)

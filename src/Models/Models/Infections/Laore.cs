@@ -57,6 +57,7 @@ namespace Models.Infections
                 }
             }
         }
+        
 
         #endregion
     }

@@ -11,7 +11,7 @@ using Utils;
 NativeLibraryConfig.Instance.WithLogCallback(delegate (LLamaLogLevel level, string message) { Console.Write($"{level}: {message}"); });
 
 //config colors
-ColorConfig colorConfig = new ColorConfig("octoPus.json"); 
+Utils.Utils colorConfig = new Utils.Utils("octoPus.json"); 
 
 Console.BackgroundColor = colorConfig.ConsoleBackground; //console backgroundcolor
 Console.Clear();
@@ -165,7 +165,7 @@ foreach (var site in availableSites)
         //check the availability of at least 12 months for executing EPI and DM-CAST
         checkWeatherAvailability checkWeatherAvailability = new checkWeatherAvailability();
         float numberOfYear = 0;
-        _runner.areEPIDMCASTexecutable = checkWeatherAvailability.areEPIDMCASTexecutable(_runner.weatherFile, out numberOfYear);
+        _runner.areEPIDMCASTexecutable = checkWeatherAvailability.areEPIDMCASTexecutable(_runner.weatherFile,WeatherTimeStep, out numberOfYear);
 
 
         #region manage EPI and DMcast execution with low number of weather data (at least 10 years should be available!)
@@ -243,7 +243,7 @@ public class paths
 
 public class checkWeatherAvailability
 {
-    public bool areEPIDMCASTexecutable(string weatherFile, out float numberOfYear)
+    public bool areEPIDMCASTexecutable(string weatherFile, string weatherTimeStep, out float numberOfYear)
     {
 
         bool areEPIDMCASTexecutable = false;
@@ -267,8 +267,14 @@ public class checkWeatherAvailability
             int year = int.Parse(lineString[1]);
             int month = int.Parse(lineString[2]);
             int day = int.Parse(lineString[3]);
-            int hour = int.Parse(lineString[4]);
-
+            
+            //initialize hour
+            int hour = 0;
+            if (weatherTimeStep == "hourly")
+            {
+                hour = int.Parse(lineString[4]);
+            }
+           
             //first line
             if (line == 0)
             {

@@ -2,12 +2,14 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
+using Models.Datatype;
 
 
 namespace Utils
 {
-    public class ColorConfig
+    public class Utils
     {
+        //console color configuration
         public List<ConsoleColor> SelectedColors { get; private set; } //risk level colors
         public ConsoleColor ConsoleTextColor { get; private set; } //Text color
 
@@ -34,7 +36,7 @@ namespace Utils
         { "White", ConsoleColor.White }
     };
 
-        public ColorConfig(string fileName) //json file
+        public Utils(string fileName) //json file
         {
             LoadColorsFromJson(fileName);
         }
@@ -107,7 +109,7 @@ namespace Utils
         }
     }
 
-    // JSON Deserialization Classes
+    // JSON Deserialization Classes (color configuration)
     public class Root
     {
         public Settings settings { get; set; }
@@ -119,5 +121,47 @@ namespace Utils
         public string colorScale { get; set; }
         public string consoleTextColor { get; set; }
         public string consoleBackgroundColor { get; set; }
+    }
+
+
+    //class for other utilities
+    public static class utilities
+    {   //temperature function
+        public static double temperature_function(double Temperature, double Tmax,
+       double Tmin, double Topt)
+        {
+            double Tfunction = 0;
+
+            if (Temperature < Tmin || Temperature > Tmax)
+            {
+                Tfunction = 0;
+            }
+            else
+            {
+                double firstTerm = (Tmax - Temperature) /
+                        (Tmax - Topt);
+                double secondTerm = (Temperature - Tmin) /
+                                     (Topt - Tmin);
+                double Exponential = (Topt - Tmin) /
+                                     (Tmax - Topt);
+
+                Tfunction = firstTerm * Math.Pow(secondTerm, Exponential);
+            }
+            return Tfunction;
+        }
+
+        public static void incubationEstimate (GenericInfection infection, incubationParameters parameters, float temperature)
+        {
+            //TODO: finish incubation method
+            double tempResponse = temperature_function(temperature, parameters.tmaxIncubation,parameters.tminIncubation,parameters.toptIncubation);
+
+            //Estimates the incubation period by modulating a baseline value with a temperature function.
+            //1.baseline incubation period: xpected incubation duration under standard conditions.
+            //2.This baseline value is then adjusted by the temperature modulation function, 
+            //providing a value typically ranging from 0.0 to 1.0,
+            //based on the cumulative temperature and reflects how environmental conditions can accelerate or delay the incubation
+
+
+        }
     }
 }

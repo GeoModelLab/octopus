@@ -190,7 +190,9 @@ namespace Models.Datatype
     {
         #region Generic
         public int idInfection { get; set; }       
-        public DateTime infectionDate { get; set; }        
+        public DateTime infectionDate { get; set; }
+        public DateTime onsetDate { get; set; }
+        public float incubationProgress { get; set; }
         #endregion
     }
 
