@@ -64,6 +64,7 @@ namespace octoPusAI.ModelCallers
         public bool useLLM;
         public bool useRandomForest;
         public bool useConsole;
+        public bool detailedRun;
         #endregion
 
         #region local variables to compute daily data
@@ -129,6 +130,8 @@ namespace octoPusAI.ModelCallers
             PropertyInfo[] propsPhenology = parPhenology.GetType().GetProperties();//get all properties 
             parametersBBCH parametersBBCH = new parametersBBCH();
             PropertyInfo[] propsBBCH = parametersBBCH.GetType().GetProperties();//get all properties
+            parametersIncubation parametersIncubation = new parametersIncubation();
+            PropertyInfo[] propsIncubation = parametersIncubation.GetType().GetProperties();
             #endregion
 
             //assign calibrated parameters
@@ -249,6 +252,17 @@ namespace octoPusAI.ModelCallers
                         }
                     }
                 }
+                if (paramClass[0] == "Incubation")
+                {
+                    foreach (PropertyInfo prp in propsIncubation)
+                    {
+                        if (paramClass[1] == prp.Name)
+                        {
+                            prp.SetValue(parametersIncubation, (float)(octoPusParameters[param])); //set the values for this parameter
+                        }
+
+                    }
+                }
             }
             
             parameters.ucscParameters = parUCSC;
@@ -267,6 +281,7 @@ namespace octoPusAI.ModelCallers
             Parameters _detailedCropParameters = generateDetailedPhenologyParameters(parameters);
             parameters = _detailedCropParameters;
             parameters.bbchSusceptibilityParameters = BBCH_Susceptibility;
+            parameters.incubationParameters = parametersIncubation;
             #endregion
 
 
@@ -333,8 +348,14 @@ namespace octoPusAI.ModelCallers
             }
 
             //write the outputs from the octoPus models
-            writeOctoPusOutputs(weatherFile, date_outputs);
-
+            if (!detailedRun)
+            {
+                writeOctoPusOutputs(weatherFile, date_outputs);
+            }
+            else
+            {
+                writeOctoPusOutputsDetailed(weatherFile, date_outputs);
+            }
             if (WeatherTimeStep == "daily")
             {
                 //write the estimated weather data to csv
@@ -488,8 +509,11 @@ namespace octoPusAI.ModelCallers
             "bbchCode,bbchPhase,plantSusceptibility," +
             // Main model outputs
             "Rule310,Epi,Ipi,Dmcast,Magarey,UCSC,misfits,laore," +
+            // Onset model outputs
+            "onsRule310,onsEpi,onsIpi,onsDmcast,onsMagarey,onsUCSC,onsmisfits,onslaore," +
             // Main model outputs (pressure)
-            "pressureRule310,pressureEpi,pressureIpi,pressureDmcast,pressureMagarey,pressureUCSC,pressureMisfits,pressureLaore";
+            "pressureRule310,pressureEpi,pressureIpi,pressureDmcast,pressureMagarey," +
+            "pressureUCSC,pressureMisfits,pressureLaore";
             
 
             //add the header to the list
@@ -532,6 +556,16 @@ namespace octoPusAI.ModelCallers
                     line.Append($"{date_outputs[date].infectionUCSC},");
                     line.Append($"{date_outputs[date].infectionMisfits},");
                     line.Append($"{date_outputs[date].infectionLaore},");
+
+                    //onset outputs
+                    line.Append($"{date_outputs[date].onsetRule310},");
+                    line.Append($"{date_outputs[date].onsetEPI},");
+                    line.Append($"{date_outputs[date].onsetIPI},");
+                    line.Append($"{date_outputs[date].onsetDMCast},");
+                    line.Append($"{date_outputs[date].onsetMagarey},");
+                    line.Append($"{date_outputs[date].onsetUCSC},");
+                    line.Append($"{date_outputs[date].onsetMisfits},");
+                    line.Append($"{date_outputs[date].onsetLaore},");
 
                     line.Append($"{date_outputs[date].pressureRule310},");
                     line.Append($"{date_outputs[date].pressureEPI},");
@@ -578,6 +612,115 @@ namespace octoPusAI.ModelCallers
             System.IO.File.WriteAllLines(@"outputs//diseaseModels//" + siteShort, toWrite);
             #endregion
 
+        }
+
+        public void writeOctoPusOutputsDetailed(string site, Dictionary<DateTime, OutputsDaily> date_outputs)
+        {
+
+            #region write outputs
+            //empty list to store outputs
+            List<string> toWrite = new List<string>();
+
+            //define the file header
+            string header = "site,Date,Tmax,Tmin,Prec,LW,RHmax,RHmin," +
+            // Phenology model outputs
+            "chillState,ChillRate,antiChillState," +
+            "forcingRate,forcingState,cycleCompletion," +
+            "bbchCode,bbchPhase,plantSusceptibility," +
+            // Main model outputs
+            "Rule310,Epi,Ipi,Dmcast,Magarey,UCSC,misfits,laore," +
+            // Main model outputs (pressure)
+            "pressureRule310,pressureEpi,pressureIpi,pressureDmcast,pressureMagarey,pressureUCSC,pressureMisfits,pressureLaore," +
+            "EPI_Ke,EPI_pe,EPI_index,DMcast_Ra,DMcast_Pom,DMcast_PomSum," +
+            "IPI_Tmeani,IPI_Ri,IPI_Rhi,IPI_Lwi,IPI_index,IPI_index_sum," +
+            "UCSC_HTi,UCSC_HT,UCSC_DOR,UCSC_GER";
+
+          
+            //add the header to the list
+            toWrite.Add(header);
+
+
+            //loop over days
+            foreach (var date in date_outputs.Keys)
+            {
+                if (date.Hour == 00)
+                {
+                    var line = new StringBuilder();
+                    line.Append($"{date_outputs[date].Input.Site},");
+                    #region Weather data
+                    line.Append($"{date},");
+                    line.Append($"{date_outputs[date].Input.Tmax},");
+                    line.Append($"{date_outputs[date].Input.Tmin},");
+                    line.Append($"{date_outputs[date].Input.Precipitation},");
+                    line.Append($"{date_outputs[date].Input.LeafWetnessDuration},");
+                    line.Append($"{date_outputs[date].Input.RHmax},");
+                    line.Append($"{date_outputs[date].Input.RHmin},");
+                    #endregion
+                    //phenology
+                    line.Append($"{date_outputs[date].chillState},");
+                    line.Append($"{date_outputs[date].chillRate},");
+                    line.Append($"{date_outputs[date].antiChillRate},");
+                    line.Append($"{date_outputs[date].forcingRate},");
+                    line.Append($"{date_outputs[date].forcingState},");
+                    line.Append($"{date_outputs[date].cycleCompletionPercentage},");
+                    line.Append($"{date_outputs[date].bbchCode},");
+                    line.Append($"{date_outputs[date].bbchPhase},");
+
+                    #region Main model outputs
+                    line.Append($"{date_outputs[date].plantSusceptibility},");
+                    line.Append($"{date_outputs[date].infectionRule310},");
+                    line.Append($"{date_outputs[date].infectionEPI},");
+                    line.Append($"{date_outputs[date].infectionIPI},");
+                    line.Append($"{date_outputs[date].infectionDMCast},");
+                    line.Append($"{date_outputs[date].infectionMagarey},");
+                    line.Append($"{date_outputs[date].infectionUCSC},");
+                    line.Append($"{date_outputs[date].infectionMisfits},");
+                    line.Append($"{date_outputs[date].infectionLaore},");
+
+                    line.Append($"{date_outputs[date].pressureRule310},");
+                    line.Append($"{date_outputs[date].pressureEPI},");
+                    line.Append($"{date_outputs[date].pressureIPI},");
+                    line.Append($"{date_outputs[date].pressureDMCast},");
+                    line.Append($"{date_outputs[date].pressureMagarey},");
+                    line.Append($"{date_outputs[date].pressureUCSC},");
+                    line.Append($"{date_outputs[date].pressureMisfits},");
+                    line.Append($"{date_outputs[date].pressureLaore},");
+                    #endregion
+
+                    #region Model suboutputs
+                    // EPI
+                    line.Append($"{date_outputs[date].EPI_ke},");
+                    line.Append($"{date_outputs[date].EPI_pe},");
+                    line.Append($"{date_outputs[date].EPI_index},");
+                    // DMCast      date_outputs[date]
+                    line.Append($"{date_outputs[date].DMCast_Ra},");
+                    line.Append($"{date_outputs[date].DMCast_Pom},");
+                    line.Append($"{date_outputs[date].DMCast_PomSum},");
+                    // IPI         date_outputs[date]
+                    line.Append($"{date_outputs[date].IPI_Tmeani},");
+                    line.Append($"{date_outputs[date].IPI_Ri},");
+                    line.Append($"{date_outputs[date].IPI_Rhi},");
+                    line.Append($"{date_outputs[date].IPI_Lwi},");
+                    line.Append($"{date_outputs[date].IPI_index},");
+                    line.Append($"{date_outputs[date].IPI_index_sum},");
+                    // UCSC       date_outputs[date]
+                    line.Append($"{date_outputs[date].UCSC_HTi},");
+                    line.Append($"{date_outputs[date].UCSC_HT},");
+                    line.Append($"{date_outputs[date].UCSC_DOR},");
+                    line.Append($"{date_outputs[date].UCSC_GER}");                  
+                    #endregion
+
+                    toWrite.Add(line.ToString());
+
+                }
+            }
+            // Find the last occurrence of the directory separator character
+            int lastIndex = site.LastIndexOf('\\');
+            string siteShort = site.Substring(lastIndex + 1);
+
+            //save the file
+            System.IO.File.WriteAllLines(@"outputs//diseaseModels//detailed_" + siteShort, toWrite);
+            #endregion
 
         }
         #endregion
@@ -605,6 +748,7 @@ namespace octoPusAI.ModelCallers
                 laore = new Laore();
                 misfits = new Misfits();
                 ipi = new IPI();
+                
                 #region reinitialize pressure
                 pressureRule310 = 0;
                 pressureEPI = 0;
@@ -622,6 +766,10 @@ namespace octoPusAI.ModelCallers
             {
                 outputs.outputsPhenology = new OutputsPhenology();
                 //reinitialize the UCSC model at the start of the season
+                epi.MonthlyCounts = new List<Input>();
+                epi.DecadeCounts = new List<Input>();
+                epi.KeCounts = new List<Input>();
+                epi.InfectionCount = new List<Input>();
                 ucsc = new UCSC();
             }
 
@@ -696,10 +844,10 @@ namespace octoPusAI.ModelCallers
             UCSC_HT = outputs.outputsUCSC.hts;
 
             //reinitialize HT each year
-            if (weatherData.Date.Month == 1)
-            {
-                UCSC_HT = 0; ;
-            }
+            //if (weatherData.Date.Month == 1)
+            //{
+            //    UCSC_HT = 0;
+            //}
             #endregion
 
             #endregion
@@ -757,7 +905,7 @@ namespace octoPusAI.ModelCallers
                 modelsOutput.bbchPhase = outputs.outputsPhenology.bbchPhenophase;
                 modelsOutput.plantSusceptibility = outputs.outputsPhenology.plantSusceptibility;
 
-                #region binary outputs outputs (Final outputs)
+                #region binary outputs (Final outputs)
                 // 310
                 modelsOutput.infectionRule310 = outputs.outputsRule310.infectionEvents.Any(rule310Infection =>
                 rule310Infection.infectionDate > weatherData.Date.AddHours(-24)) ? 1 : 0;
@@ -800,14 +948,26 @@ namespace octoPusAI.ModelCallers
                 modelsOutput.pressureLaore += pressureLaore;
                 #endregion
 
+                #region binary Onset outputs  
+                // Laore
+                modelsOutput.onsetLaore = outputs.outputsLaore.infectionEvents.Any(laoreOnset =>
+                laoreOnset.onsetDate > weatherData.Date.AddHours(-24)) ? 1 : 0;
+                // Magarey
+                modelsOutput.onsetMagarey = outputs.outputsMagarey.infectionEvents.Any(magareyOnset => 
+                magareyOnset.onsetDate > weatherData.Date.AddHours(-24)) ? 1 : 0;
+                // Misfits
+                modelsOutput.onsetMisfits = outputs.outputsMisfits.infectionEvents.Any(misfitsOnset =>
+                misfitsOnset.onsetDate > weatherData.Date.AddHours(-24)) ? 1 : 0;
+                #endregion
+
                 #region Intermediate model outputs
                 if (EPI_ke.Count > 0)
                 {
                     modelsOutput.EPI_ke = EPI_ke.Last();
-                    modelsOutput.EPI_pe = EPI_pe.Last();
+                    modelsOutput.EPI_pe = EPI_pe.Max();
                 }
 
-                //modelsOutput.EPI_index = EPI_index;
+                modelsOutput.EPI_index = EPI_index;
                 //DMCast
                 if (DMCast_Ra.Count > 0)
                 {
@@ -815,7 +975,7 @@ namespace octoPusAI.ModelCallers
                     modelsOutput.DMCast_Pom = DMCast_Pom.Max();
                 }
 
-                //modelsOutput.DMCast_PomSum = DMCast_PomSum;
+                modelsOutput.DMCast_PomSum = DMCast_PomSum;
                 //IPI
                 if (IPI_Tmeani.Count > 0)
                 {
@@ -827,12 +987,12 @@ namespace octoPusAI.ModelCallers
 
                 }
 
-                //modelsOutput.IPI_index_sum = IPI_index_sum;
+                modelsOutput.IPI_index_sum = IPI_index_sum;
                 //UCSC
                 if (UCSC_HTi.Count > 0)
                 {
                     modelsOutput.UCSC_HTi = UCSC_HTi.Max();
-                    //modelsOutput.UCSC_HT = UCSC_HT;
+                    modelsOutput.UCSC_HT = UCSC_HT;
                     modelsOutput.UCSC_DOR = UCSC_DOR.Max();
                     modelsOutput.UCSC_GER = UCSC_GER.Max();
                 }
@@ -886,7 +1046,7 @@ namespace octoPusAI.ModelCallers
                     ModelOutputsML = MLmodel.MLmodelCall(Rversion);
                 }
 
-                if (modelsOutput.bbchCode > 11 && weatherData.Date.DayOfYear < 214) //remove day<214
+                if (modelsOutput.bbchCode > 11 && weatherData.Date.DayOfYear <= 243) //until August 31
                 {
                     if (useConsole)
                     {
@@ -1044,9 +1204,7 @@ namespace octoPusAI.ModelCallers
         }
         #endregion
 
-
     }
-
 
     public static class Extend
     {

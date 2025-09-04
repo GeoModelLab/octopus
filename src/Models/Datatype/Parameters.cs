@@ -18,6 +18,8 @@ namespace Models.Datatype
         public parametersUCSC ucscParameters = new parametersUCSC();
         public parametersMisfits misfitsParameters = new parametersMisfits();
         public parametersLaore laoreParameters = new parametersLaore();
+        //incubation parameters
+        public parametersIncubation incubationParameters = new parametersIncubation();
     }
 
     #region specific class for infection model parameters
@@ -33,8 +35,6 @@ namespace Models.Datatype
         public float numberOfHoursToConsiderInfection { get; set; }
         public float degreeHoursThresholdInfection { get; set; }
         public float rainTriggeringSplash { get; set; }
-
-        public incubationParameters incubationParameters {  get; set; }
     }
     public class parametersDMCast 
     {
@@ -49,7 +49,6 @@ namespace Models.Datatype
         public float tempThresholdInf { get; set; }
         public float bbchThreshold { get; set; }
         public float daysForInfection { get; set; }
-        public incubationParameters incubationParameters { get; set; }
 
     }
     public class parametersIPI 
@@ -65,7 +64,6 @@ namespace Models.Datatype
         public float tempThresholdInf { get; set; }
         public float precThresholdInf { get; set; }
         public float bbchThreshold { get; set; }
-        public incubationParameters incubationParameters { get; set; }
 
     }
     public class parametersEPI 
@@ -78,7 +76,6 @@ namespace Models.Datatype
         public float tempThresholdInf { get; set; }
         public float precThresholdInf { get; set; }
         public float bbchThreshold { get; set; }
-        public incubationParameters incubationParameters { get; set; }
     }
     public class parametersRule310 
     {
@@ -86,7 +83,6 @@ namespace Models.Datatype
         public float precipitationThreshold { get; set; }
         public float numberOfHoursToConsider { get; set; }
         public float bbchThreshold { get; set; }
-        public incubationParameters incubationParameters { get; set; }
     }
     public class parametersUCSC 
     {
@@ -99,7 +95,6 @@ namespace Models.Datatype
         public float infectionThreshold { get; set; }
         public float incubationLowerThreshold { get; set; }
         public float incubationUpperThreshold { get; set; }
-        public incubationParameters incubationParameters { get; set; }
     }
     public class parametersMisfits 
     {
@@ -114,19 +109,17 @@ namespace Models.Datatype
         public float TmaxMacrosporangiaFormation { get; set; }
         public float TminMacrosporangiaFormation { get; set; }
         public float ToptMacrosporangiaFormation { get; set; }
-        public incubationParameters incubationParameters { get; set; }
 
     }
     public class parametersLaore 
     {
-        public float infectionThresholdRisk { get; set; }
-        public incubationParameters incubationParameters { get; set; }
+        public float infectionThresholdRisk { get; set; }       
     }
     #endregion
 
-    #region IncubationParameters
+    #region parametersIncubation
 
-    public class incubationParameters
+    public class parametersIncubation
     {
         public float tminIncubation { get; set; }
         public float toptIncubation { get; set; }

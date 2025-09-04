@@ -16,7 +16,8 @@ namespace Models.Infections
         #region model run
         public void run(Input Input, Parameters Parameters, Output Output)
         {
-            
+
+            #region Infection
             //Reinitialize the variables in the first hour of the day
             ReinitializeVariablesAtHour0(Input.Date.Hour, Output.outputsMisfits);
 
@@ -110,6 +111,18 @@ namespace Models.Infections
                 Output.outputsMisfits.infectionEvents.Add(infectionEvent);
                 infectionEvent.idInfection = Output.outputsMisfits.infectionEvents.Count();
             }
+
+            #endregion
+
+            #region Incubation
+            foreach (var infEvent in Output.outputsMisfits.infectionEvents)
+            {
+                if (Output.outputsPhenology.bbchPhenophase > 10)
+                {
+                    Utils.utilities.incubationEstimate(infEvent, Parameters.incubationParameters, Input);
+                }
+            }
+            #endregion
         }
         #endregion
 

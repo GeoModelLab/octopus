@@ -14,6 +14,8 @@ namespace Models.Infections
         #region model run
         public void run(Input Input, Parameters Parameters, Output Output)
         {
+
+            #region Infection compute
             //add one hour
             Past_24hours.Add(Input);
             //delete the hour at n hours
@@ -56,8 +58,19 @@ namespace Models.Infections
                     }
                 }
             }
+            #endregion
+
+            #region Incubation
+            foreach(var infEvent in Output.outputsLaore.infectionEvents)
+            {
+                if (Output.outputsPhenology.bbchPhenophase > 10)
+                {
+                    Utils.utilities.incubationEstimate(infEvent, Parameters.incubationParameters, Input);
+                }
+            }
+            #endregion
         }
-        
+
 
         #endregion
     }

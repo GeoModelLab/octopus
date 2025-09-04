@@ -6,10 +6,10 @@ namespace Models.Infections
     public class EPI
     {
         #region local variables
-        List<Input> DecadeCounts = new List<Input>();
-        List<Input> MonthlyCounts = new List<Input>();
-        List<Input> KeCounts = new List<Input>();
-        List<Input> InfectionCount = new List<Input>();
+        public List<Input> DecadeCounts = new List<Input>();
+        public List<Input> MonthlyCounts = new List<Input>();
+        public List<Input> KeCounts = new List<Input>();
+        public List<Input> InfectionCount = new List<Input>();
 
         public Dictionary<int, double> ClimaticAverageTemperature = new Dictionary<int, double>();
         public Dictionary<int, double> ClimaticRainfallSum = new Dictionary<int, double>();

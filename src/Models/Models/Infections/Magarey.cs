@@ -13,6 +13,8 @@ namespace Models.Infections
         public void run(Input Input, Parameters Parameters, Output Output)
         {
 
+            #region Infection
+
             if (rule_210(Input, Parameters.magareyParameters) == 1)
             {
                 var infectionEvent = new MagareyInfectionEvent();
@@ -102,6 +104,18 @@ namespace Models.Infections
                 double elapsedHours = (Input.Date - magareyInfection.germinationDate).TotalHours;
                 return elapsedHours > 24 && magareyInfection.Infection == 0;
             });
+
+            #endregion
+
+            #region Incubation
+            foreach (var infEvent in Output.outputsMagarey.infectionEvents)
+            {
+                if (Output.outputsPhenology.bbchPhenophase > 10)
+                {
+                    Utils.utilities.incubationEstimate(infEvent, Parameters.incubationParameters, Input);
+                }
+            }
+            #endregion
         }
         #endregion
 

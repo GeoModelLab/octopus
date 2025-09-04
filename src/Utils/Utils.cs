@@ -127,7 +127,7 @@ namespace Utils
     //class for other utilities
     public static class utilities
     {   //temperature function
-        public static double temperature_function(double Temperature, double Tmax,
+        public static float temperature_function(double Temperature, double Tmax,
        double Tmin, double Topt)
         {
             double Tfunction = 0;
@@ -147,20 +147,40 @@ namespace Utils
 
                 Tfunction = firstTerm * Math.Pow(secondTerm, Exponential);
             }
-            return Tfunction;
+            return (float)Tfunction;
         }
 
-        public static void incubationEstimate (GenericInfection infection, incubationParameters parameters, float temperature)
+        public static GenericInfection incubationEstimate(GenericInfection infection, 
+            parametersIncubation parameters, Input input)
         {
+            //local variable to return
+            GenericInfection thisInfection = infection;
+
             //TODO: finish incubation method
-            double tempResponse = temperature_function(temperature, parameters.tmaxIncubation,parameters.tminIncubation,parameters.toptIncubation);
+            double tempResponse = temperature_function(input.Temperature, parameters.tmaxIncubation,
+                parameters.tminIncubation,parameters.toptIncubation);
+
+            //optimal duration of the incubation period
+            float incubationDuration = parameters.incubationDuration * 24;
+
+            //incubation progress update
+            infection.incubationProgress = infection.incubationProgress + (float)tempResponse;
+
+            //incubation period ended
+            if(infection.incubationProgress >= incubationDuration && 
+                infection.onsetDate.Year == 1)
+            {
+                infection.onsetDate = input.Date;
+                infection.incubationProgress = 0;
+            }
+
+            return thisInfection;
 
             //Estimates the incubation period by modulating a baseline value with a temperature function.
             //1.baseline incubation period: xpected incubation duration under standard conditions.
             //2.This baseline value is then adjusted by the temperature modulation function, 
             //providing a value typically ranging from 0.0 to 1.0,
             //based on the cumulative temperature and reflects how environmental conditions can accelerate or delay the incubation
-
 
         }
     }

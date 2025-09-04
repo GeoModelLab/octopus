@@ -39,6 +39,17 @@ namespace Models.Datatype
         public int infectionLaore { get; set; }
         #endregion
 
+        #region integer variables for downy mildew onset (0 = no, 1 = yes)
+        public int onsetRule310 { get; set; }
+        public int onsetEPI { get; set; }
+        public int onsetIPI { get; set; }
+        public int onsetDMCast { get; set; }
+        public int onsetMagarey { get; set; }
+        public int onsetUCSC { get; set; }
+        public int onsetMisfits { get; set; }
+        public int onsetLaore { get; set; }
+        #endregion
+
         #region integer variables for disease pressure (cumulated number of infections)
         public int pressureRule310 { get; set; }
         public int pressureEPI { get; set; }
