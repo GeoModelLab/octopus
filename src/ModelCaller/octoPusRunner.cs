@@ -958,6 +958,21 @@ namespace octoPusAI.ModelCallers
                 // Misfits
                 modelsOutput.onsetMisfits = outputs.outputsMisfits.infectionEvents.Any(misfitsOnset =>
                 misfitsOnset.onsetDate > weatherData.Date.AddHours(-24)) ? 1 : 0;
+                //Rule310
+                modelsOutput.onsetRule310 = outputs.outputsRule310.infectionEvents.Any(rule310Onset =>
+                rule310Onset.onsetDate > weatherData.Date.AddHours(-24)) ? 1 : 0;
+                //DMCast
+                modelsOutput.onsetDMCast = outputs.outputsDMCast.infectionEvents.Any(dmcastOnset =>
+                dmcastOnset.onsetDate > weatherData.Date.AddHours(-24)) ? 1 : 0;
+                //EPI
+                modelsOutput.onsetEPI = outputs.outputsEPI.infectionEvents.Any(epiOnset =>
+                epiOnset.onsetDate > weatherData.Date.AddHours(-24)) ? 1 : 0;
+                //IPI
+                modelsOutput.onsetIPI = outputs.outputsIPI.infectionEvents.Any(ipiOnset =>
+                ipiOnset.onsetDate > weatherData.Date.AddHours(-24)) ? 1 : 0;
+                //UCSC
+                modelsOutput.onsetUCSC = outputs.outputsUCSC.infectionEvents.Any(ucscOnset =>
+                ucscOnset.onsetDate > weatherData.Date.AddHours(-24)) ? 1 : 0;
                 #endregion
 
                 #region Intermediate model outputs

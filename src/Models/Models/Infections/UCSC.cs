@@ -10,8 +10,10 @@ namespace Models.Infections
         #endregion
 
         #region model run
+
         public void run(Input Input, Parameters Parameters, Output Outputs)
         {
+            #region Infection compute
             List<double> gerdor = GER(Input, Outputs.outputsUCSC, Parameters.ucscParameters);
             int ger = (int)gerdor[1]; //cast double to int
             double dor = gerdor[0];
@@ -196,6 +198,7 @@ namespace Models.Infections
                 }
                 #endregion
             }
+            #endregion
 
             DateTime lastDayOfTheYear = new DateTime(Input.Date.Year, 12, 31);
 
@@ -206,8 +209,20 @@ namespace Models.Infections
                 // Check if it's the last day of the year and infection is 0
                 return Input.Date == lastDayOfTheYear && ucscInfection.infection == 0;
             });
+            #region Incubation
+            foreach (var infEvent in Outputs.outputsUCSC.infectionEvents)
+            {
+                if (Outputs.outputsPhenology.bbchPhenophase > 10)
+                {
+                    Utils.utilities.incubationEstimate(infEvent, Parameters.incubationParameters, Input);
+                }
+            }
+            #endregion
+
         }
         #endregion
+
+
 
         #region intermediate functions
         //calculate hydro-thermal time (HT)

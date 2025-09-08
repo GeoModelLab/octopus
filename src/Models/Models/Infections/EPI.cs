@@ -18,9 +18,11 @@ namespace Models.Infections
         #endregion
 
         #region model run
+
+        
         public void run(Input Input, Parameters Parameters, Output Output)
         {
-           
+            #region Infection compute
             double PE = Pe(Input, Parameters.epiParameters, Output.outputsEPI);
             double KE = Ke(Input, Parameters.epiParameters, Output.outputsEPI);
 
@@ -68,6 +70,17 @@ namespace Models.Infections
                     InfectionCount = new List<Input>();
                 }
             }
+            #endregion
+
+            #region Incubation
+            foreach (var infEvent in Output.outputsEPI.infectionEvents)
+            {
+                if (Output.outputsPhenology.bbchPhenophase > 10)
+                {
+                    Utils.utilities.incubationEstimate(infEvent, Parameters.incubationParameters, Input);
+                }
+            }
+            #endregion
         }
 
         #endregion

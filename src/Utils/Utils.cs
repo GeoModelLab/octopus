@@ -156,7 +156,6 @@ namespace Utils
             //local variable to return
             GenericInfection thisInfection = infection;
 
-            //TODO: finish incubation method
             double tempResponse = temperature_function(input.Temperature, parameters.tmaxIncubation,
                 parameters.tminIncubation,parameters.toptIncubation);
 
