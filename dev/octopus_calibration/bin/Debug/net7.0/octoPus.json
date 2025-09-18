@@ -1,0 +1,47 @@
+﻿{
+    "settings": {
+        "startYear": 2018,
+        "endYear": 2019,
+        "sites": [ "Calosso.csv" ],
+        "assistantRisk": 2,
+        "veryHighModelsThreshold": 2,
+        "WeatherTimeStep": "daily",
+        "colorScale": "Viridis",
+        "consoleTextColor": "White",
+        "consoleBackgroundColor": "Black",
+        "useLLM": false,
+        "useRandomForest": false,
+        "useConsole": false
+    },
+    "paths": {
+        "weatherDir": "..\\..\\..\\files\\Weather",
+        "octoPusParametersPath": "..\\..\\..\\files\\Parameters\\octoPusParameters.csv",
+        "susceptibilityFileBBCH": "..\\..\\..\\files\\Parameters\\hostSusceptibilityParameters.csv",
+        "outputDir": "..\\..\\..\\outputs\\",
+        "LLMfile": "..\\.\\..\\..\\LLM\\Meta-Llama-3-8B-Instruct-correct-pre-tokenizer-and-EOS-token-Q8_0.gguf",
+        "Rversion": "R-4.4.2"
+    },
+    "colorScales": {
+        "Viridis": [ "DarkMagenta", "DarkBlue", "Cyan", "Green", "Yellow" ],
+
+        "Cividis": [ "DarkBlue", "Blue", "Gray", "Yellow", "DarkYellow" ],
+
+        "Magma": [ "Black", "DarkMagenta", "Magenta", "Red", "Yellow" ],
+
+        "Plasma": [ "DarkMagenta", "Magenta", "Red", "DarkYellow", "Yellow" ],
+
+        "Turbo": [ "DarkMagenta", "Blue", "Green", "Yellow", "Red" ],
+
+        "Grayscale": [ "White", "Gray", "DarkGray", "Black", "Black" ],
+
+        "Traditional": [ "Green", "Yellow", "DarkYellow", "Red", "DarkRed" ],
+
+        "ColorblindFriendly": [ "Blue", "Cyan", "Gray", "Yellow", "White" ],
+
+        "Heatmap": [ "Black", "DarkRed", "Red", "Yellow", "White" ],
+
+        "Cool": [ "DarkBlue", "Blue", "Cyan", "Green", "White" ]
+    }
+   
+
+}

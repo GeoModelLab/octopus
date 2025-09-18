@@ -1,0 +1,85 @@
+﻿class,parameter,min,max,value,units,calibration
+Rule310,baseTemperature,8,12,10,°C,x
+Rule310,precipitationThreshold,8,12,10,mm,x
+Rule310,numberOfHoursToConsider,20,30,25,hours,x
+Rule310,bbchThreshold,12,18,0,BBCH code,
+Magarey,baseTemperatureRule210,8,12,10,°C,x
+Magarey,precipitationThresholdRule210,8,12,10,mm,x
+Magarey,baseTemperatureInfection,6.4,9.6,8,°C,x
+Magarey,precipitationThresholdInfection,1.6,2.4,2,mm,x
+Magarey,numberOfHoursToConsiderRule210,20,30,25,hours,x
+Magarey,numberOfHoursToConsiderGermination,12.8,19.2,16,hours,x
+Magarey,numberOfHoursToConsiderInfection,6.4,9.6,8,hours,x
+Magarey,degreeHoursThresholdInfection,38.4,57.6,45,°C day,x
+Magarey,rainTriggeringSplash,0.8,1.2,0.5,mm,x
+EPI,keConstant,0.0096,0.0144,0.012,unitless,x
+EPI,urUpperThreshold,72,108,90,%,x
+EPI,urLowerThreshold,52,78,65,%,x
+EPI,peConstant,0.16,0.24,0.2,fraction,x
+EPI,alertThreshold,0,0,13,unitless,x
+EPI,tempThresholdInf,8.8,13.2,11,°C,x
+EPI,precThresholdInf,2,3,2.5,mm,x
+EPI,bbchThreshold,12,18,0,BBCH code,
+DMCast,muK1,94.4,141.6,118,unitless,x
+DMCast,sigmaK1,10.8,16.2,13.5,unitless,x
+DMCast,thresholdPOM,0.024,0.036,0.03,fraction,x
+DMCast,precThresholdOosporeGerm,2,3,2.5,mm,x
+DMCast,tempThresholdOosporeGerm,8.8,13.2,11,°C,x
+DMCast,tempThresholdSporangiaGerm,9.6,14.4,12,°C,x
+DMCast,daysForSporangiaGerm,6.4,9.6,8,days,x
+DMCast,precThresholdInf,0.16,0.24,0.2,mm,x
+DMCast,tempThresholdInf,8.8,13.2,11,°C,x
+DMCast,bbchThreshold,12,18,0,BBCH code,
+DMCast,daysForInfection,8.8,13.2,11,days,x
+IPI,riUpperThreshold,2.4,3.6,3,unitless,x
+IPI,tmeaniTminThreshold,10.4,15.6,13,°C,x
+IPI,tmeaniUpperThreshold,0.8,1.2,1,°C,x
+IPI,lwiLowerThreshold,0.8,1.2,1,hours,x
+IPI,lwiUpperThreshold,4,6,5,hours,x
+IPI,rhiUpperThreshold,1.6,2.4,2,unitless,x
+IPI,ipiTminThreshold,7.2,10.8,9,°C,x
+IPI,alertThreshold,10.4,15.6,13,unitless,x
+IPI,tempThresholdInf,8.8,13.2,11,°C,x
+IPI,precThresholdInf,2,3,2.5,mm,x
+IPI,bbchThreshold,12,18,0,BBCH code,
+UCSC,vpdThreshold,360,540,450,Kpa,x
+UCSC,dormancyBrakingLowerThreshold,0.024,0.036,0.03,unitless,x
+UCSC,dormancyBrakingUpperThreshold,0.776,1.164,0.97,unitless,x
+UCSC,germinationThreshold,0.8,1.2,1,unitless,x
+UCSC,sporangiaSurvivalThreshold,0.8,1.2,1,unitless,x
+UCSC,zoosporeSurvivalThreshold,0.8,1.2,1,unitless,x
+UCSC,infectionThreshold,48,72,60,unitless,x
+UCSC,incubationLowerThreshold,0.8,1.2,1,unitless,x
+UCSC,incubationUpperThreshold,0.8,1.2,1,unitless,x
+Misfits,LWminMacrosporangiaFormation,12,18,15,hours,x
+Misfits,LWoptMacrosporangiaFormation,19.2,28.8,24,hours,x
+Misfits,TminMacrosporangiaInfection,8,12,10,°C,x
+Misfits,ToptMacrosporangiaInfection,14.4,21.6,18,°C,x
+Misfits,TmaxMacrosporangiaInfection,19.2,28.8,24,°C,x
+Misfits,LWminMacrosporangiaInfection,1,3,2,hours,x
+Misfits,RainStartMacrosporangiaSpread,4,6,5,mm,x
+Misfits,RHminMacrosporangiaFormation,56,84,75,%,x
+Misfits,TminMacrosporangiaFormation,8,12,10,°C,x
+Misfits,ToptMacrosporangiaFormation,14.4,21.6,18,°C,x
+Misfits,TmaxMacrosporangiaFormation,19.2,28.8,24,°C,x
+Laore,infectionThresholdRisk,5.6,8.4,13,unitless,x
+Phenology,TminPlant,8,5,10,°C,
+Phenology,ToptPlant,20,30,22,°C,
+Phenology,TmaxPlant,28,42,35,°C,
+Phenology,ChillThreshold,5,12,10,hours,
+Phenology,ChillingRequirement,30,120,100,hours,
+Phenology,CycleLength,1600,2800,2700,°C day,
+BBCH,bbch10,0,4,0,BBCH code,
+BBCH,bbch15,4,15,16,BBCH code,
+BBCH,bbch53,15,40,20,BBCH code,
+BBCH,bbch65,15,45,25,BBCH code,
+BBCH,bbch71,10,30,20,BBCH code,
+BBCH,bbch77,20,35,30,BBCH code,
+BBCH,bbch81,25,50,60,BBCH code,
+BBCH,bbch85,30,65,65,BBCH code,
+BBCH,bbch89,50,85,80,BBCH code,
+BBCH,bbch99,85,100,90,BBCH code,
+Incubation,tminIncubation,8,12,10,°C,
+Incubation,toptIncubation,24,28,26,°C,
+Incubation,tmaxIncubation,30,35,32,°C,
+Incubation,incubationDuration,8,12,10,days,
