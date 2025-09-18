@@ -104,7 +104,7 @@ Console.WriteLine("The number of models to trigger a very high risk is set to {0
 Console.WriteLine("");
 Console.WriteLine("To change these settings, edit the octoPus.json configuration file.\nMore information on https://gitlab.com/octoPus README\n");
 
-Console.ReadLine();
+//Console.ReadLine();
 Console.ForegroundColor = ConsoleColor.White;
 
 #endregion

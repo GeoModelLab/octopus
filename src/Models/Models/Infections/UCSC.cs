@@ -24,6 +24,8 @@ namespace Models.Infections
             {
                 var infectionEvent = new UCSCInfectionEvent();
                 infectionEvent.startGermination = Input.Date;
+                //track phenophase
+                infectionEvent.phenophase = Outputs.outputsPhenology.bbchPhenophase;
                 infectionEvent.idInfection = Outputs.outputsUCSC.infectionEvents.Count();
 
                 //compute density of each oospore cohorts
@@ -210,11 +212,18 @@ namespace Models.Infections
                 return Input.Date == lastDayOfTheYear && ucscInfection.infection == 0;
             });
             #region Incubation
+            
+            //calculate incubation
             foreach (var infEvent in Outputs.outputsUCSC.infectionEvents)
             {
-                if (Outputs.outputsPhenology.bbchPhenophase > 10)
+                // Cast to UCSCcastInfectionEvent to access specific properties
+                var PosInfEvent = infEvent as UCSCInfectionEvent; //var for infection occurred 
+
+                if (PosInfEvent == null) continue;
+
+                if (PosInfEvent.phenophase >= 10 && PosInfEvent.infection == 1)
                 {
-                    Utils.utilities.incubationEstimate(infEvent, Parameters.incubationParameters, Input);
+                    Utils.utilities.incubationEstimate(PosInfEvent, Parameters.incubationParameters, Input);
                 }
             }
             #endregion

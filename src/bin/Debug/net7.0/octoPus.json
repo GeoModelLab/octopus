@@ -1,8 +1,8 @@
 ﻿{
     "settings": {
-        "startYear": 2011,
-        "endYear": 2012,
-        "sites": [ "Castions di Strada.csv" ],
+        "startYear": 2018,
+        "endYear": 2019,
+        "sites": [ "Calosso.csv" ],
         "assistantRisk": 2,
         "veryHighModelsThreshold": 2,
         "WeatherTimeStep": "daily",
@@ -14,7 +14,7 @@
         "useConsole": false
     },
     "paths": {
-        "weatherDir": "..\\..\\..\\files\\weather\\calibration",
+        "weatherDir": "..\\..\\..\\files\\Weather",
         "octoPusParametersPath": "..\\..\\..\\files\\Parameters\\octoPusParameters.csv",
         "susceptibilityFileBBCH": "..\\..\\..\\files\\Parameters\\hostSusceptibilityParameters.csv",
         "outputDir": "..\\..\\..\\outputs\\",

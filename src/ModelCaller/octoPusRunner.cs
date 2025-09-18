@@ -759,6 +759,7 @@ namespace octoPusAI.ModelCallers
                 pressureMisfits = 0;
                 pressureLaore = 0;
                 #endregion
+
             }
 
             //reinitialize outputsPhenology each year
@@ -771,6 +772,17 @@ namespace octoPusAI.ModelCallers
                 epi.KeCounts = new List<Input>();
                 epi.InfectionCount = new List<Input>();
                 ucsc = new UCSC();
+
+                //clean infection lists from previous year
+                outputs.outputsEPI.infectionEvents = new List<GenericInfection>();
+                outputs.outputsIPI.infectionEvents = new List<GenericInfection>();
+                outputs.outputsDMCast.infectionEvents = new List<GenericInfection>();
+                outputs.outputsLaore.infectionEvents = new List<GenericInfection>();
+                outputs.outputsMagarey.infectionEvents = new List<GenericInfection>();
+                outputs.outputsMisfits.infectionEvents = new List<GenericInfection>();
+                outputs.outputsUCSC.infectionEvents = new List<GenericInfection>();
+                outputs.outputsRule310.infectionEvents = new List<GenericInfection>();
+
             }
 
             //call the octoPus models

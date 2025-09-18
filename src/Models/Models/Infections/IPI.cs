@@ -53,6 +53,8 @@ namespace Models.Infections
                     {
                         var infectionEvent = new GenericInfection();
                         infectionEvent.infectionDate = Input.Date;
+                        //track phenophase
+                        infectionEvent.phenophase = Output.outputsPhenology.bbchPhenophase;
                         Output.outputsIPI.infectionEvents.Add(infectionEvent);
                     }
 
@@ -62,9 +64,11 @@ namespace Models.Infections
             #endregion
 
             #region Incubation
+            
+            //calculate incubation
             foreach (var infEvent in Output.outputsIPI.infectionEvents)
             {
-                if (Output.outputsPhenology.bbchPhenophase > 10)
+                if (infEvent.phenophase >= 10)
                 {
                     Utils.utilities.incubationEstimate(infEvent, Parameters.incubationParameters, Input);
                 }

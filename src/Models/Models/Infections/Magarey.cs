@@ -19,6 +19,8 @@ namespace Models.Infections
             {
                 var infectionEvent = new MagareyInfectionEvent();
                 infectionEvent.germinationDate = Input.Date;
+                //track phenophase
+                infectionEvent.phenophase = Output.outputsPhenology.bbchPhenophase;
                 Output.outputsMagarey.infectionEvents.Add(infectionEvent);
                 infectionEvent.idInfection = Output.outputsMagarey.infectionEvents.Count();
 
@@ -108,11 +110,17 @@ namespace Models.Infections
             #endregion
 
             #region Incubation
+            //calculate incubation
             foreach (var infEvent in Output.outputsMagarey.infectionEvents)
             {
-                if (Output.outputsPhenology.bbchPhenophase > 10)
+                // Cast to MagareycastInfectionEvent to access specific properties
+                var PosInfEvent = infEvent as MagareyInfectionEvent; //var for infection occurred
+
+                if (PosInfEvent == null) continue;
+
+                if (PosInfEvent.phenophase >= 10 && PosInfEvent.Infection == 1)
                 {
-                    Utils.utilities.incubationEstimate(infEvent, Parameters.incubationParameters, Input);
+                    Utils.utilities.incubationEstimate(PosInfEvent, Parameters.incubationParameters, Input);
                 }
             }
             #endregion

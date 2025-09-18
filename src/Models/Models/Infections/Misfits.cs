@@ -108,6 +108,8 @@ namespace Models.Infections
                 var infectionEvent = new misfitsInfectionEvent();
                 infectionEvent.germinationDate = Input.Date;
                 infectionEvent.infectionDate = Input.Date;
+                //track phenophase
+                infectionEvent.phenophase = Output.outputsPhenology.bbchPhenophase;
                 Output.outputsMisfits.infectionEvents.Add(infectionEvent);
                 infectionEvent.idInfection = Output.outputsMisfits.infectionEvents.Count();
             }
@@ -115,9 +117,14 @@ namespace Models.Infections
             #endregion
 
             #region Incubation
+            if(Input.Date.Year==2016 && Input.Date.Month == 4)
+            {
+
+            }
+            //calculate incubation
             foreach (var infEvent in Output.outputsMisfits.infectionEvents)
             {
-                if (Output.outputsPhenology.bbchPhenophase > 10)
+                if (infEvent.phenophase >= 10)
                 {
                     Utils.utilities.incubationEstimate(infEvent, Parameters.incubationParameters, Input);
                 }

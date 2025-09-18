@@ -204,6 +204,8 @@ namespace Models.Datatype
         public DateTime infectionDate { get; set; }
         public DateTime onsetDate { get; set; }
         public float incubationProgress { get; set; }
+
+        public int phenophase { get; set; }
         #endregion
     }
 

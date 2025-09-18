@@ -31,6 +31,8 @@ namespace Models.Infections
                 //instance of an infection event
                 var infectionEvent = new DMcastInfectionEvent();
                 infectionEvent.germinationDate = Input.Date;
+                //track phenophase
+                infectionEvent.phenophase = Output.outputsPhenology.bbchPhenophase;
                 Output.outputsDMCast.infectionEvents.Add(infectionEvent);
                 infectionEvent.idInfection = Output.outputsDMCast.infectionEvents.Count();
             }
@@ -98,11 +100,18 @@ namespace Models.Infections
             #endregion
 
             #region Incubation
+
+            //calculate incubation
             foreach (var infEvent in Output.outputsDMCast.infectionEvents)
             {
-                if (Output.outputsPhenology.bbchPhenophase > 10)
+                // Cast to DMcastInfectionEvent to access specific properties
+                var PosInfEvent = infEvent as DMcastInfectionEvent; //var for infection occurred
+
+                if (PosInfEvent == null) continue;
+
+                if (PosInfEvent.phenophase >= 10 && PosInfEvent.Infection == 1)
                 {
-                    Utils.utilities.incubationEstimate(infEvent, Parameters.incubationParameters, Input);
+                    Utils.utilities.incubationEstimate(PosInfEvent, Parameters.incubationParameters, Input);
                 }
             }
             #endregion
