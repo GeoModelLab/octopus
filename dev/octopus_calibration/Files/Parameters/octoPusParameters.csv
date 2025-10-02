@@ -2,7 +2,7 @@
 Rule310,baseTemperature,8,12,10,°C,x
 Rule310,precipitationThreshold,8,12,10,mm,x
 Rule310,numberOfHoursToConsider,20,30,25,hours,x
-Rule310,bbchThreshold,12,18,0,BBCH code,
+Rule310,bbchThreshold,12,18,10,BBCH code,
 Magarey,baseTemperatureRule210,8,12,10,°C,x
 Magarey,precipitationThresholdRule210,8,12,10,mm,x
 Magarey,baseTemperatureInfection,6.4,9.6,8,°C,x

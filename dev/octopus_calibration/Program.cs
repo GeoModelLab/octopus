@@ -158,7 +158,10 @@ foreach (var model in model_param_range.Keys)
         _runner.useLLM = useLLM;
         _runner.useRandomForest = useRandomForest;
         _runner.useConsole = useConsole;
-      
+        _runner.modelUnderOptimization = model;
+        _runner.weatherDir = weatherDir;
+        _runner.param_outCalibration = param_outCalibration;
+        _runner.areEPIDMCASTexecutable = true;
         float numberOfYear = 0;
        
 

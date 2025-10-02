@@ -18,7 +18,7 @@ namespace Models.Infections
             //add one hour
             Past_24hours.Add(Input);
             //delete the hour at n hours
-            if (Past_24hours.Count == Parameters.rule310Parameters.numberOfHoursToConsider)
+            if (Past_24hours.Count == (int)Parameters.rule310Parameters.numberOfHoursToConsider)
             {
                 Past_24hours.RemoveAt(0);
             }

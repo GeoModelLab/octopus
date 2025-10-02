@@ -93,6 +93,7 @@ namespace octoPusAI.ModelCallers
         public string Rversion;
         public string modelPath;
         public string WeatherTimeStep;
+        public string weatherDir;
         public bool areEPIDMCASTexecutable;
         public bool useLLM;
         public bool useRandomForest;
@@ -100,6 +101,8 @@ namespace octoPusAI.ModelCallers
         public bool detailedRun;
         public List<string> availableSites = new List<string>();
         public Dictionary<string, ParameterRange> nameParam = new Dictionary<string, ParameterRange>();
+        public string modelUnderOptimization;
+        public Dictionary<string, float> param_outCalibration = new Dictionary<string, float>();
         #endregion
 
         #region local variables to compute daily data
@@ -174,137 +177,101 @@ namespace octoPusAI.ModelCallers
             PropertyInfo[] propsIncubation = parametersIncubation.GetType().GetProperties();
             #endregion
 
+            int i = 0;
+
             //assign calibrated parameters
-            foreach (var param in octoPusParameters.Keys)
+            foreach (var param in nameParam.Keys)
             {
                 //split class from param name
                 string[] paramClass = param.Split('_');
+                string propertyName = param;
+                bool isCalibrated = nameParam[param].calibration != "";
 
-                if (paramClass[0] == "Rule310")
+                if (modelUnderOptimization == "Rule310")
                 {
-                    foreach (PropertyInfo prp in propsRule310)
-                    {
-                        if (paramClass[1] == prp.Name)
-                        {
-                            prp.SetValue(parRule310, (float)(octoPusParameters[param])); //set the values for this parameter
-                        }
-                    }
+                    var prop = propsRule310.FirstOrDefault(p => p.Name == propertyName);
+                    if (prop != null)
+                        prop.SetValue(parRule310, isCalibrated ? (float)Coefficient[i++] : param_outCalibration[param]);
                 }
-                if (paramClass[0] == "Magarey")
+                if (modelUnderOptimization == "Magarey")
                 {
-                    foreach (PropertyInfo prp in propsMagarey)
-                    {
-                        if (paramClass[1] == prp.Name)
-                        {
-                            prp.SetValue(parMagarey, (float)(octoPusParameters[param])); //set the values for this parameter
-                        }
+                    var prop = propsRule310.FirstOrDefault(p => p.Name == propertyName);
+                    if (prop != null)
+                        prop.SetValue(parRule310, isCalibrated ? (float)Coefficient[i++] : param_outCalibration[param]);
+                }
+                if (modelUnderOptimization == "EPI")
+                {
+                    var prop = propsRule310.FirstOrDefault(p => p.Name == propertyName);
+                    if (prop != null)
+                        prop.SetValue(parRule310, isCalibrated ? (float)Coefficient[i++] : param_outCalibration[param]);
+                }
+                if (modelUnderOptimization == "IPI")
+                {
+                    var prop = propsRule310.FirstOrDefault(p => p.Name == propertyName);
+                    if (prop != null)
+                        prop.SetValue(parRule310, isCalibrated ? (float)Coefficient[i++] : param_outCalibration[param]);
+                }
+                if (modelUnderOptimization == "Laore")
+                {
+                    var prop = propsRule310.FirstOrDefault(p => p.Name == propertyName);
+                    if (prop != null)
+                        prop.SetValue(parRule310, isCalibrated ? (float)Coefficient[i++] : param_outCalibration[param]);
+                }
+                if (modelUnderOptimization == "Misfits")
+                {
+                    var prop = propsRule310.FirstOrDefault(p => p.Name == propertyName);
+                    if (prop != null)
+                        prop.SetValue(parRule310, isCalibrated ? (float)Coefficient[i++] : param_outCalibration[param]);
+                }
+                if (modelUnderOptimization == "UCSC")
+                {
+                    var prop = propsRule310.FirstOrDefault(p => p.Name == propertyName);
+                    if (prop != null)
+                        prop.SetValue(parRule310, isCalibrated ? (float)Coefficient[i++] : param_outCalibration[param]);
+                }
+                if (modelUnderOptimization == "DMCast")
+                {
+                    var prop = propsRule310.FirstOrDefault(p => p.Name == propertyName);
+                    if (prop != null)
+                        prop.SetValue(parRule310, isCalibrated ? (float)Coefficient[i++] : param_outCalibration[param]);
+                }                
+            }
 
-                    }
-                }
-                if (paramClass[0] == "EPI")
-                {
-                    foreach (PropertyInfo prp in propsEPI)
-                    {
-                        if (paramClass[1] == prp.Name)
-                        {
-                            prp.SetValue(parEPI, (float)(octoPusParameters[param])); //set the values for this parameter
-                        }
+            foreach (var paramPheno in octoPusParameters)
+            {
+                var paramClass = paramPheno.Key.Split('_');
 
-                    }
-                }
-                if (paramClass[0] == "IPI")
-                {
-                    foreach (PropertyInfo prp in propsIPI)
-                    {
-                        if (paramClass[1] == prp.Name)
-                        {
-                            prp.SetValue(parIPI, (float)(octoPusParameters[param])); //set the values for this parameter
-                        }
 
-                    }
-                }
-                if (paramClass[0] == "Laore")
-                {
-                    foreach (PropertyInfo prp in propsLaore)
-                    {
-                        if (paramClass[1] == prp.Name)
-                        {
-                            prp.SetValue(parLaore, (float)(octoPusParameters[param])); //set the values for this parameter
-                        }
-
-                    }
-                }
-                if (paramClass[0] == "Misfits")
-                {
-                    foreach (PropertyInfo prp in propsMisfits)
-                    {
-                        if (paramClass[1] == prp.Name)
-                        {
-                            prp.SetValue(parMisfits, (float)(octoPusParameters[param])); //set the values for this parameter
-                        }
-
-                    }
-                }
-                if (paramClass[0] == "UCSC")
-                {
-                    foreach (PropertyInfo prp in propsUCSC)
-                    {
-                        if (paramClass[1] == prp.Name)
-                        {
-                            prp.SetValue(parUCSC, (float)(octoPusParameters[param])); //set the values for this parameter
-                        }
-
-                    }
-                }
-                if (paramClass[0] == "DMCast")
-                {
-                    foreach (PropertyInfo prp in propsDMCast)
-                    {
-                        if (paramClass[1] == prp.Name)
-                        {
-                            prp.SetValue(parDMCast, (float)(octoPusParameters[param])); //set the values for this parameter
-                        }
-
-                    }
-                }
                 if (paramClass[0] == "Phenology")
                 {
-                    foreach (PropertyInfo prp in propsPhenology)
-                    {
-                        if (paramClass[1] == prp.Name)
-                        {
-                            prp.SetValue(parPhenology, (float)(octoPusParameters[param])); //set the values for this parameter
-                        }
-
-                    }
+                    var prop = propsPhenology.FirstOrDefault(p => p.Name == paramClass[1]);
+                    if (prop != null)
+                        prop.SetValue(parPhenology, paramPheno.Value);
                 }
                 if (paramClass[0] == "BBCH")
-                {
-                    foreach (PropertyInfo prp in propsBBCH)
-                    {
+                { 
+                    var prop = propsBBCH.FirstOrDefault(p => p.Name == paramClass[1]);
+                    
                         parametersBBCH = new parametersBBCH();
                         parameters.bbchParameters.Add(int.Parse(paramClass[1].Substring(4, 2)), parametersBBCH);
                         if (parameters.bbchParameters[int.Parse(paramClass[1].Substring(4, 2))].
                             cycleCompletion == 0)
                         {
                             parameters.bbchParameters[int.Parse(paramClass[1].Substring(4, 2))].cycleCompletion =
-                                (float)(octoPusParameters[param]); //set the values for this parameter
+                                (float)(paramPheno.Value); //set the values for this parameter
                         }
-                    }
+                    
+
                 }
                 if (paramClass[0] == "Incubation")
                 {
-                    foreach (PropertyInfo prp in propsIncubation)
-                    {
-                        if (paramClass[1] == prp.Name)
-                        {
-                            prp.SetValue(parametersIncubation, (float)(octoPusParameters[param])); //set the values for this parameter
-                        }
-
-                    }
+                    var prop = propsIncubation.FirstOrDefault(p => p.Name == paramClass[1]);
+                    if (prop != null)
+                        prop.SetValue(parametersIncubation, paramPheno.Value);
                 }
-            }
             
+            }
+
             parameters.ucscParameters = parUCSC;
             parameters.misfitsParameters = parMisfits;
             parameters.laoreParameters = parLaore;
@@ -324,78 +291,86 @@ namespace octoPusAI.ModelCallers
             parameters.incubationParameters = parametersIncubation;
             #endregion
 
-            //read weather data
-            var weatherData = new Dictionary<DateTime, Input>();
-            switch (WeatherTimeStep)
+
+            foreach (var site in availableSites)
             {
-                case "hourly":
-                    weatherData = weatherReader.readHourly(weatherFile, startYear, endYear);
-                    break;
-                
-                case "daily":
-                    Dictionary<DateTime, InputDaily> weatherDataH = weatherReader.readDaily(weatherFile, startYear, endYear);
-                    foreach (var day in weatherDataH.Keys)
-                    {
-                        weatherData.AddRange(weatherReader.estimateHourly(weatherDataH[day], day));
-                    }
-                    break;
-
-                default:
-                    Console.WriteLine("Check the WeatherTimeStep in the octoPus.json file, available choices are: \"daily\" or \"hourly\"");
-                    break;
-            }
-
-            if (areEPIDMCASTexecutable)
-            {
-                //for the PEMs that require climatic averages
-                epi = new EPI();
-                dmcast = new DMCast();
-                historicalRun(weatherData);
-            }
-
-            bool isFlowered = false;
-
-            //reinitialize the date_outputs object
-            date_outputs = new Dictionary<DateTime, OutputsDaily>();
-
-            //initialize the daily outputs object
-            OutputsDaily outputsDaily = new OutputsDaily();
-            //reinitialize variables for each site
-            var outputs = new Output();
-
-            //loop over dates
-            foreach (var hour in weatherData.Keys)
-            {
-                //call the octoPus model
-                modelCall(weatherData[hour], parameters, isFlowered, outputs, out outputsDaily);
-
-                //add weather data to output object
-                output.weatherInputHourly.Temperature = weatherData[hour].Temperature;
-                output.weatherInputHourly.Precipitation = weatherData[hour].Precipitation;
-                output.weatherInputHourly.RelativeHumidity = weatherData[hour].RelativeHumidity;
-                output.weatherInputHourly.LeafWetness = weatherData[hour].LeafWetness;
-
-                //add the object to the output dictionary
-                if (hour.Hour == 0)
+                //read weather data
+                var weatherData = new Dictionary<DateTime, Input>();
+                weatherFile = site;
+                switch (WeatherTimeStep)
                 {
-                    date_outputs.Add(hour, outputsDaily);
+                    case "hourly":
+                        weatherData = weatherReader.readHourly(weatherFile, startYear, endYear);
+                        break;
+
+                    case "daily":
+                        Dictionary<DateTime, InputDaily> weatherDataH = weatherReader.readDaily(weatherDir + "\\daily\\" + weatherFile, startYear, endYear);
+                        foreach (var day in weatherDataH.Keys)
+                        {
+                            weatherData.AddRange(weatherReader.estimateHourly(weatherDataH[day], day));
+                        }
+                        break;
+
+                    default:
+                        Console.WriteLine("Check the WeatherTimeStep in the octoPus.json file, available choices are: \"daily\" or \"hourly\"");
+                        break;
                 }
+
+                if (areEPIDMCASTexecutable && 
+                    (modelUnderOptimization == "EPI" || modelUnderOptimization == "DMCast"))
+                {
+                    //for the PEMs that require climatic averages
+                    epi = new EPI();
+                    dmcast = new DMCast();
+                    historicalRun(weatherData);
+                }
+
+                bool isFlowered = false;
+
+                //reinitialize the date_outputs object
+                date_outputs = new Dictionary<DateTime, OutputsDaily>();
+
+                //initialize the daily outputs object
+                OutputsDaily outputsDaily = new OutputsDaily();
+                //reinitialize variables for each site
+                var outputs = new Output();
+
+                //loop over dates
+                foreach (var hour in weatherData.Keys)
+                {
+                    //call the octoPus model
+                    modelCall(weatherData[hour], parameters, isFlowered, outputs, modelUnderOptimization, out outputsDaily);
+
+                    //add weather data to output object
+                    output.weatherInputHourly.Temperature = weatherData[hour].Temperature;
+                    output.weatherInputHourly.Precipitation = weatherData[hour].Precipitation;
+                    output.weatherInputHourly.RelativeHumidity = weatherData[hour].RelativeHumidity;
+                    output.weatherInputHourly.LeafWetness = weatherData[hour].LeafWetness;
+
+                    //add the object to the output dictionary
+                    if (hour.Hour == 0)
+                    {
+                        date_outputs.Add(hour, outputsDaily);
+                    }
+                }
+                Console.WriteLine("site {0} run", site);
             }
 
             //write the outputs from the octoPus models
             if (!detailedRun)
             {
-                writeOctoPusOutputs(weatherFile, date_outputs);
+                //writeOctoPusOutputs(weatherFile, date_outputs);
             }
             else
             {
-                writeOctoPusOutputsDetailed(weatherFile, date_outputs);
+                //writeOctoPusOutputsDetailed(weatherFile, date_outputs);
             }
             if (WeatherTimeStep == "daily")
             {
                 //write the estimated weather data to csv
-                writeEstimatedToCsv(weatherFile, weatherData);
+                //writeEstimatedToCsv(weatherFile, weatherData);
             }
+
 
             double error = 0;
             return error;
@@ -763,9 +738,9 @@ namespace octoPusAI.ModelCallers
         }
         #endregion
 
-
         // Execute a single hourly timestep
-        public void modelCall(Input weatherData, Parameters parameters, bool isFlowered, Output outputs, out OutputsDaily modelsOutput)
+        public void modelCall(Input weatherData, Parameters parameters, bool isFlowered, Output outputs,
+            string modelUnderOptimization, out OutputsDaily modelsOutput)
         {
             //initialize the daily output object
             modelsOutput = new OutputsDaily();
@@ -785,7 +760,7 @@ namespace octoPusAI.ModelCallers
                 laore = new Laore();
                 misfits = new Misfits();
                 ipi = new IPI();
-                
+
                 #region reinitialize pressure
                 pressureRule310 = 0;
                 pressureEPI = 0;
@@ -803,12 +778,19 @@ namespace octoPusAI.ModelCallers
             if (weatherData.Date.DayOfYear == 300 && weatherData.Date.Hour == 0)
             {
                 outputs.outputsPhenology = new OutputsPhenology();
-                //reinitialize the UCSC model at the start of the season
-                epi.MonthlyCounts = new List<Input>();
-                epi.DecadeCounts = new List<Input>();
-                epi.KeCounts = new List<Input>();
-                epi.InfectionCount = new List<Input>();
-                ucsc = new UCSC();
+
+                if (modelUnderOptimization == "EPI")
+                {
+                    //reinitialize the UCSC model at the start of the season
+                    epi.MonthlyCounts = new List<Input>();
+                    epi.DecadeCounts = new List<Input>();
+                    epi.KeCounts = new List<Input>();
+                    epi.InfectionCount = new List<Input>();
+                }
+                if (modelUnderOptimization == "UCSC")
+                {
+                    ucsc = new UCSC();
+                }
 
                 //clean infection lists from previous year
                 outputs.outputsEPI.infectionEvents = new List<GenericInfection>();
@@ -822,19 +804,41 @@ namespace octoPusAI.ModelCallers
 
             }
 
-            //call the octoPus models
-            magarey.run(weatherData, parameters, outputs);
-            if (areEPIDMCASTexecutable)
+            if (modelUnderOptimization == "Magarey")
+            {
+                //call the octoPus models
+                magarey.run(weatherData, parameters, outputs);
+            } else if (modelUnderOptimization == "EPI")
             {
                 epi.run(weatherData, parameters, outputs);
+            }
+            else if (modelUnderOptimization == "DMCast")
+            {
                 dmcast.run(weatherData, parameters, outputs);
             }
+            else if (modelUnderOptimization == "UCSC")
+            {
+                ucsc.run(weatherData, parameters, outputs);
+            }
+            else if (modelUnderOptimization == "IPI")
+            {
+                ipi.run(weatherData, parameters, outputs);
+            }
+            else if (modelUnderOptimization == "Rule310")
+            {
+                rule310.run(weatherData, parameters, outputs);
+            }
+            else if (modelUnderOptimization == "Misfits")
+            {
+                misfits.run(weatherData, parameters, outputs);
+            }
+            else if (modelUnderOptimization == "Laore")
+            {
 
-            ucsc.run(weatherData, parameters, outputs);
-            ipi.run(weatherData, parameters, outputs);
-            rule310.run(weatherData, parameters, outputs);
-            misfits.run(weatherData, parameters, outputs);
-            laore.run(weatherData, parameters, outputs);
+                laore.run(weatherData, parameters, outputs);
+            }
+
+
 
 
             #region detailed run
@@ -844,53 +848,65 @@ namespace octoPusAI.ModelCallers
             double UCSC_HT = 0;
             if (areEPIDMCASTexecutable)
             {
-                #region EPI                                               
-                EPI_ke.Add(outputs.outputsEPI.ke);
-                EPI_pe.Add(outputs.outputsEPI.pe);
-                //to cumulate EPI
-                EPI_index = outputs.outputsEPI.epi;
-                //reinitialize EPI_index sum each year on 1st october						
-                if (weatherData.Date.Month == 10 && weatherData.Date.Day == 1)
+                if (modelUnderOptimization == "EPI")
                 {
-                    EPI_index = 0;
+                    #region EPI                                               
+                    EPI_ke.Add(outputs.outputsEPI.ke);
+                    EPI_pe.Add(outputs.outputsEPI.pe);
+                    //to cumulate EPI
+                    EPI_index = outputs.outputsEPI.epi;
+                    //reinitialize EPI_index sum each year on 1st october						
+                    if (weatherData.Date.Month == 10 && weatherData.Date.Day == 1)
+                    {
+                        EPI_index = 0;
+                    }
+                    #endregion
                 }
-                #endregion
 
                 #region DMCast                        
-                DMCast_Pom.Add(dmcast.Pom(weatherData, parameters.dmcastParameters));
-                DMCast_Ra.Add(dmcast.RAi(weatherData));
-                //to cumulate Pom
-                DMCast_PomSum = outputs.outputsDMCast.pomsum;
-                //reinitialize DMCast each year on 1st October (as in the updated version of the model)
-                //See "Plant Health Progress, 2007, 8.1: 66"
-                if (weatherData.Date.Month == 09 && weatherData.Date.Day == 22) //change this to 1 Oct in updated model
+                if (modelUnderOptimization == "DMCast")
                 {
-                    DMCast_PomSum = 0;
+                    DMCast_Pom.Add(dmcast.Pom(weatherData, parameters.dmcastParameters));
+                    DMCast_Ra.Add(dmcast.RAi(weatherData));
+                    //to cumulate Pom
+                    DMCast_PomSum = outputs.outputsDMCast.pomsum;
+                    //reinitialize DMCast each year on 1st October (as in the updated version of the model)
+                    //See "Plant Health Progress, 2007, 8.1: 66"
+                    if (weatherData.Date.Month == 09 && weatherData.Date.Day == 22) //change this to 1 Oct in updated model
+                    {
+                        DMCast_PomSum = 0;
+                    }
                 }
                 #endregion
             }
 
-            #region IPI                        
-            IPI_Ri.Add(ipi.Ri(weatherData, parameters.ipiParameters));
-            IPI_Tmeani.Add(ipi.Tmeani(weatherData, parameters.ipiParameters));
-            IPI_Lwi.Add(ipi.Lwi(weatherData, parameters.ipiParameters));
-            IPI_Rhi.Add(ipi.Rhi(weatherData, parameters.ipiParameters));
-            IPI_index.Add(ipi.IPI_index(weatherData, parameters.ipiParameters));
-            //to cumulate IPI index
-            IPI_index_sum = outputs.outputsIPI.ipisum;
-            //reinitialize IPI each year
-            if (weatherData.Date.DayOfYear == 1)
+            #region IPI             
+            if (modelUnderOptimization == "IPI")
             {
-                IPI_index_sum = 0;
+                IPI_Ri.Add(ipi.Ri(weatherData, parameters.ipiParameters));
+                IPI_Tmeani.Add(ipi.Tmeani(weatherData, parameters.ipiParameters));
+                IPI_Lwi.Add(ipi.Lwi(weatherData, parameters.ipiParameters));
+                IPI_Rhi.Add(ipi.Rhi(weatherData, parameters.ipiParameters));
+                IPI_index.Add(ipi.IPI_index(weatherData, parameters.ipiParameters));
+                //to cumulate IPI index
+                IPI_index_sum = outputs.outputsIPI.ipisum;
+                //reinitialize IPI each year
+                if (weatherData.Date.DayOfYear == 1)
+                {
+                    IPI_index_sum = 0;
+                }
             }
             #endregion
 
-            #region UCSC Model                        
-            UCSC_HTi.Add(outputs.outputsUCSC.hti);
-            UCSC_DOR.Add(outputs.outputsUCSC.dor);
-            UCSC_GER.Add(outputs.outputsUCSC.ger);
-            //to cumulate hydrothermal time (HT)
-            UCSC_HT = outputs.outputsUCSC.hts;
+            #region UCSC Model   
+            if (modelUnderOptimization == "UCSC")
+            {
+                UCSC_HTi.Add(outputs.outputsUCSC.hti);
+                UCSC_DOR.Add(outputs.outputsUCSC.dor);
+                UCSC_GER.Add(outputs.outputsUCSC.ger);
+                //to cumulate hydrothermal time (HT)
+                UCSC_HT = outputs.outputsUCSC.hts;
+            }
 
             //reinitialize HT each year
             //if (weatherData.Date.Month == 1)
@@ -955,6 +971,7 @@ namespace octoPusAI.ModelCallers
                 modelsOutput.plantSusceptibility = outputs.outputsPhenology.plantSusceptibility;
 
                 #region binary outputs (Final outputs)
+                
                 // 310
                 modelsOutput.infectionRule310 = outputs.outputsRule310.infectionEvents.Any(rule310Infection =>
                 rule310Infection.infectionDate > weatherData.Date.AddHours(-24)) ? 1 : 0;
@@ -1025,40 +1042,54 @@ namespace octoPusAI.ModelCallers
                 #endregion
 
                 #region Intermediate model outputs
-                if (EPI_ke.Count > 0)
+                if (modelUnderOptimization == "EPI")
                 {
-                    modelsOutput.EPI_ke = EPI_ke.Last();
-                    modelsOutput.EPI_pe = EPI_pe.Max();
+                    if (EPI_ke.Count > 0)
+                    {
+                        modelsOutput.EPI_ke = EPI_ke.Last();
+                        modelsOutput.EPI_pe = EPI_pe.Max();
+                    }
+
+                    modelsOutput.EPI_index = EPI_index;
+                }
+                if (modelUnderOptimization == "DMCast")
+                {
+                    //DMCast
+                    if (DMCast_Ra.Count > 0)
+                    {
+                        modelsOutput.DMCast_Ra = DMCast_Ra.Max();
+                        modelsOutput.DMCast_Pom = DMCast_Pom.Max();
+                    }
+                    modelsOutput.DMCast_PomSum = DMCast_PomSum;
                 }
 
-                modelsOutput.EPI_index = EPI_index;
-                //DMCast
-                if (DMCast_Ra.Count > 0)
+                if (modelUnderOptimization == "IPI")
                 {
-                    modelsOutput.DMCast_Ra = DMCast_Ra.Max();
-                    modelsOutput.DMCast_Pom = DMCast_Pom.Max();
+                    //IPI
+                    if (IPI_Tmeani.Count > 0)
+                    {
+                        modelsOutput.IPI_Tmeani = IPI_Tmeani.Max();
+                        modelsOutput.IPI_Ri = IPI_Ri.Max();
+                        modelsOutput.IPI_Lwi = IPI_Lwi.Max();
+                        modelsOutput.IPI_Rhi = IPI_Rhi.Max();
+                        modelsOutput.IPI_index = IPI_index.Max();
+
+                    }
+
+                    modelsOutput.IPI_index_sum = IPI_index_sum;
                 }
 
-                modelsOutput.DMCast_PomSum = DMCast_PomSum;
-                //IPI
-                if (IPI_Tmeani.Count > 0)
-                {
-                    modelsOutput.IPI_Tmeani = IPI_Tmeani.Max();
-                    modelsOutput.IPI_Ri = IPI_Ri.Max();
-                    modelsOutput.IPI_Lwi = IPI_Lwi.Max();
-                    modelsOutput.IPI_Rhi = IPI_Rhi.Max();
-                    modelsOutput.IPI_index = IPI_index.Max();
 
-                }
-
-                modelsOutput.IPI_index_sum = IPI_index_sum;
                 //UCSC
-                if (UCSC_HTi.Count > 0)
+                if (modelUnderOptimization == "UCSC")
                 {
-                    modelsOutput.UCSC_HTi = UCSC_HTi.Max();
-                    modelsOutput.UCSC_HT = UCSC_HT;
-                    modelsOutput.UCSC_DOR = UCSC_DOR.Max();
-                    modelsOutput.UCSC_GER = UCSC_GER.Max();
+                    if (UCSC_HTi.Count > 0)
+                    {
+                        modelsOutput.UCSC_HTi = UCSC_HTi.Max();
+                        modelsOutput.UCSC_HT = UCSC_HT;
+                        modelsOutput.UCSC_DOR = UCSC_DOR.Max();
+                        modelsOutput.UCSC_GER = UCSC_GER.Max();
+                    }
                 }
                 #endregion
 
