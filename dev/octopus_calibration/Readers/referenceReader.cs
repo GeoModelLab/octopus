@@ -1,8 +1,10 @@
-﻿using Models.Datatype;
+﻿using System.Globalization;
+using Models.Datatype;
 
 namespace octoPusAI.Readers
 {
-    //This class reads the weather from the file
+    //This class reads the References file
+    // reference_file: CSV containing observed onset dates for model validation
     internal class ReferenceReader
     {
         public Dictionary<string, ReferenceData> readReference(string file)
@@ -15,32 +17,43 @@ namespace octoPusAI.Readers
                 //skip the first line
                 sr.ReadLine();
 
-                //loop over the file
                 while (!sr.EndOfStream)
                 {
-                    ////split the line by comma (adjust the split according to the settings of your laptop)
-                    //string[] line = sr.ReadLine().Split(',');
+                    // Split the line by comma (adjust the split according to your system)
+                    string[] line = sr.ReadLine().Split(',');
 
-                    ////create a new Input object
-                    //ReferenceData ref = new ReferenceData();
+                    // Read the three columns
+                    string site = line[0].Trim();
+                    string onsetDateStr = line[1].Trim();
+                    string yearStr = line[2].Trim();
 
-                    ////date elements
-                    //int year = int.Parse(line[1]);
-                    //int month = int.Parse(line[2]);
-                    //int day = int.Parse(line[3]);
-                    //int hour = int.Parse(line[4]);
-                    ////set the date
-                    //gw.Date = new DateTime(year, month, day).AddHours(hour - 1);
+                    // Parse onset date (format: M/d/yyyy)
+                    DateTime onsetDate;
+                    DateTime.TryParseExact(onsetDateStr, "M/d/yyyy", CultureInfo.InvariantCulture,
+                        DateTimeStyles.None, out onsetDate);
+
+                    // Parse year
+                    int year = int.TryParse(yearStr, out int y) ? y : 0;
+
+                    // Create a new ReferenceData object
+                    var refObj = new ReferenceData
+                    {
+                        Site = site,
+                        OnsetDate = onsetDate,
+                        Year = year
+                    };
+
+                    // Add to the dictionary (use the site name as key)
+                    if (!refData.ContainsKey(site))
+                        refData.Add(site, refObj);
+                    else
+                        refData[site] = refObj; // update if already exists
                 }
-                //close the stream
-                sr.Close();
-
-
             }
-
-            //return the dictionary
             return refData;
-
         }
     }
 }
+
+
+

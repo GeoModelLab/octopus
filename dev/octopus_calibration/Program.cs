@@ -240,6 +240,13 @@ public class ParameterRange
     public string calibration {  get; set; }
 }
 
+//Define ReferenceData class
+public class ReferenceData
+{
+    public string Site { get; set; }
+    public DateTime OnsetDate { get; set; }
+    public int Year { get; set; }
+}
 
 #region json interfacing classes 
 

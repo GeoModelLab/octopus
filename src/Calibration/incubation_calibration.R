@@ -42,6 +42,8 @@ str(MiraData)
 #Rbind between DiseaseDB and MiraData 
 DiseaseOnSet <- dplyr::bind_rows(DiseaseDB, MiraData)
 
+#write.csv(DiseaseOnSet, "DiseaseOnSet.csv", row.names = FALSE)
+
 ##octoPus outputs----
 #function: Imports and formats raw output files from Octopus 
 #(the file structure requires formatting)
