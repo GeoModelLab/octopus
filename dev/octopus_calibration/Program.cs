@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
 using LLama.Native;
+using MathNet.Numerics;
 using Models.Datatype;
 using octoPusAI.ModelCallers;
 using octoPusAI.Readers;
@@ -8,9 +9,6 @@ using UNIMI.optimizer;
 
 //config Llama
 NativeLibraryConfig.Instance.WithLogCallback(delegate (LLamaLogLevel level, string message) { Console.Write($"{level}: {message}"); });
-
-//config colors
-Utils.Utils colorConfig = new Utils.Utils("octoPus.json"); 
 
 #region json settings
 //read json configuration file
@@ -38,6 +36,8 @@ string WeatherTimeStep = config.settings.WeatherTimeStep.ToLower();
 bool useLLM = (bool)config.settings.useLLM;
 bool useRandomForest = (bool)config.settings.useRandomForest;
 bool useConsole = (bool)config.settings.useConsole;
+string referenceFile = config.paths.referenceFile;
+List<string> modelsToRun = config.settings.modelsToRun;
 
 Console.WriteLine("I am ready to start the simulation for the following sites: {0}.", string.Join(", ", sites));
 Console.WriteLine("The simulation will run from {0} to {1}", startYear, endYear);
@@ -63,7 +63,7 @@ var BBCH_susceptibility = paramReader.BBCH_Susceptibility(hostSusceptibilityFile
 #endregion
 
 #region weather data files
-DirectoryInfo directoryInfo = new DirectoryInfo(weatherDir + "/" + WeatherTimeStep);
+DirectoryInfo directoryInfo = new DirectoryInfo(weatherDir );
 FileInfo[] files = directoryInfo.GetFiles();
 List<string> availableSites = files.Select(x => x.Name).ToList();
 #endregion
@@ -78,122 +78,157 @@ var model_param_range = paramRangeReader(octoPusParametersFile);
 
 List<string> toExclude = new List<string>() { "Phenology", "BBCH", "Incubation" };
 
-#region execute epidemiological models (the tentacles)
+#region read reference data
+ReferenceReader _refReader = new ReferenceReader();
+var refData = _refReader.readReference(referenceFile);
 
+
+#endregion
+
+
+#region execute epidemiological models (the tentacles)
 
 //loop over models
 foreach (var model in model_param_range.Keys)
 {
-    //to avoid calibrating on parameter classes different from the eight 'octopus models'
-    if (!toExclude.Contains(model))
+    if (modelsToRun.Contains(model))
     {
-        #region define optimizer settings
-        // Multistart Nelder–Mead simplex configuration:
-        // - NofSimplexes: number of random starts
-        // - Ftol: tolerance on objective function for convergence
-        // - Itmax: maximum iterations per simplex
-        var msx = new MultiStartSimplex();
-        msx.NofSimplexes = 1;
-        msx.Ftol = 0.000000000001;
-        msx.Itmax = 1;
-        #endregion
-
-        #region Define parameter settings for calibration
-        // The entire parameter space (nameParam) is available to the optimizer
-        Dictionary<string, ParameterRange> nameParam = model_param_range[model];
-        _runner.nameParam = nameParam;
-
-        // Determine which parameters are in the calibration subset
-        int paramCalibrated = 0;
-        var param_outCalibration = new Dictionary<string, float>();
-        var calibratedParamNames = new List<string>();
-
-        // Decide: parameters matching the calibrationVariable (or "all") and marked with a non-empty calibration tag
-        foreach (var kvp in nameParam)
+        //to avoid calibrating on parameter classes different from the eight 'octopus models'
+        if (!toExclude.Contains(model))
         {
-            string name = kvp.Key;
-            var param = kvp.Value;
+            #region define optimizer settings
+            // Multistart Nelder–Mead simplex configuration:
+            // - NofSimplexes: number of random starts
+            // - Ftol: tolerance on objective function for convergence
+            // - Itmax: maximum iterations per simplex
+            var msx = new MultiStartSimplex();
+            msx.NofSimplexes = 1;
+            msx.Ftol = 0.000000000001;
+            msx.Itmax = 1;
+            #endregion
 
-            if (!string.IsNullOrWhiteSpace(param.calibration))
+            #region Define parameter settings for calibration
+            // The entire parameter space (nameParam) is available to the optimizer
+            Dictionary<string, ParameterRange> nameParam = model_param_range[model];
+            _runner.nameParam = nameParam;
+
+            // Determine which parameters are in the calibration subset
+            int paramCalibrated = 0;
+            var param_outCalibration = new Dictionary<string, float>();
+            var calibratedParamNames = new List<string>();
+
+            // Decide: parameters matching the calibrationVariable (or "all") and marked with a non-empty calibration tag
+            foreach (var kvp in nameParam)
             {
-                paramCalibrated++;
-                calibratedParamNames.Add(name);
+                string name = kvp.Key;
+                var param = kvp.Value;
+
+                if (!string.IsNullOrWhiteSpace(param.calibration))
+                {
+                    paramCalibrated++;
+                    calibratedParamNames.Add(name);
+                }
+                else
+                {
+                    // Keep default value for parameters outside the calibration subset
+                    param_outCalibration[name] = param.value;
+                }
             }
-            else
+
+            // Build bounds array (Limits) for the calibrated subset [min, max] per parameter
+            double[,] Limits = new double[paramCalibrated, 2];
+            for (int i = 0; i < calibratedParamNames.Count; i++)
             {
-                // Keep default value for parameters outside the calibration subset
-                param_outCalibration[name] = param.value;
+                var name = calibratedParamNames[i];
+                var param = nameParam[name];
+                Limits[i, 0] = param.min;
+                Limits[i, 1] = param.max;
             }
+
+
+            #endregion
+
+            //message to console
+            Console.WriteLine("CALIBRATION STARTED FOR MODEL {0}", model);
+
+            //set runner properties
+            _runner.availableSites = availableSites;
+            _runner.modelPath = LLMfile;
+            _runner.Rversion = Rversion;
+            _runner.WeatherTimeStep = WeatherTimeStep;
+            _runner.BBCH_Susceptibility = BBCH_susceptibility;
+            //_runner.weatherFile = weatherDir + "\\" + WeatherTimeStep + "\\" + site; //edit euge
+            _runner.octoPusParameters = octoPusParameters;
+            _runner.startYear = startYear;
+            _runner.endYear = endYear;
+            _runner.assistantRisk = assistantRisk;
+            _runner.veryHighModelsThreshold = veryHighModelsThreshold;
+            _runner.useLLM = useLLM;
+            _runner.useRandomForest = useRandomForest;
+            _runner.useConsole = useConsole;
+            _runner.modelUnderOptimization = model;
+            _runner.weatherDir = weatherDir;
+            _runner.param_outCalibration = param_outCalibration;
+            _runner.areEPIDMCASTexecutable = true;
+            _runner.site_year_onsetDate = refData;
+            float numberOfYear = 0;
+
+            #region manage EPI and DMcast execution with low number of weather data (at least 10 years should be available!)
+            if (numberOfYear < 1)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("The weather file has less than one year of data!!!!");
+                Console.WriteLine("The EPI and DMCAST models cannot be executed");
+            }
+            else if (numberOfYear < 10)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("The weather file has {0} years", numberOfYear);
+                Console.WriteLine("The EPI and DMCAST models will be executed even if less than 10 years are available.");
+            }
+
+            #endregion
+
+            #region run octoPus
+            //empty list of dates and SWELL outputs
+            var dateOutputs = new Dictionary<DateTime, OutputsDaily>();
+            // Run the multistart simplex optimizer
+            // Results buffer returned by the optimizer (1 row x N params here)
+            double[,] results = new double[1, 1];
+            msx.Multistart(_runner, paramCalibrated, Limits, out results);
+
+            //get calibrated parameters
+            var paramCalibValue = new Dictionary<string, float>();
+            int count = 0;
+
+            #region write calibrated parameters
+            string header = "param, value";
+            List<string> writeParam = new List<string>();
+            writeParam.Add(header);
+            foreach (var param in calibratedParamNames)
+            {
+                //write a line for each parameter
+                string line = "";
+                line += param + ",";
+                line += results[0, count];
+                writeParam.Add(line);
+                paramCalibValue.Add(param, (float)results[0, count]);
+                count++;
+            }
+
+            //write calibrated parameters to file
+            System.IO.File.WriteAllLines("calibratedParameters//calibParam_" + model + ".csv", writeParam);
+            #endregion
+
+            //execute model with calibrated parameters
+            _runner.oneShot(paramCalibValue);
+
+            #endregion
         }
-
-        // Build bounds array (Limits) for the calibrated subset [min, max] per parameter
-        double[,] Limits = new double[paramCalibrated, 2];
-        for (int i = 0; i < calibratedParamNames.Count; i++)
-        {
-            var name = calibratedParamNames[i];
-            var param = nameParam[name];
-            Limits[i, 0] = param.min;
-            Limits[i, 1] = param.max;
-        }
-
-       
-        #endregion
-
-        //message to console
-        Console.ForegroundColor = colorConfig.ConsoleTextColor;
-        Console.WriteLine("CALIBRATION STARTED FOR MODEL {0}", model);
-
-        //set runner properties
-        _runner.availableSites = availableSites;
-        _runner.modelPath = LLMfile;
-        _runner.Rversion = Rversion;
-        _runner.WeatherTimeStep = WeatherTimeStep;
-        _runner.BBCH_Susceptibility = BBCH_susceptibility;
-        //_runner.weatherFile = weatherDir + "\\" + WeatherTimeStep + "\\" + site; //edit euge
-        _runner.octoPusParameters = octoPusParameters;
-        _runner.startYear = startYear;
-        _runner.endYear = endYear;
-        _runner.assistantRisk = assistantRisk;
-        _runner.veryHighModelsThreshold = veryHighModelsThreshold;
-        _runner.useLLM = useLLM;
-        _runner.useRandomForest = useRandomForest;
-        _runner.useConsole = useConsole;
-        _runner.modelUnderOptimization = model;
-        _runner.weatherDir = weatherDir;
-        _runner.param_outCalibration = param_outCalibration;
-        _runner.areEPIDMCASTexecutable = true;
-        float numberOfYear = 0;
-       
-
-        #region manage EPI and DMcast execution with low number of weather data (at least 10 years should be available!)
-        if (numberOfYear < 1)
-        {
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine("The weather file has less than one year of data!!!!");
-            Console.WriteLine("The EPI and DMCAST models cannot be executed");
-        }
-        else if (numberOfYear < 10)
-        {
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine("The weather file has {0} years", numberOfYear);
-            Console.WriteLine("The EPI and DMCAST models will be executed even if less than 10 years are available.");
-        }
-        Console.ForegroundColor = colorConfig.ConsoleTextColor;
-        #endregion
-
-        #region run octoPus
-        //empty list of dates and SWELL outputs
-        var dateOutputs = new Dictionary<DateTime, OutputsDaily>();
-        // Run the multistart simplex optimizer
-        // Results buffer returned by the optimizer (1 row x N params here)
-        double[,] results = new double[1, 1];
-        msx.Multistart(_runner, paramCalibrated, Limits, out results);
-        #endregion
     }
 }
 
 #endregion
-
 
 //read model and parameters from file
 Dictionary<string, Dictionary<string, ParameterRange>> paramRangeReader(string fileName)
@@ -231,7 +266,6 @@ Dictionary<string, Dictionary<string, ParameterRange>> paramRangeReader(string f
 
 }
 
-
 public class ParameterRange
 {
     public float min { get; set; }  
@@ -240,13 +274,11 @@ public class ParameterRange
     public string calibration {  get; set; }
 }
 
-//Define ReferenceData class
-public class ReferenceData
-{
-    public string Site { get; set; }
-    public DateTime OnsetDate { get; set; }
-    public int Year { get; set; }
-}
+
+
+
+
+
 
 #region json interfacing classes 
 
@@ -273,6 +305,8 @@ public class settings
     public bool? useRandomForest { get; set; }
     public bool? useConsole { get; set; }
 
+    public List<string>? modelsToRun { get; set; }
+
 }
 
 //contains the paths in the json configuration file
@@ -284,6 +318,8 @@ public class paths
     public string? susceptibilityFileBBCH { get; set; }
     public string? LLMfile { get; set; }
     public string? Rversion { get; set; }
+
+    public string? referenceFile { get; set; }
 }
 
 #endregion

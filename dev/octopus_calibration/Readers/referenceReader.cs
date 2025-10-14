@@ -5,11 +5,11 @@ namespace octoPusAI.Readers
 {
     //This class reads the References file
     // reference_file: CSV containing observed onset dates for model validation
-    internal class ReferenceReader
+    public class ReferenceReader
     {
-        public Dictionary<string, ReferenceData> readReference(string file)
+        public Dictionary<string, Dictionary<int, DateTime>> readReference(string file)
         {
-            var refData = new Dictionary<string, ReferenceData>();
+            var refData = new Dictionary<string, Dictionary<int, DateTime>>();
 
             //read the file
             using (var sr = new StreamReader(new BufferedStream(new FileStream(file, FileMode.Open))))
@@ -35,19 +35,11 @@ namespace octoPusAI.Readers
                     // Parse year
                     int year = int.TryParse(yearStr, out int y) ? y : 0;
 
-                    // Create a new ReferenceData object
-                    var refObj = new ReferenceData
-                    {
-                        Site = site,
-                        OnsetDate = onsetDate,
-                        Year = year
-                    };
-
-                    // Add to the dictionary (use the site name as key)
                     if (!refData.ContainsKey(site))
-                        refData.Add(site, refObj);
-                    else
-                        refData[site] = refObj; // update if already exists
+                    {
+                        refData.Add(site, new Dictionary<int, DateTime>());
+                    }
+                    refData[site].Add(year, onsetDate);
                 }
             }
             return refData;

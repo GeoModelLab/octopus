@@ -10,8 +10,6 @@ namespace Models.Infections
         #endregion
 
         #region model run
-
-        
         public void run(Input Input, Parameters Parameters, Output Output)
         {
             #region Infection compute
@@ -34,9 +32,7 @@ namespace Models.Infections
 
             double Precipitation = Precipitations.Sum();
             double Temperature = Temperatures.Average();
-
-            //TODO: not used here 
-            double BBCH = 0;
+            double BBCH = Output.outputsPhenology.bbchPhenophaseCode;
 
             //The rule
             if (Precipitation >= Parameters.rule310Parameters.precipitationThreshold &&

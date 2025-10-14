@@ -5,6 +5,7 @@ namespace Models.Datatype
     public class ReferenceData
     {
         //reference data
-        public Dictionary<int, DateTime> Year_onsetDate = new Dictionary<int, DateTime>();
+        public Dictionary<string, Dictionary<int, DateTime>> Site_Year_OnsetDate = 
+            new Dictionary<string, Dictionary<int, DateTime>>();
     }
 }

@@ -103,6 +103,7 @@ namespace octoPusAI.ModelCallers
         public Dictionary<string, ParameterRange> nameParam = new Dictionary<string, ParameterRange>();
         public string modelUnderOptimization;
         public Dictionary<string, float> param_outCalibration = new Dictionary<string, float>();
+        public Dictionary<string, Dictionary<int, DateTime>> site_year_onsetDate = new Dictionary<string, Dictionary<int, DateTime>>();
         #endregion
 
         #region local variables to compute daily data
@@ -291,9 +292,36 @@ namespace octoPusAI.ModelCallers
             parameters.incubationParameters = parametersIncubation;
             #endregion
 
+            //the error lists
+            List<float> errors = new List<float>();
+
 
             foreach (var site in availableSites)
             {
+                //reinitialize the models (for internal lists)
+                rule310 = new Rule310();
+                misfits = new Misfits();
+                ucsc = new UCSC();
+                dmcast = new DMCast();
+                laore = new Laore();
+                ipi = new IPI();
+                epi = new EPI();
+                magarey = new Magarey();
+
+
+                //take the reference data for this site
+                var year_onsetDate = site_year_onsetDate[site.Substring(0,site.Length-4)];
+
+
+                //adjust simulation period
+                if(modelUnderOptimization!= "EPI" || modelUnderOptimization != "DMcast")
+                {
+                    startYear = year_onsetDate.Keys.First() - 1;
+                    endYear = year_onsetDate.Keys.Last();
+                }
+
+
+
                 //read weather data
                 var weatherData = new Dictionary<DateTime, Input>();
                 weatherFile = site;
@@ -304,7 +332,7 @@ namespace octoPusAI.ModelCallers
                         break;
 
                     case "daily":
-                        Dictionary<DateTime, InputDaily> weatherDataH = weatherReader.readDaily(weatherDir + "\\daily\\" + weatherFile, startYear, endYear);
+                        Dictionary<DateTime, InputDaily> weatherDataH = weatherReader.readDaily(weatherDir + "\\" + weatherFile, startYear, endYear);
                         foreach (var day in weatherDataH.Keys)
                         {
                             weatherData.AddRange(weatherReader.estimateHourly(weatherDataH[day], day));
@@ -335,9 +363,281 @@ namespace octoPusAI.ModelCallers
                 //reinitialize variables for each site
                 var outputs = new Output();
 
+                //check if this year has already been evaluated
+                bool isAlreadyEvaluated = false;
+
                 //loop over dates
                 foreach (var hour in weatherData.Keys)
                 {
+                    if (hour.DayOfYear == 1)
+                    {
+                        isAlreadyEvaluated = false;
+                    }
+
+                    //call the octoPus model
+                    modelCall(weatherData[hour], parameters, isFlowered, outputs, modelUnderOptimization, out outputsDaily);
+
+                    //add weather data to output object
+                    output.weatherInputHourly.Temperature = weatherData[hour].Temperature;
+                    output.weatherInputHourly.Precipitation = weatherData[hour].Precipitation;
+                    output.weatherInputHourly.RelativeHumidity = weatherData[hour].RelativeHumidity;
+                    output.weatherInputHourly.LeafWetness = weatherData[hour].LeafWetness;
+
+                    //add the object to the output dictionary
+                    if (hour.Hour == 0)
+                    {
+                        date_outputs.Add(hour, outputsDaily);
+                    }
+
+
+                    //check if the reference data contains the current year
+                    if(year_onsetDate.ContainsKey(hour.Year))
+                    {
+                        if(modelUnderOptimization == "Rule310")
+                        {
+                            var simOnsetDate = new DateTime();
+                            if(outputs.outputsRule310.infectionEvents.Count >= 1)
+                            {
+                                if (outputs.outputsRule310.infectionEvents[0].onsetDate.Year > 1)
+                                {
+                                    if (!isAlreadyEvaluated)
+                                    {
+                                        //take the onset date
+                                        simOnsetDate = outputs.outputsRule310.infectionEvents[0].onsetDate;
+                                        //compute the error
+                                        var thisYearError = (simOnsetDate - year_onsetDate[hour.Year]).Days;
+                                        errors.Add((float)Math.Pow(thisYearError, 2));
+                                        isAlreadyEvaluated = true;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                //Console.WriteLine("site {0} run", site);
+            }
+
+            double objectiveFunction = Math.Sqrt(errors.Sum()/errors.Count());
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine("RMSE = {0} days", Math.Round(objectiveFunction, 2));
+
+            return objectiveFunction;
+            
+        }
+
+        public void oneShot(Dictionary<string, float> paramValue)
+        {
+
+            #region assign parameters
+
+            #region instance of the parameters class
+            Parameters parameters = new Parameters();
+            parametersRule310 parRule310 = new parametersRule310();
+            PropertyInfo[] propsRule310 = parRule310.GetType().GetProperties();//get all properties
+            parametersMagarey parMagarey = new parametersMagarey();
+            PropertyInfo[] propsMagarey = parMagarey.GetType().GetProperties();//get all properties
+            parametersEPI parEPI = new parametersEPI();
+            PropertyInfo[] propsEPI = parEPI.GetType().GetProperties();//get all properties
+            parametersIPI parIPI = new parametersIPI();
+            PropertyInfo[] propsIPI = parIPI.GetType().GetProperties();//get all properties
+            parametersLaore parLaore = new parametersLaore();
+            PropertyInfo[] propsLaore = parLaore.GetType().GetProperties();//get all properties
+            parametersMisfits parMisfits = new parametersMisfits();
+            PropertyInfo[] propsMisfits = parMisfits.GetType().GetProperties();//get all properties
+            parametersUCSC parUCSC = new parametersUCSC();
+            PropertyInfo[] propsUCSC = parUCSC.GetType().GetProperties();//get all properties
+            parametersDMCast parDMCast = new parametersDMCast();
+            PropertyInfo[] propsDMCast = parDMCast.GetType().GetProperties();//get all properties
+            parametersPhenology parPhenology = new parametersPhenology();
+            PropertyInfo[] propsPhenology = parPhenology.GetType().GetProperties();//get all properties 
+            parametersBBCH parametersBBCH = new parametersBBCH();
+            PropertyInfo[] propsBBCH = parametersBBCH.GetType().GetProperties();//get all properties
+            parametersIncubation parametersIncubation = new parametersIncubation();
+            PropertyInfo[] propsIncubation = parametersIncubation.GetType().GetProperties();
+            #endregion
+
+            int i = 0;
+
+            //assign calibrated parameters
+            foreach (var param in nameParam.Keys)
+            {
+                //split class from param name
+                string[] paramClass = param.Split('_');
+                string propertyName = param;
+                bool isCalibrated = nameParam[param].calibration != "";
+
+                if (modelUnderOptimization == "Rule310")
+                {
+                    var prop = propsRule310.FirstOrDefault(p => p.Name == propertyName);
+                    if (prop != null)
+                        prop.SetValue(parRule310, isCalibrated ? (float)paramValue[param] : param_outCalibration[param]);
+                }
+                if (modelUnderOptimization == "Magarey")
+                {
+                    var prop = propsRule310.FirstOrDefault(p => p.Name == propertyName);
+                    if (prop != null)
+                        prop.SetValue(parRule310, isCalibrated ? (float)paramValue[param] : param_outCalibration[param]);
+                }
+                if (modelUnderOptimization == "EPI")
+                {
+                    var prop = propsRule310.FirstOrDefault(p => p.Name == propertyName);
+                    if (prop != null)
+                        prop.SetValue(parRule310, isCalibrated ? (float)paramValue[param] : param_outCalibration[param]);
+                }
+                if (modelUnderOptimization == "IPI")
+                {
+                    var prop = propsRule310.FirstOrDefault(p => p.Name == propertyName);
+                    if (prop != null)
+                        prop.SetValue(parRule310, isCalibrated ? (float)paramValue[param] : param_outCalibration[param]);
+                }
+                if (modelUnderOptimization == "Laore")
+                {
+                    var prop = propsRule310.FirstOrDefault(p => p.Name == propertyName);
+                    if (prop != null)
+                        prop.SetValue(parRule310, isCalibrated ? (float)paramValue[param] : param_outCalibration[param]);
+                }
+                if (modelUnderOptimization == "Misfits")
+                {
+                    var prop = propsRule310.FirstOrDefault(p => p.Name == propertyName);
+                    if (prop != null)
+                        prop.SetValue(parRule310, isCalibrated ? (float)paramValue[param] : param_outCalibration[param]);
+                }
+                if (modelUnderOptimization == "UCSC")
+                {
+                    var prop = propsRule310.FirstOrDefault(p => p.Name == propertyName);
+                    if (prop != null)
+                        prop.SetValue(parRule310, isCalibrated ? (float)paramValue[param] : param_outCalibration[param]);
+                }
+                if (modelUnderOptimization == "DMCast")
+                {
+                    var prop = propsRule310.FirstOrDefault(p => p.Name == propertyName);
+                    if (prop != null)
+                        prop.SetValue(parRule310, isCalibrated ? (float)paramValue[param] : param_outCalibration[param]);
+                }
+            }
+
+            foreach (var paramPheno in octoPusParameters)
+            {
+                var paramClass = paramPheno.Key.Split('_');
+
+
+                if (paramClass[0] == "Phenology")
+                {
+                    var prop = propsPhenology.FirstOrDefault(p => p.Name == paramClass[1]);
+                    if (prop != null)
+                        prop.SetValue(parPhenology, paramPheno.Value);
+                }
+                if (paramClass[0] == "BBCH")
+                {
+                    var prop = propsBBCH.FirstOrDefault(p => p.Name == paramClass[1]);
+
+                    parametersBBCH = new parametersBBCH();
+                    parameters.bbchParameters.Add(int.Parse(paramClass[1].Substring(4, 2)), parametersBBCH);
+                    if (parameters.bbchParameters[int.Parse(paramClass[1].Substring(4, 2))].
+                        cycleCompletion == 0)
+                    {
+                        parameters.bbchParameters[int.Parse(paramClass[1].Substring(4, 2))].cycleCompletion =
+                            (float)(paramPheno.Value); //set the values for this parameter
+                    }
+                }
+                if (paramClass[0] == "Incubation")
+                {
+                    var prop = propsIncubation.FirstOrDefault(p => p.Name == paramClass[1]);
+                    if (prop != null)
+                        prop.SetValue(parametersIncubation, paramPheno.Value);
+                }
+
+            }
+
+            parameters.ucscParameters = parUCSC;
+            parameters.misfitsParameters = parMisfits;
+            parameters.laoreParameters = parLaore;
+            parameters.ipiParameters = parIPI;
+            parameters.epiParameters = parEPI;
+            parameters.magareyParameters = parMagarey;
+            parameters.rule310Parameters = parRule310;
+            parameters.dmcastParameters = parDMCast;
+            parameters.phenologyParameters = parPhenology;
+            #endregion
+
+            #region assign phenology parameters for detailed crop parameters estimation
+            parameters.bbchParameters = parameters.bbchParameters.OrderBy(kvp => kvp.Key).ToDictionary(kvp => kvp.Key, kvp => kvp.Value); ;
+            Parameters _detailedCropParameters = generateDetailedPhenologyParameters(parameters);
+            parameters = _detailedCropParameters;
+            parameters.bbchSusceptibilityParameters = BBCH_Susceptibility;
+            parameters.incubationParameters = parametersIncubation;
+            #endregion
+
+
+            foreach (var site in availableSites)
+            {
+                //reinitialize the models (for internal lists)
+                rule310 = new Rule310();
+                misfits = new Misfits();
+                ucsc = new UCSC();
+                dmcast = new DMCast();
+                laore = new Laore();
+                ipi = new IPI();
+                epi = new EPI();
+                magarey = new Magarey();
+
+
+                //take the reference data for this site
+                var year_onsetDate = site_year_onsetDate[site.Substring(0, site.Length - 4)];
+
+
+                //adjust simulation period
+                if (modelUnderOptimization != "EPI" || modelUnderOptimization != "DMcast")
+                {
+                    startYear = year_onsetDate.Keys.First() - 1;
+                    endYear = year_onsetDate.Keys.Last();
+                }
+
+                //read weather data
+                var weatherData = new Dictionary<DateTime, Input>();
+                weatherFile = site;
+                switch (WeatherTimeStep)
+                {
+                    case "hourly":
+                        weatherData = weatherReader.readHourly(weatherFile, startYear, endYear);
+                        break;
+
+                    case "daily":
+                        Dictionary<DateTime, InputDaily> weatherDataH = weatherReader.readDaily(weatherDir + "\\" + weatherFile, startYear, endYear);
+                        foreach (var day in weatherDataH.Keys)
+                        {
+                            weatherData.AddRange(weatherReader.estimateHourly(weatherDataH[day], day));
+                        }
+                        break;
+
+                    default:
+                        Console.WriteLine("Check the WeatherTimeStep in the octoPus.json file, available choices are: \"daily\" or \"hourly\"");
+                        break;
+                }
+
+                if (areEPIDMCASTexecutable &&
+                    (modelUnderOptimization == "EPI" || modelUnderOptimization == "DMCast"))
+                {
+                    //for the PEMs that require climatic averages
+                    epi = new EPI();
+                    dmcast = new DMCast();
+                    historicalRun(weatherData);
+                }
+
+                bool isFlowered = false;
+
+                //reinitialize the date_outputs object
+                date_outputs = new Dictionary<DateTime, OutputsDaily>();
+
+                //initialize the daily outputs object
+                OutputsDaily outputsDaily = new OutputsDaily();
+                //reinitialize variables for each site
+                var outputs = new Output();
+
+                //loop over dates
+                foreach (var hour in weatherData.Keys)
+                {
+                    
                     //call the octoPus model
                     modelCall(weatherData[hour], parameters, isFlowered, outputs, modelUnderOptimization, out outputsDaily);
 
@@ -353,29 +653,11 @@ namespace octoPusAI.ModelCallers
                         date_outputs.Add(hour, outputsDaily);
                     }
                 }
-                Console.WriteLine("site {0} run", site);
-            }
-
-            //write the outputs from the octoPus models
-            if (!detailedRun)
-            {
-                //writeOctoPusOutputs(weatherFile, date_outputs);
-            }
-            else
-            {
-                //writeOctoPusOutputsDetailed(weatherFile, date_outputs);
-            }
-            if (WeatherTimeStep == "daily")
-            {
-                //write the estimated weather data to csv
-                //writeEstimatedToCsv(weatherFile, weatherData);
-            }
-
-
-            double error = 0;
-            return error;
-            
+                writeOctoPusOutputs(weatherFile, date_outputs);
+            }            
         }
+
+
 
         //method to write estimated weather data to csv
         public void writeEstimatedToCsv(string site, Dictionary<DateTime, Input> estimated_hourly)
@@ -622,7 +904,7 @@ namespace octoPusAI.ModelCallers
             string siteShort = site.Substring(lastIndex + 1);
             
             //save the file
-            System.IO.File.WriteAllLines(@"outputs//diseaseModels//" + siteShort, toWrite);
+            System.IO.File.WriteAllLines(@"outputs//diseaseModels//" + modelUnderOptimization + "_" + siteShort , toWrite);
             #endregion
 
         }
