@@ -1,11 +1,11 @@
 {
   "runtimeTarget": {
-    "name": ".NETCoreApp,Version=v7.0",
+    "name": ".NETCoreApp,Version=v8.0",
     "signature": ""
   },
   "compilationOptions": {},
   "targets": {
-    ".NETCoreApp,Version=v7.0": {
+    ".NETCoreApp,Version=v8.0": {
       "octoPusAI_calibration/1.0.0": {
         "dependencies": {
           "LLamaSharp": "0.11.2",
@@ -31,7 +31,7 @@
           "Microsoft.Extensions.Logging.Abstractions": "8.0.1"
         },
         "runtime": {
-          "lib/net7.0/LLamaSharp.dll": {
+          "lib/net8.0/LLamaSharp.dll": {
             "assemblyVersion": "0.0.0.0",
             "fileVersion": "0.0.0.0"
           }
@@ -148,7 +148,7 @@
       },
       "MathNet.Numerics/6.0.0-beta1": {
         "runtime": {
-          "lib/net6.0/MathNet.Numerics.dll": {
+          "lib/net8.0/MathNet.Numerics.dll": {
             "assemblyVersion": "6.0.0.0",
             "fileVersion": "6.0.0.0"
           }
@@ -157,7 +157,7 @@
       "Microsoft.CSharp/4.5.0": {},
       "Microsoft.Extensions.DependencyInjection.Abstractions/8.0.1": {
         "runtime": {
-          "lib/net7.0/Microsoft.Extensions.DependencyInjection.Abstractions.dll": {
+          "lib/net8.0/Microsoft.Extensions.DependencyInjection.Abstractions.dll": {
             "assemblyVersion": "8.0.0.0",
             "fileVersion": "8.0.324.11423"
           }
@@ -168,7 +168,7 @@
           "Microsoft.Extensions.DependencyInjection.Abstractions": "8.0.1"
         },
         "runtime": {
-          "lib/net7.0/Microsoft.Extensions.Logging.Abstractions.dll": {
+          "lib/net8.0/Microsoft.Extensions.Logging.Abstractions.dll": {
             "assemblyVersion": "8.0.0.0",
             "fileVersion": "8.0.324.11423"
           }

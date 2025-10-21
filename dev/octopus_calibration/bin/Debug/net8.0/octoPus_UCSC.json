@@ -1,0 +1,28 @@
+﻿{
+    "settings":  {
+                     "startYear":  2007,
+                     "endYear":  2025,
+                     "sites":  [
+                                   "Calosso.csv"
+                               ],
+                     "assistantRisk":  2,
+                     "veryHighModelsThreshold":  2,
+                     "WeatherTimeStep":  "daily",
+                     "colorScale":  "Viridis",
+                     "consoleTextColor":  "White",
+                     "consoleBackgroundColor":  "Black",
+                     "useLLM":  false,
+                     "useRandomForest":  false,
+                     "useConsole":  false,
+                     "modelsToRun":  [
+                                         "UCSC"
+                                     ]
+                 },
+    "paths":  {
+                  "weatherDir":  "..\\..\\..\\Files\\Weather\\sites_2003_2023",
+                  "octoPusParametersPath":  "..\\..\\..\\files\\Parameters\\octoPusParameters.csv",
+                  "susceptibilityFileBBCH":  "..\\..\\..\\files\\Parameters\\hostSusceptibilityParameters.csv",
+                  "outputDir":  "..\\..\\..\\outputs\\",
+                  "referenceFile":  "..\\..\\..\\Files\\Reference\\reference_file.csv"
+              }
+}

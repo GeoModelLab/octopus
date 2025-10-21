@@ -1,0 +1,12 @@
+param, value
+LWminMacrosporangiaFormation,13.862867293540834
+LWoptMacrosporangiaFormation,22.175863698703434
+TminMacrosporangiaInfection,11.24447221860926
+ToptMacrosporangiaInfection,17.1598411805925
+TmaxMacrosporangiaInfection,23.321763992977875
+LWminMacrosporangiaInfection,1.3706867103450382
+RainStartMacrosporangiaSpread,5.441460960418417
+RHminMacrosporangiaFormation,82.27233650575891
+TminMacrosporangiaFormation,10.296589885022456
+ToptMacrosporangiaFormation,15.823690612994476
+TmaxMacrosporangiaFormation,21.233539399050855

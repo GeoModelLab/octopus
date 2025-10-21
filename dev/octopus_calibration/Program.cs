@@ -11,8 +11,15 @@ using UNIMI.optimizer;
 NativeLibraryConfig.Instance.WithLogCallback(delegate (LLamaLogLevel level, string message) { Console.Write($"{level}: {message}"); });
 
 #region json settings
-//read json configuration file
-string fileName = "octoPus.json";
+// if no argument is provided, default to HurrayConfig.json
+string fileName = args.Length > 0 ? args[0] : "octoPus.json";
+
+if (!File.Exists(fileName))
+{
+    Console.WriteLine($"Config file not found: {fileName}");
+    return;
+}
+
 string jsonString = File.ReadAllText(fileName);
 var config = JsonSerializer.Deserialize<root>(jsonString);
 
@@ -102,9 +109,9 @@ foreach (var model in model_param_range.Keys)
             // - Ftol: tolerance on objective function for convergence
             // - Itmax: maximum iterations per simplex
             var msx = new MultiStartSimplex();
-            msx.NofSimplexes = 1;
+            msx.NofSimplexes = 5;
             msx.Ftol = 0.000000000001;
-            msx.Itmax = 1;
+            msx.Itmax = 1000;
             #endregion
 
             #region Define parameter settings for calibration
@@ -261,7 +268,7 @@ Dictionary<string, Dictionary<string, ParameterRange>> paramRangeReader(string f
         mod_par_ran[model].Add(parameter, parRange);
 
     }
-
+    sr.Close();
     return(mod_par_ran);
 
 }

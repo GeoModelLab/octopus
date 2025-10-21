@@ -41,6 +41,7 @@ namespace octoPusAI.Readers
                     }
                     refData[site].Add(year, onsetDate);
                 }
+                sr.Close();
             }
             return refData;
         }

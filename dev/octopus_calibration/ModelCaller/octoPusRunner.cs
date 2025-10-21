@@ -214,9 +214,9 @@ namespace octoPusAI.ModelCallers
                 }
                 if (modelUnderOptimization == "Laore")
                 {
-                    var prop = propsRule310.FirstOrDefault(p => p.Name == propertyName);
+                    var prop = propsLaore.FirstOrDefault(p => p.Name == propertyName);
                     if (prop != null)
-                        prop.SetValue(parRule310, isCalibrated ? (float)Coefficient[i++] : param_outCalibration[param]);
+                        prop.SetValue(parLaore, isCalibrated ? (float)Coefficient[i++] : param_outCalibration[param]);
                 }
                 if (modelUnderOptimization == "Misfits")
                 {
@@ -393,6 +393,7 @@ namespace octoPusAI.ModelCallers
                     //check if the reference data contains the current year
                     if(year_onsetDate.ContainsKey(hour.Year))
                     {
+                        //Rule 310
                         if(modelUnderOptimization == "Rule310")
                         {
                             var simOnsetDate = new DateTime();
@@ -404,6 +405,26 @@ namespace octoPusAI.ModelCallers
                                     {
                                         //take the onset date
                                         simOnsetDate = outputs.outputsRule310.infectionEvents[0].onsetDate;
+                                        //compute the error
+                                        var thisYearError = (simOnsetDate - year_onsetDate[hour.Year]).Days;
+                                        errors.Add((float)Math.Pow(thisYearError, 2));
+                                        isAlreadyEvaluated = true;
+                                    }
+                                }
+                            }
+                        }
+                        //Laore
+                        if (modelUnderOptimization == "Laore")
+                        {
+                            var simOnsetDate = new DateTime();
+                            if (outputs.outputsLaore.infectionEvents.Count >= 1)
+                            {
+                                if (outputs.outputsLaore.infectionEvents[0].onsetDate.Year > 1)
+                                {
+                                    if (!isAlreadyEvaluated)
+                                    {
+                                        //take the onset date
+                                        simOnsetDate = outputs.outputsLaore.infectionEvents[0].onsetDate;
                                         //compute the error
                                         var thisYearError = (simOnsetDate - year_onsetDate[hour.Year]).Days;
                                         errors.Add((float)Math.Pow(thisYearError, 2));

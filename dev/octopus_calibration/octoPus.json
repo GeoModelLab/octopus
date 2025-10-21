@@ -12,7 +12,7 @@
         "useLLM": false,
         "useRandomForest": false,
         "useConsole": false,
-        "modelsToRun": [ "Rule310"]
+        "modelsToRun": [ "Laore"]
     },
     "paths": {
         "weatherDir": "..\\..\\..\\Files\\Weather\\sites_2003_2023",

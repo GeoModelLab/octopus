@@ -113,7 +113,8 @@ namespace Models.Datatype
     }
     public class parametersLaore 
     {
-        public float infectionThresholdRisk { get; set; }       
+        public float infectionThresholdRisk { get; set; }
+        public float bbchThreshold { get; set; }
     }
     #endregion
 
