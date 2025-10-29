@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using System.Collections.Generic;
+using System.Globalization;
 using Models.Datatype;
 
 namespace octoPusAI.Readers
@@ -44,6 +45,60 @@ namespace octoPusAI.Readers
                 sr.Close();
             }
             return refData;
+        }
+    }
+    public class BBCHReferenceReader
+    {
+        public Dictionary<string, Dictionary<string, Dictionary<int, Dictionary<int, DateTime>>>> BbchreadReference(string file)
+        {
+            var refDatabbch = new Dictionary<string, Dictionary<string, Dictionary<int, Dictionary<int, DateTime>>>>();
+
+            //read the file
+            using (var sr = new StreamReader(new BufferedStream(new FileStream(file, FileMode.Open))))
+            {
+                //skip the first line
+                sr.ReadLine();
+
+                while (!sr.EndOfStream)
+                {
+                    // Split the line by comma (adjust the split according to your system)
+                    string[] line = sr.ReadLine().Split(',');
+
+                    // Read the three columns
+                    string site = line[0].Trim();
+                    string province = line[1].Trim();
+                    string yearStr = line[2].Trim();
+                    string bbchStr = line[3].Trim();
+                    string bbchDateStr = line[4].Trim();
+
+                    // Parse bbch date (format: M/d/yyyy)
+                    DateTime bbchDate;
+                    DateTime.TryParseExact(bbchDateStr, "M/d/yyyy", CultureInfo.InvariantCulture,
+                        DateTimeStyles.None, out bbchDate);
+
+                    // Parse year
+                    int year = int.TryParse(yearStr, out int y) ? y : 0;
+                    // Parse bbch
+                    int bbch = int.TryParse(bbchStr, out int z) ? z : 0;
+
+                    if (!refDatabbch.ContainsKey(site))
+                    { 
+                        refDatabbch.Add(site, new Dictionary<string, Dictionary<int, Dictionary<int, DateTime>>>());
+                    }
+                    if (!refDatabbch[site].ContainsKey(province))
+                    { 
+                        refDatabbch[site].Add(province, new Dictionary<int, Dictionary<int, DateTime>>());
+                    }
+                    if (!refDatabbch[site][province].ContainsKey(year))
+                    {      
+                        refDatabbch[site][province].Add(year, new Dictionary<int, DateTime>());
+                    }
+
+                    refDatabbch[site][province][year].Add(bbch, bbchDate);
+                }
+                sr.Close();
+            }
+            return refDatabbch;
         }
     }
 }

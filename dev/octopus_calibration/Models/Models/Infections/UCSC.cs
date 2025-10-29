@@ -14,13 +14,17 @@ namespace Models.Infections
         public void run(Input Input, Parameters Parameters, Output Outputs)
         {
             #region Infection compute
+            
+
             List<double> gerdor = GER(Input, Outputs.outputsUCSC, Parameters.ucscParameters);
             int ger = (int)gerdor[1]; //cast double to int
             double dor = gerdor[0];
             //send GER to output
             Outputs.outputsUCSC.ger = ger;
 
-            if (ger == 1)
+            double BBCH = Outputs.outputsPhenology.bbchPhenophaseCode;
+            if (ger == 1 && BBCH >= Parameters.ucscParameters.bbchThreshold)
+
             {
                 var infectionEvent = new UCSCInfectionEvent();
                 infectionEvent.startGermination = Input.Date;

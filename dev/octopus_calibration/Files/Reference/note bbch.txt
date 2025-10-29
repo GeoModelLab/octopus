@@ -1,0 +1,55 @@
+DATI BBCH MIRA
+
+Ho dati di BBCH per tutte le località, ma non per tutti gli anni.
+(pochi casi)
+
+
+DATI BBCH DB
+Località per le quali sono stati utilizzati dati BBCH di altre province latitudinalmente più vicine
+- Arezzo (Arezzo) 2013 → usata Ancona 2013
+- Tufo (Avellino) 2014 → usata Matera 2014
+- Torrecuso (Benevento) 2016 → usata Sassari 2016
+- Turi (Bari) 2014 → usata Sassari 2014
+- Dolegna del Collio (Gorizia) 2012 → usata Bergamo 2012
+- San Giorgio della Richinvelda (Pordenone) 2013 → usata Bergamo 2013
+- Verduno (Cuneo) 2013 → usata Savona 2013
+- Ronco all’Adige (Verona) 2013 → usata Venezia 2013
+- Castel Boglione (Asti) 2013 → usata Ferrara 2013
+- San Vendemiano (Treviso) 2013 → usata Bergamo 2013
+- Castion di Strada (Udine) 2012 → usata Bergamo 2012
+
+
+
+Lista delle località (del database G.F.) per le quali non c’è stima dei BBCH
+Nota: i bollettini forniscono dati solo dal 2012 al 2017.
+Le località seguenti non presentano dati disponibili per gli anni indicati.
+Faenza 2016 (prov. Ravenna → nei bollettini arriva fino al 2015)
+- Pianella 2011 (prov. Pescara)
+- Malalbergo 2007 (prov. Bologna)
+- Spresiano 2010 (prov. Treviso)
+- Susegana 2010 (prov. Treviso)
+- Ravenna 2010
+- Alba 2020 (prov. Cuneo)
+- Casarsa della Delizia 2020 (prov. Pordenone)
+- Atripalda 2020 (prov. Avellino)
+- Castiglione Falletto 2020 (prov. Cuneo)
+- San Giovanni Lupatoto 2021 (prov. Verona)
+- Vesime 2020 (prov. Asti)
+- Calosso 2019 (prov. Asti)
+- Bagnacavallo 2017 (prov. Ravenna)
+
+
+Elenco delle province che non hanno dati né in Mira né in Misfits Fenologia
+(Si tratta di province per le quali non è stata trovata alcuna corrispondenza per lo stesso anno)
+- Pescara (2011)
+- Bologna (2007)
+
+ 
+
+
+
+
+
+
+
+

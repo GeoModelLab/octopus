@@ -8,4 +8,10 @@ namespace Models.Datatype
         public Dictionary<string, Dictionary<int, DateTime>> Site_Year_OnsetDate = 
             new Dictionary<string, Dictionary<int, DateTime>>();
     }
+    public class bbchReferenceData
+    {
+        // bbch reference data
+        public Dictionary<string, Dictionary<string, Dictionary<int, Dictionary<int, DateTime>>>> Site_Year_bbchDate =
+            new Dictionary<string, Dictionary<string, Dictionary<int, Dictionary<int, DateTime>>>>();
+    }
 }

@@ -87,8 +87,11 @@ namespace Models.Infections
                         {
                             infectionEvent.TemperatureAverageInf = infectionEvent.DegreeHours / infectionEvent.InfectionHours;
 
+                            double BBCH = Output.outputsPhenology.bbchPhenophaseCode;
+
                             if (infectionEvent.InfectionHours <= Parameters.magareyParameters.numberOfHoursToConsiderInfection &&
-                                infectionEvent.TemperatureAverageInf >= Parameters.magareyParameters.baseTemperatureInfection)
+                                infectionEvent.TemperatureAverageInf >= Parameters.magareyParameters.baseTemperatureInfection 
+                                && BBCH >= Parameters.magareyParameters.bbchThreshold)
                             {
                                 infectionEvent.Infection = 1;
                                 infectionEvent.infectionDate = Input.Date;

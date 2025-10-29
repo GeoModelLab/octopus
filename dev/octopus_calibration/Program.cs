@@ -44,6 +44,7 @@ bool useLLM = (bool)config.settings.useLLM;
 bool useRandomForest = (bool)config.settings.useRandomForest;
 bool useConsole = (bool)config.settings.useConsole;
 string referenceFile = config.paths.referenceFile;
+string bbch_Reference = config.paths.bbchReference;
 List<string> modelsToRun = config.settings.modelsToRun;
 
 Console.WriteLine("I am ready to start the simulation for the following sites: {0}.", string.Join(", ", sites));
@@ -86,9 +87,12 @@ var model_param_range = paramRangeReader(octoPusParametersFile);
 List<string> toExclude = new List<string>() { "Phenology", "BBCH", "Incubation" };
 
 #region read reference data
+//onset date
 ReferenceReader _refReader = new ReferenceReader();
 var refData = _refReader.readReference(referenceFile);
-
+// bbch 
+BBCHReferenceReader _refReaderbbch = new BBCHReferenceReader();
+var refDatabbch = _refReaderbbch.BbchreadReference(bbch_Reference);
 
 #endregion
 
@@ -178,6 +182,7 @@ foreach (var model in model_param_range.Keys)
             _runner.param_outCalibration = param_outCalibration;
             _runner.areEPIDMCASTexecutable = true;
             _runner.site_year_onsetDate = refData;
+            _runner.Site_Year_bbchDate = refDatabbch;
             float numberOfYear = 0;
 
             #region manage EPI and DMcast execution with low number of weather data (at least 10 years should be available!)
@@ -327,8 +332,8 @@ public class paths
     public string? Rversion { get; set; }
 
     public string? referenceFile { get; set; }
+    public string? bbchReference { get; set; }
 }
-
 #endregion
 
 

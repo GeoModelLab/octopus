@@ -57,11 +57,11 @@ namespace Models.Infections
                     double DailyTemp = InfectionCount.Select(x => x.Temperature).Average();
 
                     //TODO: not used here
-                    double BBCHPhase = 0;
+                    double BBCH = Output.outputsPhenology.bbchPhenophaseCode;
 
                     if (DailyTemp > Parameters.epiParameters.tempThresholdInf &&
                         DailyPrec > Parameters.epiParameters.precThresholdInf &&
-                        BBCHPhase >= 0)
+                        BBCH >= Parameters.epiParameters.bbchThreshold)
                     {
                         var infectionEvent = new GenericInfection();
                         infectionEvent.infectionDate = Input.Date;

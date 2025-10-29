@@ -104,6 +104,8 @@ namespace octoPusAI.ModelCallers
         public string modelUnderOptimization;
         public Dictionary<string, float> param_outCalibration = new Dictionary<string, float>();
         public Dictionary<string, Dictionary<int, DateTime>> site_year_onsetDate = new Dictionary<string, Dictionary<int, DateTime>>();
+        public Dictionary<string, Dictionary<string, Dictionary<int, Dictionary<int, DateTime>>>> Site_Year_bbchDate =
+            new Dictionary<string, Dictionary<string, Dictionary<int, Dictionary<int, DateTime>>>>();
         #endregion
 
         #region local variables to compute daily data
@@ -495,45 +497,45 @@ namespace octoPusAI.ModelCallers
                 }
                 if (modelUnderOptimization == "Magarey")
                 {
-                    var prop = propsRule310.FirstOrDefault(p => p.Name == propertyName);
+                    var prop = propsMagarey.FirstOrDefault(p => p.Name == propertyName);
                     if (prop != null)
-                        prop.SetValue(parRule310, isCalibrated ? (float)paramValue[param] : param_outCalibration[param]);
+                        prop.SetValue(parMagarey, isCalibrated ? (float)paramValue[param] : param_outCalibration[param]);
                 }
                 if (modelUnderOptimization == "EPI")
                 {
-                    var prop = propsRule310.FirstOrDefault(p => p.Name == propertyName);
+                    var prop = propsEPI.FirstOrDefault(p => p.Name == propertyName);
                     if (prop != null)
-                        prop.SetValue(parRule310, isCalibrated ? (float)paramValue[param] : param_outCalibration[param]);
+                        prop.SetValue(parEPI, isCalibrated ? (float)paramValue[param] : param_outCalibration[param]);
                 }
                 if (modelUnderOptimization == "IPI")
                 {
-                    var prop = propsRule310.FirstOrDefault(p => p.Name == propertyName);
+                    var prop = propsIPI.FirstOrDefault(p => p.Name == propertyName);
                     if (prop != null)
-                        prop.SetValue(parRule310, isCalibrated ? (float)paramValue[param] : param_outCalibration[param]);
+                        prop.SetValue(parIPI, isCalibrated ? (float)paramValue[param] : param_outCalibration[param]);
                 }
                 if (modelUnderOptimization == "Laore")
                 {
-                    var prop = propsRule310.FirstOrDefault(p => p.Name == propertyName);
+                    var prop = propsLaore.FirstOrDefault(p => p.Name == propertyName);
                     if (prop != null)
-                        prop.SetValue(parRule310, isCalibrated ? (float)paramValue[param] : param_outCalibration[param]);
+                        prop.SetValue(parLaore, isCalibrated ? (float)paramValue[param] : param_outCalibration[param]);
                 }
                 if (modelUnderOptimization == "Misfits")
                 {
-                    var prop = propsRule310.FirstOrDefault(p => p.Name == propertyName);
+                    var prop = propsMisfits.FirstOrDefault(p => p.Name == propertyName);
                     if (prop != null)
-                        prop.SetValue(parRule310, isCalibrated ? (float)paramValue[param] : param_outCalibration[param]);
+                        prop.SetValue(parMisfits, isCalibrated ? (float)paramValue[param] : param_outCalibration[param]);
                 }
                 if (modelUnderOptimization == "UCSC")
                 {
-                    var prop = propsRule310.FirstOrDefault(p => p.Name == propertyName);
+                    var prop = propsUCSC.FirstOrDefault(p => p.Name == propertyName);
                     if (prop != null)
-                        prop.SetValue(parRule310, isCalibrated ? (float)paramValue[param] : param_outCalibration[param]);
+                        prop.SetValue(parUCSC, isCalibrated ? (float)paramValue[param] : param_outCalibration[param]);
                 }
                 if (modelUnderOptimization == "DMCast")
                 {
-                    var prop = propsRule310.FirstOrDefault(p => p.Name == propertyName);
+                    var prop = propsDMCast.FirstOrDefault(p => p.Name == propertyName);
                     if (prop != null)
-                        prop.SetValue(parRule310, isCalibrated ? (float)paramValue[param] : param_outCalibration[param]);
+                        prop.SetValue(parDMCast, isCalibrated ? (float)paramValue[param] : param_outCalibration[param]);
                 }
             }
 

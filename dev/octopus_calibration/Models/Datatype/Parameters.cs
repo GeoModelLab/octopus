@@ -35,6 +35,7 @@ namespace Models.Datatype
         public float numberOfHoursToConsiderInfection { get; set; }
         public float degreeHoursThresholdInfection { get; set; }
         public float rainTriggeringSplash { get; set; }
+        public float bbchThreshold { get; set; }
     }
     public class parametersDMCast 
     {
@@ -95,6 +96,7 @@ namespace Models.Datatype
         public float infectionThreshold { get; set; }
         public float incubationLowerThreshold { get; set; }
         public float incubationUpperThreshold { get; set; }
+        public float bbchThreshold { get; set; }
     }
     public class parametersMisfits 
     {
@@ -109,6 +111,7 @@ namespace Models.Datatype
         public float TmaxMacrosporangiaFormation { get; set; }
         public float TminMacrosporangiaFormation { get; set; }
         public float ToptMacrosporangiaFormation { get; set; }
+        public float bbchThreshold { get; set; }
 
     }
     public class parametersLaore 

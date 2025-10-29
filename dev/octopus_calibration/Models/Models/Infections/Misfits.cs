@@ -102,8 +102,9 @@ namespace Models.Infections
             }
             #endregion
 
-
-            if (Output.outputsMisfits.downyMildew_infection_hourly == 1)
+            //Check if BBCH is suitable for infection
+            double BBCH = Output.outputsPhenology.bbchPhenophaseCode;
+            if (Output.outputsMisfits.downyMildew_infection_hourly == 1 && BBCH >= Parameters.misfitsParameters.bbchThreshold)
             {
                 var infectionEvent = new misfitsInfectionEvent();
                 infectionEvent.germinationDate = Input.Date;

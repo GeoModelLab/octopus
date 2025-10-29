@@ -63,7 +63,7 @@ namespace Models.Infections
 
                 #region Infection occurrence
                 //TODO: not used here
-                double BBCH = 0;
+                double BBCH = Output.outputsPhenology.bbchPhenophaseCode;
                 if (infectionEvent.SporangiaGermination == 1)
                 {
                     infectionEvent.InfectionHours += 1;
@@ -75,7 +75,7 @@ namespace Models.Infections
                         {
                             if (infectionEvent.TemperatureSum >= Parameters.dmcastParameters.tempThresholdInf * 24 &&
                                 infectionEvent.RainSumSplash > Parameters.dmcastParameters.precThresholdInf &&
-                                BBCH >= 0)
+                                BBCH >= Parameters.dmcastParameters.bbchThreshold)
                             {
                                 infectionEvent.Infection = 1;
                                 infectionEvent.infectionDate = Input.Date;
