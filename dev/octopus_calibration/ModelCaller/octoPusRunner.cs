@@ -5,6 +5,7 @@ using Models.Phenology;
 using System.Text;
 using octoPusAI.Readers;
 using static System.Runtime.InteropServices.JavaScript.JSType;
+using System.Collections.Generic;
 
 namespace octoPusAI.ModelCallers
 {
@@ -99,13 +100,14 @@ namespace octoPusAI.ModelCallers
         public bool useRandomForest;
         public bool useConsole;
         public bool detailedRun;
+        public string calibrationVariable;
         public List<string> availableSites = new List<string>();
         public Dictionary<string, ParameterRange> nameParam = new Dictionary<string, ParameterRange>();
         public string modelUnderOptimization;
         public Dictionary<string, float> param_outCalibration = new Dictionary<string, float>();
         public Dictionary<string, Dictionary<int, DateTime>> site_year_onsetDate = new Dictionary<string, Dictionary<int, DateTime>>();
-        public Dictionary<string, Dictionary<string, Dictionary<int, Dictionary<int, DateTime>>>> Site_Year_bbchDate =
-            new Dictionary<string, Dictionary<string, Dictionary<int, Dictionary<int, DateTime>>>>();
+        public Dictionary<int, Dictionary<int, DateTime>> Year_bbchDate_Ref =
+            new Dictionary<int, Dictionary<int, DateTime>>();
         #endregion
 
         #region local variables to compute daily data
@@ -237,7 +239,24 @@ namespace octoPusAI.ModelCallers
                     var prop = propsRule310.FirstOrDefault(p => p.Name == propertyName);
                     if (prop != null)
                         prop.SetValue(parRule310, isCalibrated ? (float)Coefficient[i++] : param_outCalibration[param]);
-                }                
+                }   
+                if(calibrationVariable == "Phenology")
+                {
+                    var prop =  propsPhenology.FirstOrDefault(p => p.Name == propertyName);
+                    if (prop != null)
+                        prop.SetValue(parPhenology, isCalibrated ? (float)Coefficient[i++] : param_outCalibration[param]);
+
+                    if (propertyName.Contains("bbch"))
+                    {
+                        int bbchCode = int.Parse(propertyName.Substring(4, 2));
+                        if (!parameters.bbchParameters.ContainsKey(bbchCode))
+                            parameters.bbchParameters[bbchCode] = new parametersBBCH();
+
+                        var bbchParam = parameters.bbchParameters[bbchCode];
+                        if (bbchParam.cycleCompletion == 0)
+                            bbchParam.cycleCompletion = isCalibrated ? (float)Coefficient[i++] : param_outCalibration[param];
+                    }
+                }
             }
 
             foreach (var paramPheno in octoPusParameters)
@@ -256,6 +275,9 @@ namespace octoPusAI.ModelCallers
                     var prop = propsBBCH.FirstOrDefault(p => p.Name == paramClass[1]);
                     
                         parametersBBCH = new parametersBBCH();
+                    if (!parameters.bbchParameters.ContainsKey(int.Parse(paramClass[1].Substring(4, 2))))
+                    {
+
                         parameters.bbchParameters.Add(int.Parse(paramClass[1].Substring(4, 2)), parametersBBCH);
                         if (parameters.bbchParameters[int.Parse(paramClass[1].Substring(4, 2))].
                             cycleCompletion == 0)
@@ -263,6 +285,7 @@ namespace octoPusAI.ModelCallers
                             parameters.bbchParameters[int.Parse(paramClass[1].Substring(4, 2))].cycleCompletion =
                                 (float)(paramPheno.Value); //set the values for this parameter
                         }
+                    }
                     
 
                 }
@@ -296,7 +319,7 @@ namespace octoPusAI.ModelCallers
 
             //the error lists
             List<float> errors = new List<float>();
-
+            Dictionary<int, Dictionary<int, DateTime>> SimulatedBBCH_date = new Dictionary<int, Dictionary<int, DateTime>>();
 
             foreach (var site in availableSites)
             {
@@ -321,8 +344,6 @@ namespace octoPusAI.ModelCallers
                     startYear = year_onsetDate.Keys.First() - 1;
                     endYear = year_onsetDate.Keys.Last();
                 }
-
-
 
                 //read weather data
                 var weatherData = new Dictionary<DateTime, Input>();
@@ -391,46 +412,65 @@ namespace octoPusAI.ModelCallers
                         date_outputs.Add(hour, outputsDaily);
                     }
 
-
-                    //check if the reference data contains the current year
-                    if(year_onsetDate.ContainsKey(hour.Year))
+                    if (calibrationVariable == "Phenology")
                     {
-                        //Rule 310
-                        if(modelUnderOptimization == "Rule310")
+                        //if dictionary does not contain the year key
+                        if(!SimulatedBBCH_date.ContainsKey(hour.Year))
                         {
-                            var simOnsetDate = new DateTime();
-                            if(outputs.outputsRule310.infectionEvents.Count >= 1)
+                            //add it
+                            SimulatedBBCH_date.Add(hour.Year, new Dictionary<int, DateTime>());
+                        }
+                        
+                        //year is certainly present see above
+                        //if this year this bbch is not yet added
+                        if (!SimulatedBBCH_date[hour.Year].ContainsKey((int)outputsDaily.bbchPhase))
+                        {
+                            //add it
+                            SimulatedBBCH_date[hour.Year].Add((int)outputsDaily.bbchPhase, hour);
+                        }
+                    }
+                    else
+                    {
+                        //check if the reference data contains the current year
+                        if (year_onsetDate.ContainsKey(hour.Year))
+                        {
+                            //Rule 310
+                            if (modelUnderOptimization == "Rule310")
                             {
-                                if (outputs.outputsRule310.infectionEvents[0].onsetDate.Year > 1)
+                                var simOnsetDate = new DateTime();
+                                if (outputs.outputsRule310.infectionEvents.Count >= 1)
                                 {
-                                    if (!isAlreadyEvaluated)
+                                    if (outputs.outputsRule310.infectionEvents[0].onsetDate.Year > 1)
                                     {
-                                        //take the onset date
-                                        simOnsetDate = outputs.outputsRule310.infectionEvents[0].onsetDate;
-                                        //compute the error
-                                        var thisYearError = (simOnsetDate - year_onsetDate[hour.Year]).Days;
-                                        errors.Add((float)Math.Pow(thisYearError, 2));
-                                        isAlreadyEvaluated = true;
+                                        if (!isAlreadyEvaluated)
+                                        {
+                                            //take the onset date
+                                            simOnsetDate = outputs.outputsRule310.infectionEvents[0].onsetDate;
+                                            //compute the error
+                                            var thisYearError = (simOnsetDate - year_onsetDate[hour.Year]).Days;
+                                            errors.Add((float)Math.Pow(thisYearError, 2));
+                                            isAlreadyEvaluated = true;
+                                        }
                                     }
                                 }
                             }
-                        }
-                        //Laore
-                        if (modelUnderOptimization == "Laore")
-                        {
-                            var simOnsetDate = new DateTime();
-                            if (outputs.outputsLaore.infectionEvents.Count >= 1)
+                            //Laore
+                            if (modelUnderOptimization == "Laore")
                             {
-                                if (outputs.outputsLaore.infectionEvents[0].onsetDate.Year > 1)
+                                var simOnsetDate = new DateTime();
+                                if (outputs.outputsLaore.infectionEvents.Count >= 1)
                                 {
-                                    if (!isAlreadyEvaluated)
+                                    if (outputs.outputsLaore.infectionEvents[0].onsetDate.Year > 1)
                                     {
-                                        //take the onset date
-                                        simOnsetDate = outputs.outputsLaore.infectionEvents[0].onsetDate;
-                                        //compute the error
-                                        var thisYearError = (simOnsetDate - year_onsetDate[hour.Year]).Days;
-                                        errors.Add((float)Math.Pow(thisYearError, 2));
-                                        isAlreadyEvaluated = true;
+                                        if (!isAlreadyEvaluated)
+                                        {
+                                            //take the onset date
+                                            simOnsetDate = outputs.outputsLaore.infectionEvents[0].onsetDate;
+                                            //compute the error
+                                            var thisYearError = (simOnsetDate - year_onsetDate[hour.Year]).Days;
+                                            errors.Add((float)Math.Pow(thisYearError, 2));
+                                            isAlreadyEvaluated = true;
+                                        }
                                     }
                                 }
                             }
@@ -440,9 +480,38 @@ namespace octoPusAI.ModelCallers
                 //Console.WriteLine("site {0} run", site);
             }
 
-            double objectiveFunction = Math.Sqrt(errors.Sum()/errors.Count());
+
+            double objectiveFunction = 0;
+            if (calibrationVariable == "Phenology")
+            {
+                List<double> errorsPhenology = new List<double>();
+                foreach (var year in Year_bbchDate_Ref.Keys)
+                {
+                    foreach (var bbch in Year_bbchDate_Ref[year].Keys)
+                    {
+                        if (SimulatedBBCH_date[year].ContainsKey(bbch))
+                        {
+                            errorsPhenology.Add(Math.Pow(Convert.ToDouble((Year_bbchDate_Ref[year][bbch] -
+                                SimulatedBBCH_date[year][bbch]).Days), 2));
+                        }
+                        else
+                        {
+                            errorsPhenology.Add(999);
+                        }
+                    }
+                }
+                objectiveFunction = Math.Sqrt(errorsPhenology.Sum() / errorsPhenology.Count());
+            }
+            else
+            {
+
+                objectiveFunction = Math.Sqrt(errors.Sum() / errors.Count());
+                
+            }
+
+
             Console.ForegroundColor = ConsoleColor.White;
-            Console.WriteLine("RMSE = {0} days", Math.Round(objectiveFunction, 2));
+            Console.Write($"\rRMSE = {Math.Round(objectiveFunction, 2)} days");
 
             return objectiveFunction;
             
@@ -537,32 +606,52 @@ namespace octoPusAI.ModelCallers
                     if (prop != null)
                         prop.SetValue(parDMCast, isCalibrated ? (float)paramValue[param] : param_outCalibration[param]);
                 }
+                if (modelUnderOptimization == "Phenology")
+                {
+                    var prop = propsPhenology.FirstOrDefault(p => p.Name == propertyName);
+                    if (prop != null)
+                        prop.SetValue(parPhenology, isCalibrated ? (float)paramValue[param] : param_outCalibration[param]);
+
+                    if (propertyName.Contains("bbch"))
+                    {
+                        prop = propsBBCH.FirstOrDefault(p => p.Name == "cycleCompletion");
+
+                        parametersBBCH = new parametersBBCH();
+                        parameters.bbchParameters.Add(int.Parse(paramClass[0].Substring(4, 2)), parametersBBCH);
+                        if (parameters.bbchParameters[int.Parse(paramClass[0].Substring(4, 2))].
+                            cycleCompletion == 0)
+                        {
+                            prop.SetValue(parametersBBCH, isCalibrated ? (float)paramValue[param] : param_outCalibration[param]);
+                        }
+                    }
+
+                }
             }
 
             foreach (var paramPheno in octoPusParameters)
             {
                 var paramClass = paramPheno.Key.Split('_');
 
+                //TODO: check for onset optimization
+                //if (paramClass[0] == "Phenology")
+                //{
+                //    var prop = propsPhenology.FirstOrDefault(p => p.Name == paramClass[1]);
+                //    if (prop != null)
+                //        prop.SetValue(parPhenology, paramPheno.Value);
+                //}
+                //if (paramClass[0] == "BBCH")
+                //{
+                //    var prop = propsBBCH.FirstOrDefault(p => p.Name == paramClass[1]);
 
-                if (paramClass[0] == "Phenology")
-                {
-                    var prop = propsPhenology.FirstOrDefault(p => p.Name == paramClass[1]);
-                    if (prop != null)
-                        prop.SetValue(parPhenology, paramPheno.Value);
-                }
-                if (paramClass[0] == "BBCH")
-                {
-                    var prop = propsBBCH.FirstOrDefault(p => p.Name == paramClass[1]);
-
-                    parametersBBCH = new parametersBBCH();
-                    parameters.bbchParameters.Add(int.Parse(paramClass[1].Substring(4, 2)), parametersBBCH);
-                    if (parameters.bbchParameters[int.Parse(paramClass[1].Substring(4, 2))].
-                        cycleCompletion == 0)
-                    {
-                        parameters.bbchParameters[int.Parse(paramClass[1].Substring(4, 2))].cycleCompletion =
-                            (float)(paramPheno.Value); //set the values for this parameter
-                    }
-                }
+                //    parametersBBCH = new parametersBBCH();
+                //    parameters.bbchParameters.Add(int.Parse(paramClass[1].Substring(4, 2)), parametersBBCH);
+                //    if (parameters.bbchParameters[int.Parse(paramClass[1].Substring(4, 2))].
+                //        cycleCompletion == 0)
+                //    {
+                //        parameters.bbchParameters[int.Parse(paramClass[1].Substring(4, 2))].cycleCompletion =
+                //            (float)(paramPheno.Value); //set the values for this parameter
+                //    }
+                //}
                 if (paramClass[0] == "Incubation")
                 {
                     var prop = propsIncubation.FirstOrDefault(p => p.Name == paramClass[1]);
@@ -824,7 +913,7 @@ namespace octoPusAI.ModelCallers
             // Phenology model outputs
             "chillState,ChillRate,antiChillState," +
             "forcingRate,forcingState,cycleCompletion," +
-            "bbchCode,bbchPhase,plantSusceptibility," +
+            "bbchCode,bbchPhase,bbchRef,plantSusceptibility," +
             // Main model outputs
             "Rule310,Epi,Ipi,Dmcast,Magarey,UCSC,misfits,laore," +
             // Onset model outputs
@@ -837,11 +926,11 @@ namespace octoPusAI.ModelCallers
             //add the header to the list
             toWrite.Add(header);
 
-          
+
             //loop over days
             foreach (var date in date_outputs.Keys)
-            { 
-                if (date.Hour == 00)
+            {
+                if (date.Hour == 0)
                 {
                     var line = new StringBuilder();
                     line.Append($"{date_outputs[date].Input.Site},");
@@ -854,7 +943,8 @@ namespace octoPusAI.ModelCallers
                     line.Append($"{date_outputs[date].Input.RHmax},");
                     line.Append($"{date_outputs[date].Input.RHmin},");
                     #endregion
-                    //phenology
+
+                    // Phenology
                     line.Append($"{date_outputs[date].chillState},");
                     line.Append($"{date_outputs[date].chillRate},");
                     line.Append($"{date_outputs[date].antiChillRate},");
@@ -864,6 +954,20 @@ namespace octoPusAI.ModelCallers
                     line.Append($"{date_outputs[date].bbchCode},");
                     line.Append($"{date_outputs[date].bbchPhase},");
 
+                    // ✅ BBCH Reference (if date matches)
+                    string bbchRefValue = "";
+                    if (Year_bbchDate_Ref.TryGetValue(date.Year, out var bbchDict))
+                    {
+                        // Find if the date matches any reference date for that year
+                        var match = bbchDict.FirstOrDefault(kv => kv.Value.Date == date.Date);
+                        if (match.Value != default(DateTime))
+                        {
+                            bbchRefValue = match.Key.ToString(); // use the BBCH code as string
+                        }
+                    }
+                    line.Append($"{bbchRefValue},");
+
+                    // Continue with the rest of your outputs
                     #region Main model outputs
                     line.Append($"{date_outputs[date].plantSusceptibility},");
                     line.Append($"{date_outputs[date].infectionRule310},");
@@ -875,7 +979,7 @@ namespace octoPusAI.ModelCallers
                     line.Append($"{date_outputs[date].infectionMisfits},");
                     line.Append($"{date_outputs[date].infectionLaore},");
 
-                    //onset outputs
+                    // Onset outputs
                     line.Append($"{date_outputs[date].onsetRule310},");
                     line.Append($"{date_outputs[date].onsetEPI},");
                     line.Append($"{date_outputs[date].onsetIPI},");
@@ -885,6 +989,7 @@ namespace octoPusAI.ModelCallers
                     line.Append($"{date_outputs[date].onsetMisfits},");
                     line.Append($"{date_outputs[date].onsetLaore},");
 
+                    // Pressure outputs
                     line.Append($"{date_outputs[date].pressureRule310},");
                     line.Append($"{date_outputs[date].pressureEPI},");
                     line.Append($"{date_outputs[date].pressureIPI},");
@@ -895,33 +1000,10 @@ namespace octoPusAI.ModelCallers
                     line.Append($"{date_outputs[date].pressureLaore},");
                     #endregion
 
-                    #region Model suboutputs
-                    // EPI
-                    //line.Append($"{date_outputs[date].EPI_ke},");
-                    //line.Append($"{date_outputs[date].EPI_pe},");
-                    //line.Append($"{date_outputs[date].EPI_index},");
-                    //// DMCast      date_outputs[date]
-                    //line.Append($"{date_outputs[date].DMCast_Ra},");
-                    //line.Append($"{date_outputs[date].DMCast_Pom},");
-                    //line.Append($"{date_outputs[date].DMCast_PomSum},");
-                    //// IPI         date_outputs[date]
-                    //line.Append($"{date_outputs[date].IPI_Tmeani},");
-                    //line.Append($"{date_outputs[date].IPI_Ri},");
-                    //line.Append($"{date_outputs[date].IPI_Rhi},");
-                    //line.Append($"{date_outputs[date].IPI_Lwi},");
-                    //line.Append($"{date_outputs[date].IPI_index},");
-                    //line.Append($"{date_outputs[date].IPI_index_sum},");
-                    //// UCSC       date_outputs[date]
-                    //line.Append($"{date_outputs[date].UCSC_HTi},");
-                    //line.Append($"{date_outputs[date].UCSC_HT},");
-                    //line.Append($"{date_outputs[date].UCSC_DOR},");
-                    //line.Append($"{date_outputs[date].UCSC_GER}");
-                    #endregion
-
                     toWrite.Add(line.ToString());
-
                 }
             }
+
             // Find the last occurrence of the directory separator character
             int lastIndex = site.LastIndexOf('\\');
             string siteShort = site.Substring(lastIndex + 1);

@@ -12,7 +12,8 @@
         "useLLM": false,
         "useRandomForest": false,
         "useConsole": false,
-        "modelsToRun": [ "Laore"]
+        "modelsToRun": [ "Phenology" ],
+        "calibrationVariable":  "Phenology"
     },
     "paths": {
         "weatherDir": "..\\..\\..\\Files\\Weather\\sites_2003_2023",
