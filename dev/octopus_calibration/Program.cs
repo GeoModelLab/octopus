@@ -301,7 +301,7 @@ foreach (var model in model_param_range.Keys)
                         }
 
                         //write calibrated parameters to file
-                        System.IO.File.WriteAllLines("calibratedParametersPhenology//calibParam_" + site + ".csv", writeParam);
+                        System.IO.File.WriteAllLines("calibratedParametersPhenology//calibParam_" + site, writeParam);
                         #endregion
 
                         //execute model with calibrated parameters

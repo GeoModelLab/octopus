@@ -56,7 +56,7 @@ import_octopus <- function(file) {
 }
 
 #import octopus output tables (together)
-files <- list.files(path = "../bin/Debug/net7.0/outputs/diseaseModels/",
+files <- list.files(path = "../bin/Debug/net8.0/outputs/diseaseModels/",
                      pattern = "\\.csv$", full.names = TRUE)
 # remove estimatedHourly.csv
 files <- files[!basename(files) %in% "estimatedHourly.csv"]

@@ -67,7 +67,7 @@ Misfits,TmaxMacrosporangiaFormation,19.2,28.8,24,°C,
 Misfits, bbchThreshold,8,12,10,BBCH code,
 Laore,infectionThresholdRisk,5.6,20,13,unitless,
 Laore,bbchThreshold,8,12,10,BBCH code,
-Phenology,TminPlant,8,5,10,°C,
+Phenology,TminPlant,5,8,10,°C,
 Phenology,ToptPlant,20,30,22,°C,
 Phenology,TmaxPlant,28,42,35,°C,
 Phenology,ChillThreshold,5,12,10,hours,x

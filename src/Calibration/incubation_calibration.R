@@ -205,6 +205,6 @@ incubation_estimate_err <- first_symptoms_estimate |>
  
 #Export table----
 
-  
+print(mean_errors) 
   
   
