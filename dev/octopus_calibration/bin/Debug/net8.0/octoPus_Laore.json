@@ -16,13 +16,15 @@
                      "useConsole":  false,
                      "modelsToRun":  [
                                          "Laore"
-                                     ]
+                                     ],
+                     "calibrationVariable":  "Phenology"
                  },
     "paths":  {
                   "weatherDir":  "..\\..\\..\\Files\\Weather\\sites_2003_2023",
                   "octoPusParametersPath":  "..\\..\\..\\files\\Parameters\\octoPusParameters.csv",
                   "susceptibilityFileBBCH":  "..\\..\\..\\files\\Parameters\\hostSusceptibilityParameters.csv",
                   "outputDir":  "..\\..\\..\\outputs\\",
-                  "referenceFile":  "..\\..\\..\\Files\\Reference\\reference_file.csv"
+                  "referenceFile":  "..\\..\\..\\Files\\Reference\\reference_file.csv",
+                  "bbchReference":  "..\\..\\..\\Files\\Reference\\bbch_Reference.csv"
               }
 }

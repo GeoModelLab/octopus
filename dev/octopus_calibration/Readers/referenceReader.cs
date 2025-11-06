@@ -81,17 +81,22 @@ namespace octoPusAI.Readers
                     // Parse bbch
                     int bbch = int.TryParse(bbchStr, out int z) ? z : 0;
 
-                    if (!refDatabbch.ContainsKey(site))
+                    //TODO: only for phenology calibration
+                    if (!refDatabbch.ContainsKey(site) && bbch>=8 && bbch <=15)
                     { 
                         refDatabbch.Add(site, new Dictionary<int, Dictionary<int, DateTime>>());
                     }
-                   
-                    if (!refDatabbch[site].ContainsKey(year))
-                    {      
-                        refDatabbch[site].Add(year, new Dictionary<int, DateTime>());
-                    }
 
-                    refDatabbch[site][year].Add(bbch, bbchDate);
+                    if (refDatabbch.ContainsKey(site))
+                    {
+
+                        if (!refDatabbch[site].ContainsKey(year))
+                        {
+                            refDatabbch[site].Add(year, new Dictionary<int, DateTime>());
+                        }
+
+                        refDatabbch[site][year].Add(bbch, bbchDate);
+                    }
                 }
                 sr.Close();
             }

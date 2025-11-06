@@ -264,31 +264,29 @@ namespace octoPusAI.ModelCallers
                 var paramClass = paramPheno.Key.Split('_');
 
 
-                if (paramClass[0] == "Phenology")
-                {
-                    var prop = propsPhenology.FirstOrDefault(p => p.Name == paramClass[1]);
-                    if (prop != null)
-                        prop.SetValue(parPhenology, paramPheno.Value);
-                }
-                if (paramClass[0] == "BBCH")
-                { 
-                    var prop = propsBBCH.FirstOrDefault(p => p.Name == paramClass[1]);
+                //if (paramClass[0] == "Phenology")
+                //{
+                //    var prop = propsPhenology.FirstOrDefault(p => p.Name == paramClass[1]);
+                //    if (prop != null)
+                //        prop.SetValue(parPhenology, paramPheno.Value);
+                //}
+                //if (paramClass[0] == "BBCH")
+                //{ 
+                //    var prop = propsBBCH.FirstOrDefault(p => p.Name == paramClass[1]);
                     
-                        parametersBBCH = new parametersBBCH();
-                    if (!parameters.bbchParameters.ContainsKey(int.Parse(paramClass[1].Substring(4, 2))))
-                    {
+                //        parametersBBCH = new parametersBBCH();
+                //    if (!parameters.bbchParameters.ContainsKey(int.Parse(paramClass[1].Substring(4, 2))))
+                //    {
 
-                        parameters.bbchParameters.Add(int.Parse(paramClass[1].Substring(4, 2)), parametersBBCH);
-                        if (parameters.bbchParameters[int.Parse(paramClass[1].Substring(4, 2))].
-                            cycleCompletion == 0)
-                        {
-                            parameters.bbchParameters[int.Parse(paramClass[1].Substring(4, 2))].cycleCompletion =
-                                (float)(paramPheno.Value); //set the values for this parameter
-                        }
-                    }
-                    
-
-                }
+                //        parameters.bbchParameters.Add(int.Parse(paramClass[1].Substring(4, 2)), parametersBBCH);
+                //        if (parameters.bbchParameters[int.Parse(paramClass[1].Substring(4, 2))].
+                //            cycleCompletion == 0)
+                //        {
+                //            parameters.bbchParameters[int.Parse(paramClass[1].Substring(4, 2))].cycleCompletion =
+                //                (float)(paramPheno.Value); //set the values for this parameter
+                //        }
+                //    }
+                //}
                 if (paramClass[0] == "Incubation")
                 {
                     var prop = propsIncubation.FirstOrDefault(p => p.Name == paramClass[1]);
@@ -489,14 +487,17 @@ namespace octoPusAI.ModelCallers
                 {
                     foreach (var bbch in Year_bbchDate_Ref[year].Keys)
                     {
-                        if (SimulatedBBCH_date[year].ContainsKey(bbch))
+                        if (bbch >=8 && bbch <= 15)
                         {
-                            errorsPhenology.Add(Math.Pow(Convert.ToDouble((Year_bbchDate_Ref[year][bbch] -
-                                SimulatedBBCH_date[year][bbch]).Days), 2));
-                        }
-                        else
-                        {
-                            errorsPhenology.Add(999);
+                            if (SimulatedBBCH_date[year].ContainsKey(bbch))
+                            {
+                                errorsPhenology.Add(Math.Pow(Convert.ToDouble((Year_bbchDate_Ref[year][bbch] -
+                                    SimulatedBBCH_date[year][bbch]).Days), 2));
+                            }
+                            else
+                            {
+                                errorsPhenology.Add(999);
+                            }
                         }
                     }
                 }

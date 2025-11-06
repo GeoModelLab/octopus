@@ -70,19 +70,20 @@ Laore,bbchThreshold,8,12,10,BBCH code,
 Phenology,TminPlant,5,8,10,°C,
 Phenology,ToptPlant,20,30,22,°C,
 Phenology,TmaxPlant,28,42,35,°C,
-Phenology,ChillThreshold,5,12,10,hours,x
-Phenology,ChillingRequirement,30,120,100,hours,x
-Phenology,CycleLength,1600,2800,2700,°C day,x
+Phenology,ChillThreshold,5,12,8,°C,
+Phenology,ChillingRequirement,50,200,100,hours,x
+Phenology,CycleLength,1600,2800,2900,°C day,x
+BBCH,bbch08,0,4,0,BBCH code,x
 BBCH,bbch10,0,4,0,BBCH code,x
-BBCH,bbch15,4,15,16,BBCH code,x
-BBCH,bbch53,15,40,20,BBCH code,x
-BBCH,bbch65,15,45,25,BBCH code,x
-BBCH,bbch71,10,30,20,BBCH code,x
-BBCH,bbch77,20,35,30,BBCH code,x
-BBCH,bbch81,25,50,60,BBCH code,x
-BBCH,bbch85,30,65,65,BBCH code,x
-BBCH,bbch89,50,85,80,BBCH code,x
-BBCH,bbch99,85,100,90,BBCH code,x
+BBCH,bbch11,0,25,16,BBCH code,x
+BBCH,bbch53,30,70,20,BBCH code,x
+BBCH,bbch65,15,45,55,BBCH code,
+BBCH,bbch71,10,30,20,BBCH code,
+BBCH,bbch77,20,35,30,BBCH code,
+BBCH,bbch81,25,50,40,BBCH code,
+BBCH,bbch85,30,65,65,BBCH code,
+BBCH,bbch89,50,85,80,BBCH code,
+BBCH,bbch99,85,100,90,BBCH code,
 Incubation,tminIncubation,8,12,10,°C,
 Incubation,toptIncubation,24,28,26,°C,
 Incubation,tmaxIncubation,30,35,32,°C,

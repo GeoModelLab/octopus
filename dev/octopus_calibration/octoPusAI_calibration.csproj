@@ -20,6 +20,9 @@
   <ItemGroup>
     <None Include="Files\Parameters\hostSusceptibilityParameters.csv" />
     <None Include="Files\Parameters\octoPusParameters.csv" />
+    <None Include="Files\Reference\bbch_Reference.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="Files\Reference\reference_file.csv" />
     <None Include="Files\Weather\daily\rome.csv" />
     <None Include="Files\Weather\hourly\Bergamo.csv" />
@@ -62,10 +65,6 @@
     <None Update="octoPus.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Files\Reference\" />
   </ItemGroup>
 
 </Project>
