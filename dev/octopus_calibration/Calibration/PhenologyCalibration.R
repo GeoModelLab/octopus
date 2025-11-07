@@ -1,5 +1,5 @@
 # PHENOLOGY CALIBRATION
-# 1. Compare optimization parameters with setted parameters (for each file)
+# 1. Compare optimization parameters with default parameters (for each file)
 # 2. Plot output file for each site comparing bbch simulated and reference bbch
 
 # ---
@@ -18,9 +18,9 @@ library(lubridate)
 library(tidyr)
 library(stringr)
 
-# ----
+# ---
 # 1. Compare parameters ----
-# ----
+# ---
 
 
 # ---
@@ -65,15 +65,19 @@ optParam <- allFiles|>
   rename(value_opt = value,
          parameter = param)
 
+# Merge setParam and optParam
+df <- merge(setParam, optParam, by = "parameter")|>
+  relocate(site, .before = parameter)
+
+## Calculate statistics (tables)----
+
 
 
 # ---
 # Parameter comparison between set and optimized values
 # ---
 
-# Merge setParam and optParam
-df <- merge(setParam, optParam, by = "parameter")|>
-  relocate(site, .before = parameter)
+
 
 # Parameter comparison for each site
 stats <- df |>
@@ -132,134 +136,165 @@ stats_param <- df |>
   )
 
 
+
+
+
+
 # 
-# Comparison of optimized and default parameter values across sites
+
+
+
+
+# Plot parameters (default vs optimized) ----
 # 
 
-# Set how many sites to display per plot
-sites_per_plot <- 6
-# List of all sites 
-all_sites <- unique(df$site)
-# Split sites into groups of N sites each
-site_groups <- split(all_sites, ceiling(seq_along(all_sites) / sites_per_plot))
-# Function to create the plot (reused twice) 
-make_plot <- function(data_subset, title_suffix = "") {
-  ggplot(data_subset, aes(x = parameter)) +
-    
-    # Grey vertical line for the [min, max] range
-    geom_segment(aes(y = min, yend = max, xend = parameter),
-                 color = "grey75", linewidth = 1.2) +
-    # Blue point = set (default) value
-    geom_point(aes(y = value, color = "Set value"), size = 2.8) +
-    # Red point = optimized value
-    geom_point(aes(y = value_opt, color = "Optimized value"),
-               size = 2.8, shape = 17) +
-    
-    geom_text(aes(y = (value + value_opt) / 2,
-                  label = round(value_opt - value, 1)),
-              color = "black", size = 2.5, vjust = -1, hjust= 0.2)+
-    
-    # One panel per site
-    facet_wrap(~ site, scales = "free_y") +
-    # Manual color scheme
-    scale_color_manual(values = c("Set value" = "#1f77b4",
-                                  "Optimized value" = "#d62728")) +
-    labs(
-      title = paste("Parameter comparison", title_suffix),
-      x = "Parameter",
-      y = "Value",
-      color = ""
-    ) +
-    theme_minimal(base_size = 12) +
-    theme(
-      strip.text = element_text(face = "bold"),
-      axis.text.x = element_text(angle = 45, hjust = 1),
-      legend.position = "bottom",
-      plot.title = element_text(face = "bold", size = 13)
-    )
-}
 
-# Loop over site groups
-for (i in seq_along(site_groups)) {
-  
-  sites_subset <- site_groups[[i]]
-  
-  # Filter data for current group
-  df_sub <- df |> filter(site %in% sites_subset)
-  
-  # Separate datasets
-  df_allParam <- df_sub |> filter(parameter != "CycleLength")
-  df_cycleLenght <- df_sub |> filter(parameter == "CycleLength")
-  
-  # Plot 1: all parameters except CycleLength
-  p1 <- make_plot(df_allParam, "(excluding CycleLength)")
-  print(p1)
-  readline(prompt = "Press [Enter] to continue to CycleLength plot...")
-  
-  # Plot 2: CycleLength only
-  if (nrow(df_cycleLenght) > 0) {
-    
-    p2 <- make_plot(df_cycleLenght, "(CycleLength only)")
-    print(p2)
-  }
-  
-  readline(prompt = "Press [Enter] to continue to the next group...")
-}
+# # Set how many sites to display per plot
+# sites_per_plot <- 6
+# # List of all sites 
+# all_sites <- unique(df$site)
+# # Split sites into groups of N sites each
+# site_groups <- split(all_sites, ceiling(seq_along(all_sites) / sites_per_plot))
+# # Function to create the plot (reused twice) 
+# make_plot <- function(data_subset, title_suffix = "") {
+#   ggplot(data_subset, aes(x = parameter)) +
+#     
+#     # Grey vertical line for the [min, max] range
+#     geom_segment(aes(y = min, yend = max, xend = parameter),
+#                  color = "grey75", linewidth = 1.2) +
+#     # Blue point = set (default) value
+#     geom_point(aes(y = value, color = "Set value"), size = 2.8) +
+#     # Red point = optimized value
+#     geom_point(aes(y = value_opt, color = "Optimized value"),
+#                size = 2.8, shape = 17) +
+#     
+#     geom_text(aes(y = (value + value_opt) / 2,
+#                   label = round(value_opt - value, 1)),
+#               color = "black", size = 2.5, vjust = -1, hjust= 0.2)+
+#     
+#     # One panel per site
+#     facet_wrap(~ site, scales = "free_y") +
+#     # Manual color scheme
+#     scale_color_manual(values = c("Set value" = "#1f77b4",
+#                                   "Optimized value" = "#d62728")) +
+#     labs(
+#       title = paste("Parameter comparison", title_suffix),
+#       x = "Parameter",
+#       y = "Value",
+#       color = ""
+#     ) +
+#     theme_minimal(base_size = 12) +
+#     theme(
+#       strip.text = element_text(face = "bold"),
+#       axis.text.x = element_text(angle = 45, hjust = 1),
+#       legend.position = "bottom",
+#       plot.title = element_text(face = "bold", size = 13)
+#     )
+# }
+# 
+# # Loop over site groups
+# for (i in seq_along(site_groups)) {
+#   
+#   sites_subset <- site_groups[[i]]
+#   
+#   # Filter data for current group
+#   df_sub <- df |> filter(site %in% sites_subset)
+#   
+#   # Separate datasets
+#   df_allParam <- df_sub |> filter(parameter != "CycleLength")
+#   df_cycleLenght <- df_sub |> filter(parameter == "CycleLength")
+#   
+#   # Plot 1: all parameters except CycleLength
+#   p1 <- make_plot(df_allParam, "(excluding CycleLength)")
+#   print(p1)
+#   readline(prompt = "Press [Enter] to continue to CycleLength plot...")
+#   
+#   # Plot 2: CycleLength only
+#   if (nrow(df_cycleLenght) > 0) {
+#     
+#     p2 <- make_plot(df_cycleLenght, "(CycleLength only)")
+#     print(p2)
+#   }
+#   
+#   readline(prompt = "Press [Enter] to continue to the next group...")
+# }
+# 
+# 
+# #
+# # Global comparison of optimized and default parameter 
+# #
+# 
+# # Split the dataset
+# allParams <- df |> filter(parameter != "CycleLength")
+# 
+# cycleLenght <- df |> filter(parameter == "CycleLength")
+# 
+# # Plot function 
+# plot_param_values <- function(data, title_text) {
+#   ggplot(data, aes(x = parameter)) +
+#     # Range line [min, max] (vertical range)
+#     geom_segment(aes(y = min, yend = max, xend = parameter),
+#                  color = "grey74", linewidth = 1.2) +
+#     # Blue points = set (default) values for all sites
+#     geom_jitter(aes(y = value, color = "Set value"),
+#                 width = 0.1, height = 0, size = 2, alpha = 0.7) +
+#     # Red triangles = optimized values for all sites
+#     geom_jitter(aes(y = value_opt, color = "Optimized value"),
+#                 width = 0.1, height = 0, size = 2, shape = 17, alpha = 0.7) +
+#     # Manual color scheme
+#     scale_color_manual(values = c("Set value" = "#1f77b4",
+#                                   "Optimized value" = "#d62728")) +
+#     labs(
+#       title = title_text,
+#       x = "Parameter",
+#       y = "Parameter value",
+#       color = NULL
+#     ) +
+#     theme_minimal(base_size = 12) +
+#     theme(
+#       axis.text.x = element_text(angle = 45, hjust = 1),
+#       plot.title = element_text(face = "bold", size = 13),
+#       legend.position = "bottom"
+#     )
+# }
+# 
+# # Plot 1: all parameters except cycleLength 
+# p1 <- plot_param_values(
+#   allParams,
+#   "Global visualization of parameter variability (excluding CycleLength)"
+# )
+# print(p1)
+# 
+# # Plot 2: cycleLength only 
+# p2 <- plot_param_values(
+#   cycleLenght,
+#   "Global visualization — CycleLength only"
+# )
+# print(p2)
+# 
+
+
+# # Plot distribution for each parameters
+ggplot(df, aes(x = site, y = value_opt)) +
+  # linee orizzontali globali per min e max per ogni parametro
+  geom_hline(aes(yintercept = min), color = "IndianRed3", linetype = "dashed", size = 1) +
+  geom_hline(aes(yintercept = max), color = "IndianRed3", linetype = "dashed", size = 1) +
+  geom_point(color = "DarkOliveGreen4", size = 3) +
+  facet_wrap(~ parameter, scales = "free_y") +
+  theme_bw() +
+  theme(
+    axis.text.x = element_text(angle = 90, hjust = 1),
+    strip.text = element_text(face = "bold")
+  ) +
+  labs(
+    x = "Sites",
+    y = "Parameter",
+    title = "Optimized parameters distribution"
+  )
 
 
 #
-# Global comparison of optimized and default parameter 
-#
 
-# Split the dataset
-allParams <- df |> filter(parameter != "CycleLength")
-
-cycleLenght <- df |> filter(parameter == "CycleLength")
-
-# Plot function 
-plot_param_values <- function(data, title_text) {
-  ggplot(data, aes(x = parameter)) +
-    # Range line [min, max] (vertical range)
-    geom_segment(aes(y = min, yend = max, xend = parameter),
-                 color = "grey74", linewidth = 1.2) +
-    # Blue points = set (default) values for all sites
-    geom_jitter(aes(y = value, color = "Set value"),
-                width = 0.1, height = 0, size = 2, alpha = 0.7) +
-    # Red triangles = optimized values for all sites
-    geom_jitter(aes(y = value_opt, color = "Optimized value"),
-                width = 0.1, height = 0, size = 2, shape = 17, alpha = 0.7) +
-    # Manual color scheme
-    scale_color_manual(values = c("Set value" = "#1f77b4",
-                                  "Optimized value" = "#d62728")) +
-    labs(
-      title = title_text,
-      x = "Parameter",
-      y = "Parameter value",
-      color = NULL
-    ) +
-    theme_minimal(base_size = 12) +
-    theme(
-      axis.text.x = element_text(angle = 45, hjust = 1),
-      plot.title = element_text(face = "bold", size = 13),
-      legend.position = "bottom"
-    )
-}
-
-# Plot 1: all parameters except cycleLength 
-p1 <- plot_param_values(
-  allParams,
-  "Global visualization of parameter variability (excluding CycleLength)"
-)
-print(p1)
-
-# Plot 2: cycleLength only 
-p2 <- plot_param_values(
-  cycleLenght,
-  "Global visualization — CycleLength only"
-)
-print(p2)
-
-#
 # 2. Plot BBCH from output file ----
 # 
 
@@ -296,80 +331,164 @@ rm(df)
 outOct <- allFiles|>
   #leave only target column
   select(site,Date,chillState,forcingState,cycleCompletion,bbchCode,bbchRef, plantSusceptibility)
-#
-# Plot results
-#
-
 # Convert the Date column to Date class
 outOct <- outOct |>
   mutate(Date = as.POSIXct(Date, format = "%m/%d/%Y %I:%M:%S %p")) |>
-  mutate(Date = as.Date(Date)) 
+  mutate(Date = as.Date(Date))
 
 
-# Split sites into groups of 12
-sites_per_plot <- 6
-all_sites <- unique(outOct$site)
-site_groups <- split(all_sites, ceiling(seq_along(all_sites) / sites_per_plot))
+# # Split sites into groups of 12
+# sites_per_plot <- 6
+# all_sites <- unique(outOct$site)
+# site_groups <- split(all_sites, ceiling(seq_along(all_sites) / sites_per_plot))
+# 
+# # Loop over groups
+# for (i in seq_along(site_groups)) {
+#   
+#   sites_subset <- site_groups[[i]]
+#   df_sub <- outOct |> filter(site %in% sites_subset)
+#   
+#   p <- ggplot(df_sub, aes(x = Date)) +
+#     # Blue line = simulated BBCH
+#     geom_line(aes(y = bbchCode, group = site),
+#               color = "#1f77b4", linewidth = 0.8) +
+#     
+#     # Red triangles = optimized/reference BBCH
+#     geom_point(aes(y = bbchRef),
+#                color = "#d62728", size = 2, shape = 17, na.rm = TRUE) +
+#     
+#     # Dashed line connecting optimized points
+#     geom_line(aes(y = bbchRef),
+#               color = "#d62728", linewidth = 0.6, linetype = "dashed", na.rm = TRUE) +
+#     
+#     # Vertical dotted lines at optimized BBCH dates
+#     geom_vline(aes(xintercept = Date),
+#                data = df_sub |> filter(!is.na(bbchRef)),
+#                color = "grey70", linetype = "dotted", linewidth = 0.7) +
+#     
+#     # Date axis formatting: show one label every 5 months
+#     scale_x_date(
+#       date_breaks = "5 months",
+#       date_labels = "%b %Y"
+#     ) +
+#     
+#     labs(
+#       x = "Date",
+#       y = "BBCH code",
+#       caption = "Blue = simulated BBCH; Red triangles/dashed = optimized reference"
+#     ) +
+#     geom_text(aes(y = bbchRef, label = bbchRef),
+#               color = "#d62728",
+#               size = 4,
+#               vjust = -1,
+#               hjust = - 1)+
+#     
+#     facet_wrap(~ site, scales = "free_x") +
+#     theme_minimal(base_size = 11) +
+#     theme(
+#       strip.text = element_text(face = "bold", size = 10),
+#       axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+#       plot.title = element_text(face = "bold", size = 13),
+#       panel.grid.minor = element_blank(),
+#       legend.position = "none"
+#     )
+#   
+#   print(p)
+#   readline(prompt = paste0("Press [Enter] to continue to next group (", i, "/", length(site_groups), ")..."))
+# }
 
-# Loop over groups
-for (i in seq_along(site_groups)) {
+# Use doys to estimates the error between simulated and optimized
+
+# bbch simulated
+dfSim <- outOct|>
+  select(site,Date,bbchCode)|>
+  mutate(bbchCode = trunc(bbchCode),
+         year = year(Date))|>
+  # Here: single bbch or an interval
+  filter(bbchCode >= 8 & bbchCode <= 12)|>
+  group_by(site,year, bbchCode)|>
+  mutate(doySim = yday(Date))|>
+  select(site,year,doySim, bbchCode)|>
+  slice_head()
+ 
+ dfRef <- outOct|>
+   select(site,Date,bbchRef)|>
+   mutate(year = year(Date))|>
+   # Here: single bbch or an interval
+   filter(bbchRef >= 8 & bbchRef <= 12)|>
+   group_by(site,year, bbchRef)|>
+   mutate(doyRef = yday(Date))|>
+   select(site,year,doyRef, bbchRef)|>
+   slice_head()
   
-  sites_subset <- site_groups[[i]]
-  df_sub <- outOct |> filter(site %in% sites_subset)
-  
-  p <- ggplot(df_sub, aes(x = Date)) +
-    # Blue line = simulated BBCH
-    geom_line(aes(y = bbchCode, group = site),
-              color = "#1f77b4", linewidth = 0.8) +
-    
-    # Red triangles = optimized/reference BBCH
-    geom_point(aes(y = bbchRef),
-               color = "#d62728", size = 2, shape = 17, na.rm = TRUE) +
-    
-    # Dashed line connecting optimized points
-    geom_line(aes(y = bbchRef),
-              color = "#d62728", linewidth = 0.6, linetype = "dashed", na.rm = TRUE) +
-    
-    # Vertical dotted lines at optimized BBCH dates
-    geom_vline(aes(xintercept = Date),
-               data = df_sub |> filter(!is.na(bbchRef)),
-               color = "grey70", linetype = "dotted", linewidth = 0.7) +
-    
-    # Date axis formatting: show one label every 5 months
-    scale_x_date(
-      date_breaks = "5 months",
-      date_labels = "%b %Y"
-    ) +
-    
-    labs(
-      x = "Date",
-      y = "BBCH code",
-      caption = "Blue = simulated BBCH; Red triangles/dashed = optimized reference"
-    ) +
-    geom_text(aes(y = bbchRef, label = bbchRef),
-              color = "#d62728",
-              size = 4,
-              vjust = -1,
-              hjust = - 1)+
-    
-    facet_wrap(~ site, scales = "free_x") +
-    theme_minimal(base_size = 11) +
-    theme(
-      strip.text = element_text(face = "bold", size = 10),
-      axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
-      plot.title = element_text(face = "bold", size = 13),
-      panel.grid.minor = element_blank(),
-      legend.position = "none"
-    )
-  
-  print(p)
-  readline(prompt = paste0("Press [Enter] to continue to next group (", i, "/", length(site_groups), ")..."))
-}
+
+ dfMerged <- dfSim|>
+   left_join(dfRef)|>
+   #check difference in n.of days
+   mutate(diff = doySim - doyRef)|>
+   na.omit()|>
+   #to compare only equal bbch phases
+   filter(bbchCode == bbchRef)
+ 
+ # Print the minimum differences found for each site
+ for (s in unique(dfMerged$site)) {
+   tmp <- dfMerged[dfMerged$site == s, ]
+   idx <- which.min(abs(tmp$diff))
+   best_diff <- tmp$diff[idx]
+   cat("For site", s, "the closest-to-zero difference is", best_diff, "\n")
+ }
 
 
+# Plot doy distribution
+ ggplot(dfMerged) +
+   geom_density(aes(x = doySim, fill = "Simulated"), alpha = 0.4) +
+   geom_density(aes(x = doyRef, fill = "Optimized"), alpha = 0.4) +
+   facet_wrap(~ bbchRef, scales = "free_y") +
+   theme_bw() +
+   labs(
+     x = "doy",
+     y = "",
+     fill = "doy",
+     title = "Doy distribution simulated vs optimized"
+   ) +
+   scale_fill_manual(
+     name = "doy",
+     values = c("Simulated" = "skyblue", "Optimized" = "tomato")
+   )
+ 
 
+ # Plot day differences (DOY_sim - DOY_ref) for each site, year, and BBCH phase
+ # For each site, multiple BBCH phases may be shown
+ 
+ # Note: a match (zero or near-zero error) for one BBCH does not imply that
+ # other phases are also matched — the key point is that at least one phase
+ # is accurately predicted within each site.
+ 
+ ggplot(dfMerged, aes(x = reorder(site, diff), y = diff, color = as.factor(bbchCode))) +
+   geom_hline(yintercept = 0, linetype = "dashed", color = "grey50") +  
+   geom_point(size = 3) +    
+   geom_text(
+     aes(label = round(diff, 1)),
+     hjust = 2,  
+     vjust = 0.5,
+     size = 3) +
+   facet_wrap(~ bbchCode, scales = "free_y") +                          
+   coord_flip() +                                                       
+   theme_bw() +
+   labs(
+     x = "Site",
+     y = "Difference (DOY_sim - DOY_ref)",
+     color = "BBCH phase",
+     title = "Difference between simulated and optimized DOY by site and BBCH phase",
+     subtitle = "Positive = delayed simulation, Negative = early simulation"
+   ) +
+   scale_color_brewer(palette = "Set1")+
+   theme(legend.position="none")
+ 
+ 
+ 
+ 
 
-
-
-
-
+ 
+   
+ 
