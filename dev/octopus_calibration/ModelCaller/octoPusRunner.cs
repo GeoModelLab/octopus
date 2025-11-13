@@ -86,6 +86,7 @@ namespace octoPusAI.ModelCallers
         public Dictionary<string, float> octoPusParameters = new Dictionary<string, float>();
         public Dictionary<int, parametersSusceptibility> BBCH_Susceptibility = new Dictionary<int, parametersSusceptibility>();
         public Dictionary<DateTime, OutputsDaily> date_outputs = new Dictionary<DateTime, OutputsDaily>();
+        public Dictionary<string, Dictionary<string, float>> site_phenoParam_value = new Dictionary<string, Dictionary<string, float>>();
         public string weatherFile;
         public int startYear;
         public int endYear; 
@@ -263,17 +264,16 @@ namespace octoPusAI.ModelCallers
             {
                 var paramClass = paramPheno.Key.Split('_');
 
-
-                //if (paramClass[0] == "Phenology")
-                //{
-                //    var prop = propsPhenology.FirstOrDefault(p => p.Name == paramClass[1]);
-                //    if (prop != null)
-                //        prop.SetValue(parPhenology, paramPheno.Value);
-                //}
+                if (paramClass[0] == "Phenology")
+                {
+                    var prop = propsPhenology.FirstOrDefault(p => p.Name == paramClass[1]);
+                    if (prop != null)
+                        prop.SetValue(parPhenology, paramPheno.Value);
+                }
                 //if (paramClass[0] == "BBCH")
                 //{ 
                 //    var prop = propsBBCH.FirstOrDefault(p => p.Name == paramClass[1]);
-                    
+
                 //        parametersBBCH = new parametersBBCH();
                 //    if (!parameters.bbchParameters.ContainsKey(int.Parse(paramClass[1].Substring(4, 2))))
                 //    {
@@ -321,6 +321,7 @@ namespace octoPusAI.ModelCallers
 
             foreach (var site in availableSites)
             {
+               
                 //reinitialize the models (for internal lists)
                 rule310 = new Rule310();
                 misfits = new Misfits();
@@ -386,6 +387,60 @@ namespace octoPusAI.ModelCallers
 
                 //check if this year has already been evaluated
                 bool isAlreadyEvaluated = false;
+
+                //assign calibrated parameters
+                parameters.bbchParameters = new Dictionary<int, parametersBBCH>();
+
+                if (site_phenoParam_value.ContainsKey(site))
+                {
+                    parameters.phenologyParameters.ChillingRequirement =
+                        site_phenoParam_value[site]["ChillingRequirement"];
+                    parameters.phenologyParameters.ChillingRequirement =
+                       site_phenoParam_value[site]["CycleLength"];
+
+                    parametersBBCH par = new parametersBBCH();
+                    par.cycleCompletion = site_phenoParam_value[site]["bbch08"];
+                    parameters.bbchParameters.Add(8, par);
+
+                    par.cycleCompletion = site_phenoParam_value[site]["bbch10"];
+                    parameters.bbchParameters.Add(10, par);
+
+                    par.cycleCompletion = site_phenoParam_value[site]["bbch11"];
+                    parameters.bbchParameters.Add(11, par);
+
+                    par.cycleCompletion = site_phenoParam_value[site]["bbch53"];
+                    parameters.bbchParameters.Add(53, par);
+
+                    par.cycleCompletion = site_phenoParam_value[site]["bbch65"];
+                    parameters.bbchParameters.Add(65, par);
+
+
+                }
+                else//global parameters
+                {
+                    parameters.phenologyParameters.ChillingRequirement =
+                       site_phenoParam_value["global"]["ChillingRequirement"];
+
+                    parametersBBCH par = new parametersBBCH();
+                    par.cycleCompletion = site_phenoParam_value["global"]["bbch08"];
+                    parameters.bbchParameters.Add(8, par);      
+                                                                
+                    par.cycleCompletion = site_phenoParam_value["global"]["bbch10"];
+                    parameters.bbchParameters.Add(10, par);    
+                                                                
+                    par.cycleCompletion = site_phenoParam_value["global"]["bbch11"];
+                    parameters.bbchParameters.Add(11, par);     
+                                                                
+                    par.cycleCompletion = site_phenoParam_value["global"]["bbch53"];
+                    parameters.bbchParameters.Add(53, par);
+
+                    par.cycleCompletion = site_phenoParam_value["global"]["bbch65"];
+                    parameters.bbchParameters.Add(65, par);
+                }
+                 _detailedCropParameters = generateDetailedPhenologyParameters(parameters);
+                parameters = _detailedCropParameters;
+                parameters.bbchSusceptibilityParameters = BBCH_Susceptibility;
+                parameters.incubationParameters = parametersIncubation;
 
                 //loop over dates
                 foreach (var hour in weatherData.Keys)
@@ -746,6 +801,61 @@ namespace octoPusAI.ModelCallers
                 OutputsDaily outputsDaily = new OutputsDaily();
                 //reinitialize variables for each site
                 var outputs = new Output();
+
+                //assign calibrated parameters
+                parameters.bbchParameters = new Dictionary<int, parametersBBCH>();
+
+                if (site_phenoParam_value.ContainsKey(site))
+                {
+                    parameters.phenologyParameters.ChillingRequirement =
+                        site_phenoParam_value[site]["ChillingRequirement"];
+                    parameters.phenologyParameters.ChillingRequirement =
+                       site_phenoParam_value[site]["CycleLength"];
+
+                    parametersBBCH par = new parametersBBCH();
+                    par.cycleCompletion = site_phenoParam_value[site]["bbch08"];
+                    parameters.bbchParameters.Add(8, par);
+
+                    par.cycleCompletion = site_phenoParam_value[site]["bbch10"];
+                    parameters.bbchParameters.Add(10, par);
+
+                    par.cycleCompletion = site_phenoParam_value[site]["bbch11"];
+                    parameters.bbchParameters.Add(11, par);
+
+                    par.cycleCompletion = site_phenoParam_value[site]["bbch53"];
+                    parameters.bbchParameters.Add(53, par);
+
+                    par.cycleCompletion = site_phenoParam_value[site]["bbch65"];
+                    parameters.bbchParameters.Add(65, par);
+
+
+                }
+                else//global parameters
+                {
+                    parameters.phenologyParameters.ChillingRequirement =
+                       site_phenoParam_value["global"]["ChillingRequirement"];
+
+                    parametersBBCH par = new parametersBBCH();
+                    par.cycleCompletion = site_phenoParam_value["global"]["bbch08"];
+                    parameters.bbchParameters.Add(8, par);
+
+                    par.cycleCompletion = site_phenoParam_value["global"]["bbch10"];
+                    parameters.bbchParameters.Add(10, par);
+
+                    par.cycleCompletion = site_phenoParam_value["global"]["bbch11"];
+                    parameters.bbchParameters.Add(11, par);
+
+                    par.cycleCompletion = site_phenoParam_value["global"]["bbch53"];
+                    parameters.bbchParameters.Add(53, par);
+
+                    par.cycleCompletion = site_phenoParam_value["global"]["bbch65"];
+                    parameters.bbchParameters.Add(65, par);
+                }
+                _detailedCropParameters = generateDetailedPhenologyParameters(parameters);
+                parameters = _detailedCropParameters;
+                parameters.bbchSusceptibilityParameters = BBCH_Susceptibility;
+                parameters.incubationParameters = parametersIncubation;
+
 
                 //loop over dates
                 foreach (var hour in weatherData.Keys)

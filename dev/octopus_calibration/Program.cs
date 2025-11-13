@@ -100,6 +100,15 @@ if(calibrationVariable == "Phenology")
 
 #endregion
 
+#region read calibrated phenology parameters
+var site_phenoParam = paramReader.read_calibPhenoParam(new DirectoryInfo("calibratedParametersPhenology").
+    GetFiles().ToList());
+
+
+#endregion
+
+
+
 #region execute epidemiological models (the tentacles)
 
 //loop over models
@@ -194,6 +203,7 @@ foreach (var model in model_param_range.Keys)
             _runner.param_outCalibration = param_outCalibration;
             _runner.areEPIDMCASTexecutable = true;
             _runner.site_year_onsetDate = refData;
+            _runner.site_phenoParam_value = site_phenoParam;
             
             float numberOfYear = 0;
 

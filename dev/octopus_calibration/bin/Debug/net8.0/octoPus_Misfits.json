@@ -17,7 +17,7 @@
                      "modelsToRun":  [
                                          "Misfits"
                                      ],
-                     "calibrationVariable":  "Phenology"
+                     "calibrationVariable":  "Onset"
                  },
     "paths":  {
                   "weatherDir":  "..\\..\\..\\Files\\Weather\\sites_2003_2023",

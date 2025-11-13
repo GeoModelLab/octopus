@@ -25,6 +25,44 @@ namespace octoPusAI.Readers
             return nameParam;
         }
 
+        public Dictionary<string, Dictionary<string, float>> read_calibPhenoParam(List<FileInfo> files)
+        {
+            var site_namePhenoParam = new Dictionary<string, Dictionary<string, float>>();
+
+            foreach (var file in files)
+            {
+                string newKey = file.Name.Substring(11);
+                site_namePhenoParam.Add(newKey, new Dictionary<string, float>());
+                //read parameters
+                StreamReader sr = new StreamReader(file.FullName);
+                sr.ReadLine();
+                //loop over the file
+                while (!sr.EndOfStream)
+                {
+                    string[] line = sr.ReadLine().Split(',');
+                    site_namePhenoParam[newKey].Add(line[0] , float.Parse(line[1]));
+                }
+
+                site_namePhenoParam[newKey].Add("bbch65", 55f);
+                //close the file
+                sr.Close();
+            }
+
+            // Compute the global average for each parameter
+            var globalAverages = site_namePhenoParam
+                .SelectMany(site => site.Value)             // Flatten: (siteName, param, value)
+                .GroupBy(kv => kv.Key)                      // Group by param name
+                .ToDictionary(
+                    g => g.Key,                             // Parameter name
+                    g => g.Average(x => x.Value)            // Average value across all sites
+                );
+
+            // Add the "global" key with the averaged parameters
+            site_namePhenoParam["global"] = globalAverages;
+
+            return site_namePhenoParam;
+        }
+
         //The Dictionary has the BBCH code as key and the susceptibility as value
         public Dictionary<int, parametersSusceptibility> BBCH_Susceptibility(string ParameterFile)
         {

@@ -12,8 +12,8 @@
         "useLLM": false,
         "useRandomForest": false,
         "useConsole": false,
-        "modelsToRun": [ "Phenology" ],
-        "calibrationVariable":  "Phenology"
+        "modelsToRun": [ "Laore","Misfits","UCSC","IPI","DMCast","EPI","Magarey","Rule310" ],
+        "calibrationVariable":  "Onset"
     },
     "paths": {
         "weatherDir": "..\\..\\..\\Files\\Weather\\sites_2003_2023",
