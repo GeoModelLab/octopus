@@ -12,7 +12,7 @@
         "useLLM": false,
         "useRandomForest": false,
         "useConsole": false,
-        "modelsToRun": [ "Laore","Misfits","UCSC","IPI","DMCast","EPI","Magarey","Rule310" ],
+        "modelsToRun": [ "DMCast"],
         "calibrationVariable":  "Onset"
     },
     "paths": {

@@ -201,21 +201,21 @@ namespace octoPusAI.ModelCallers
                 }
                 if (modelUnderOptimization == "Magarey")
                 {
-                    var prop = propsRule310.FirstOrDefault(p => p.Name == propertyName);
+                    var prop = propsMagarey.FirstOrDefault(p => p.Name == propertyName);
                     if (prop != null)
-                        prop.SetValue(parRule310, isCalibrated ? (float)Coefficient[i++] : param_outCalibration[param]);
+                        prop.SetValue(parMagarey, isCalibrated ? (float)Coefficient[i++] : param_outCalibration[param]);
                 }
                 if (modelUnderOptimization == "EPI")
                 {
-                    var prop = propsRule310.FirstOrDefault(p => p.Name == propertyName);
+                    var prop = propsEPI.FirstOrDefault(p => p.Name == propertyName);
                     if (prop != null)
-                        prop.SetValue(parRule310, isCalibrated ? (float)Coefficient[i++] : param_outCalibration[param]);
+                        prop.SetValue(parEPI, isCalibrated ? (float)Coefficient[i++] : param_outCalibration[param]);
                 }
                 if (modelUnderOptimization == "IPI")
                 {
-                    var prop = propsRule310.FirstOrDefault(p => p.Name == propertyName);
+                    var prop = propsIPI.FirstOrDefault(p => p.Name == propertyName);
                     if (prop != null)
-                        prop.SetValue(parRule310, isCalibrated ? (float)Coefficient[i++] : param_outCalibration[param]);
+                        prop.SetValue(parIPI, isCalibrated ? (float)Coefficient[i++] : param_outCalibration[param]);
                 }
                 if (modelUnderOptimization == "Laore")
                 {
@@ -225,21 +225,21 @@ namespace octoPusAI.ModelCallers
                 }
                 if (modelUnderOptimization == "Misfits")
                 {
-                    var prop = propsRule310.FirstOrDefault(p => p.Name == propertyName);
+                    var prop = propsMisfits.FirstOrDefault(p => p.Name == propertyName);
                     if (prop != null)
-                        prop.SetValue(parRule310, isCalibrated ? (float)Coefficient[i++] : param_outCalibration[param]);
+                        prop.SetValue(parMisfits, isCalibrated ? (float)Coefficient[i++] : param_outCalibration[param]);
                 }
                 if (modelUnderOptimization == "UCSC")
                 {
-                    var prop = propsRule310.FirstOrDefault(p => p.Name == propertyName);
+                    var prop = propsUCSC.FirstOrDefault(p => p.Name == propertyName);
                     if (prop != null)
-                        prop.SetValue(parRule310, isCalibrated ? (float)Coefficient[i++] : param_outCalibration[param]);
+                        prop.SetValue(parUCSC, isCalibrated ? (float)Coefficient[i++] : param_outCalibration[param]);
                 }
                 if (modelUnderOptimization == "DMCast")
                 {
-                    var prop = propsRule310.FirstOrDefault(p => p.Name == propertyName);
+                    var prop = propsDMCast.FirstOrDefault(p => p.Name == propertyName);
                     if (prop != null)
-                        prop.SetValue(parRule310, isCalibrated ? (float)Coefficient[i++] : param_outCalibration[param]);
+                        prop.SetValue(parDMCast, isCalibrated ? (float)Coefficient[i++] : param_outCalibration[param]);
                 }   
                 if(calibrationVariable == "Phenology")
                 {
@@ -519,6 +519,126 @@ namespace octoPusAI.ModelCallers
                                         {
                                             //take the onset date
                                             simOnsetDate = outputs.outputsLaore.infectionEvents[0].onsetDate;
+                                            //compute the error
+                                            var thisYearError = (simOnsetDate - year_onsetDate[hour.Year]).Days;
+                                            errors.Add((float)Math.Pow(thisYearError, 2));
+                                            isAlreadyEvaluated = true;
+                                        }
+                                    }
+                                }
+                            }
+                            //EPI
+                            if (modelUnderOptimization == "EPI")
+                            {
+                                var simOnsetDate = new DateTime();
+                                if (outputs.outputsEPI.infectionEvents.Count >= 1)
+                                {
+                                    if (outputs.outputsEPI.infectionEvents[0].onsetDate.Year > 1)
+                                    {
+                                        if (!isAlreadyEvaluated)
+                                        {
+                                            //take the onset date
+                                            simOnsetDate = outputs.outputsEPI.infectionEvents[0].onsetDate;
+                                            //compute the error
+                                            var thisYearError = (simOnsetDate - year_onsetDate[hour.Year]).Days;
+                                            errors.Add((float)Math.Pow(thisYearError, 2));
+                                            isAlreadyEvaluated = true;
+                                        }
+                                    }
+                                }
+                            }
+                            //IPI
+                            if (modelUnderOptimization == "IPI")
+                            {
+                                var simOnsetDate = new DateTime();
+                                if (outputs.outputsIPI.infectionEvents.Count >= 1)
+                                {
+                                    if (outputs.outputsIPI.infectionEvents[0].onsetDate.Year > 1)
+                                    {
+                                        if (!isAlreadyEvaluated)
+                                        {
+                                            //take the onset date
+                                            simOnsetDate = outputs.outputsIPI.infectionEvents[0].onsetDate;
+                                            //compute the error
+                                            var thisYearError = (simOnsetDate - year_onsetDate[hour.Year]).Days;
+                                            errors.Add((float)Math.Pow(thisYearError, 2));
+                                            isAlreadyEvaluated = true;
+                                        }
+                                    }
+                                }
+                            }
+                            //DMCast
+                            if (modelUnderOptimization == "DMCast")
+                            {
+                                var simOnsetDate = new DateTime();
+                                if (outputs.outputsDMCast.infectionEvents.Count >= 1)
+                                {
+                                    if (outputs.outputsDMCast.infectionEvents[0].onsetDate.Year > 1)
+                                    {
+                                        if (!isAlreadyEvaluated)
+                                        {
+                                            //take the onset date
+                                            simOnsetDate = outputs.outputsDMCast.infectionEvents[0].onsetDate;
+                                            //compute the error
+                                            var thisYearError = (simOnsetDate - year_onsetDate[hour.Year]).Days;
+                                            errors.Add((float)Math.Pow(thisYearError, 2));
+                                            isAlreadyEvaluated = true;
+                                        }
+                                    }
+                                }
+                            }
+                            //Magarey
+                            if (modelUnderOptimization == "Magarey")
+                            {
+                                var simOnsetDate = new DateTime();
+                                if (outputs.outputsMagarey.infectionEvents.Count >= 1)
+                                {
+                                    if (outputs.outputsMagarey.infectionEvents[0].onsetDate.Year > 1)
+                                    {
+                                        if (!isAlreadyEvaluated)
+                                        {
+                                            //take the onset date
+                                            simOnsetDate = outputs.outputsMagarey.infectionEvents[0].onsetDate;
+                                            //compute the error
+                                            var thisYearError = (simOnsetDate - year_onsetDate[hour.Year]).Days;
+                                            errors.Add((float)Math.Pow(thisYearError, 2));
+                                            isAlreadyEvaluated = true;
+                                        }
+                                    }
+                                }
+                            }
+                            //Misfits
+                            if (modelUnderOptimization == "Misfits")
+                            {
+                                var simOnsetDate = new DateTime();
+                                if (outputs.outputsMisfits.infectionEvents.Count >= 1)
+                                {
+                                    if (outputs.outputsMisfits.infectionEvents[0].onsetDate.Year > 1)
+                                    {
+                                        if (!isAlreadyEvaluated)
+                                        {
+                                            //take the onset date
+                                            simOnsetDate = outputs.outputsMisfits.infectionEvents[0].onsetDate;
+                                            //compute the error
+                                            var thisYearError = (simOnsetDate - year_onsetDate[hour.Year]).Days;
+                                            errors.Add((float)Math.Pow(thisYearError, 2));
+                                            isAlreadyEvaluated = true;
+                                        }
+                                    }
+                                }
+                            }
+                            //UCSC
+                            if (modelUnderOptimization == "UCSC")
+                            {
+                                var simOnsetDate = new DateTime();
+                                if (outputs.outputsUCSC.infectionEvents.Count >= 1)
+                                {
+                                    if (outputs.outputsUCSC.infectionEvents[0].onsetDate.Year > 1)
+                                    {
+                                        if (!isAlreadyEvaluated)
+                                        {
+                                            //take the onset date
+                                            simOnsetDate = outputs.outputsUCSC.infectionEvents[0].onsetDate;
                                             //compute the error
                                             var thisYearError = (simOnsetDate - year_onsetDate[hour.Year]).Days;
                                             errors.Add((float)Math.Pow(thisYearError, 2));
