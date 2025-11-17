@@ -103,6 +103,7 @@ namespace octoPusAI.ModelCallers
         public bool detailedRun;
         public string calibrationVariable;
         public List<string> availableSites = new List<string>();
+        public Dictionary<string, Dictionary<DateTime, Input>> weatherData = new Dictionary<string, Dictionary<DateTime, Input>>();
         public Dictionary<string, ParameterRange> nameParam = new Dictionary<string, ParameterRange>();
         public string modelUnderOptimization;
         public Dictionary<string, float> param_outCalibration = new Dictionary<string, float>();
@@ -319,6 +320,7 @@ namespace octoPusAI.ModelCallers
             List<float> errors = new List<float>();
             Dictionary<int, Dictionary<int, DateTime>> SimulatedBBCH_date = new Dictionary<int, Dictionary<int, DateTime>>();
 
+
             foreach (var site in availableSites)
             {
                
@@ -332,10 +334,8 @@ namespace octoPusAI.ModelCallers
                 epi = new EPI();
                 magarey = new Magarey();
 
-
                 //take the reference data for this site
                 var year_onsetDate = site_year_onsetDate[site.Substring(0,site.Length-4)];
-
 
                 //adjust simulation period
                 if(modelUnderOptimization!= "EPI" || modelUnderOptimization != "DMcast")
@@ -344,27 +344,7 @@ namespace octoPusAI.ModelCallers
                     endYear = year_onsetDate.Keys.Last();
                 }
 
-                //read weather data
-                var weatherData = new Dictionary<DateTime, Input>();
-                weatherFile = site;
-                switch (WeatherTimeStep)
-                {
-                    case "hourly":
-                        weatherData = weatherReader.readHourly(weatherFile, startYear, endYear);
-                        break;
-
-                    case "daily":
-                        Dictionary<DateTime, InputDaily> weatherDataH = weatherReader.readDaily(weatherDir + "\\" + weatherFile, startYear, endYear);
-                        foreach (var day in weatherDataH.Keys)
-                        {
-                            weatherData.AddRange(weatherReader.estimateHourly(weatherDataH[day], day));
-                        }
-                        break;
-
-                    default:
-                        Console.WriteLine("Check the WeatherTimeStep in the octoPus.json file, available choices are: \"daily\" or \"hourly\"");
-                        break;
-                }
+              
 
                 if (areEPIDMCASTexecutable && 
                     (modelUnderOptimization == "EPI" || modelUnderOptimization == "DMCast"))
@@ -372,7 +352,7 @@ namespace octoPusAI.ModelCallers
                     //for the PEMs that require climatic averages
                     epi = new EPI();
                     dmcast = new DMCast();
-                    historicalRun(weatherData);
+                    historicalRun(weatherData[site]);
                 }
 
                 bool isFlowered = false;
@@ -395,22 +375,26 @@ namespace octoPusAI.ModelCallers
                 {
                     parameters.phenologyParameters.ChillingRequirement =
                         site_phenoParam_value[site]["ChillingRequirement"];
-                    parameters.phenologyParameters.ChillingRequirement =
+                    parameters.phenologyParameters.CycleLength =
                        site_phenoParam_value[site]["CycleLength"];
 
                     parametersBBCH par = new parametersBBCH();
                     par.cycleCompletion = site_phenoParam_value[site]["bbch08"];
                     parameters.bbchParameters.Add(8, par);
 
+                    par = new parametersBBCH();
                     par.cycleCompletion = site_phenoParam_value[site]["bbch10"];
                     parameters.bbchParameters.Add(10, par);
 
+                    par = new parametersBBCH();
                     par.cycleCompletion = site_phenoParam_value[site]["bbch11"];
                     parameters.bbchParameters.Add(11, par);
 
+                    par = new parametersBBCH();
                     par.cycleCompletion = site_phenoParam_value[site]["bbch53"];
                     parameters.bbchParameters.Add(53, par);
 
+                    par = new parametersBBCH();
                     par.cycleCompletion = site_phenoParam_value[site]["bbch65"];
                     parameters.bbchParameters.Add(65, par);
 
@@ -420,44 +404,55 @@ namespace octoPusAI.ModelCallers
                 {
                     parameters.phenologyParameters.ChillingRequirement =
                        site_phenoParam_value["global"]["ChillingRequirement"];
+                    parameters.phenologyParameters.CycleLength=
+                   site_phenoParam_value["global"]["CycleLength"];
 
                     parametersBBCH par = new parametersBBCH();
                     par.cycleCompletion = site_phenoParam_value["global"]["bbch08"];
                     parameters.bbchParameters.Add(8, par);      
-                                                                
+                           
+                    par = new parametersBBCH();
                     par.cycleCompletion = site_phenoParam_value["global"]["bbch10"];
                     parameters.bbchParameters.Add(10, par);    
-                                                                
+                      
+                    par = new parametersBBCH();
                     par.cycleCompletion = site_phenoParam_value["global"]["bbch11"];
                     parameters.bbchParameters.Add(11, par);     
-                                                                
+                        
+                    par = new parametersBBCH();
                     par.cycleCompletion = site_phenoParam_value["global"]["bbch53"];
                     parameters.bbchParameters.Add(53, par);
 
+                    par = new parametersBBCH();
                     par.cycleCompletion = site_phenoParam_value["global"]["bbch65"];
                     parameters.bbchParameters.Add(65, par);
                 }
+
                  _detailedCropParameters = generateDetailedPhenologyParameters(parameters);
                 parameters = _detailedCropParameters;
                 parameters.bbchSusceptibilityParameters = BBCH_Susceptibility;
                 parameters.incubationParameters = parametersIncubation;
 
                 //loop over dates
-                foreach (var hour in weatherData.Keys)
+                foreach (var hour in weatherData[site].Keys)
                 {
                     if (hour.DayOfYear == 1)
                     {
                         isAlreadyEvaluated = false;
+                        
                     }
 
                     //call the octoPus model
-                    modelCall(weatherData[hour], parameters, isFlowered, outputs, modelUnderOptimization, out outputsDaily);
+                    modelCall(weatherData[site][hour], parameters, isFlowered, outputs, modelUnderOptimization, out outputsDaily);
+
+
+
 
                     //add weather data to output object
-                    output.weatherInputHourly.Temperature = weatherData[hour].Temperature;
-                    output.weatherInputHourly.Precipitation = weatherData[hour].Precipitation;
-                    output.weatherInputHourly.RelativeHumidity = weatherData[hour].RelativeHumidity;
-                    output.weatherInputHourly.LeafWetness = weatherData[hour].LeafWetness;
+                    output.weatherInputHourly.Temperature = weatherData[site][hour].Temperature;
+                    output.weatherInputHourly.Precipitation = weatherData[site][hour].Precipitation;
+                    output.weatherInputHourly.RelativeHumidity = weatherData[site][hour].RelativeHumidity;
+                    output.weatherInputHourly.LeafWetness = weatherData[site][hour].LeafWetness;
 
                     //add the object to the output dictionary
                     if (hour.Hour == 0)
@@ -468,12 +463,12 @@ namespace octoPusAI.ModelCallers
                     if (calibrationVariable == "Phenology")
                     {
                         //if dictionary does not contain the year key
-                        if(!SimulatedBBCH_date.ContainsKey(hour.Year))
+                        if (!SimulatedBBCH_date.ContainsKey(hour.Year))
                         {
                             //add it
                             SimulatedBBCH_date.Add(hour.Year, new Dictionary<int, DateTime>());
                         }
-                        
+
                         //year is certainly present see above
                         //if this year this bbch is not yet added
                         if (!SimulatedBBCH_date[hour.Year].ContainsKey((int)outputsDaily.bbchPhase))
@@ -649,11 +644,15 @@ namespace octoPusAI.ModelCallers
                             }
                         }
                     }
+
+
                 }
                 //Console.WriteLine("site {0} run", site);
             }
 
+            int totalInnerKeys = site_year_onsetDate.Sum(kvp => kvp.Value.Count);
 
+         
             double objectiveFunction = 0;
             if (calibrationVariable == "Phenology")
             {
@@ -680,8 +679,14 @@ namespace octoPusAI.ModelCallers
             }
             else
             {
-
-                objectiveFunction = Math.Sqrt(errors.Sum() / errors.Count());
+                if (errors.Count()!= 0)
+                {
+                    objectiveFunction = Math.Sqrt(errors.Sum() / errors.Count());
+                }
+                else
+                {
+                    objectiveFunction = 999;
+                }
                 
             }
 

@@ -74,7 +74,7 @@ namespace Models.Infections
             //calculate incubation
             foreach (var infEvent in Output.outputsLaore.infectionEvents)
             {
-                if (infEvent.phenophase >= 10)
+                if (infEvent.phenophase >= 10 && infEvent.onsetDate.Year == 1)
                 {
                     Utils.utilities.incubationEstimate(infEvent, Parameters.incubationParameters, Input);
                 }

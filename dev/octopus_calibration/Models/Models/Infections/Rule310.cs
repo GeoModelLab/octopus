@@ -16,7 +16,7 @@ namespace Models.Infections
             //add one hour
             Past_24hours.Add(Input);
             //delete the hour at n hours
-            if (Past_24hours.Count == (int)Parameters.rule310Parameters.numberOfHoursToConsider)
+            if (Past_24hours.Count == Convert.ToInt32(Parameters.rule310Parameters.numberOfHoursToConsider))
             {
                 Past_24hours.RemoveAt(0);
             }
@@ -34,27 +34,37 @@ namespace Models.Infections
             double Temperature = Temperatures.Average();
             double BBCH = Output.outputsPhenology.bbchPhenophaseCode;
 
-            //The rule
-            if (Precipitation >= Parameters.rule310Parameters.precipitationThreshold &&
+            if (Output.outputsRule310.infectionEvents.Count == 0)
+            {
+                //The rule
+                if (Precipitation >= Parameters.rule310Parameters.precipitationThreshold &&
                 Temperature >= Parameters.rule310Parameters.baseTemperature &&
                 BBCH >= Parameters.rule310Parameters.bbchThreshold)
-            {
-                var infectionEvent = new GenericInfection();
-                infectionEvent.infectionDate = Input.Date;
-                //track phenophase
-                infectionEvent.phenophase = Output.outputsPhenology.bbchPhenophase;
-                Output.outputsRule310.infectionEvents.Add(infectionEvent);
+                {
+                    var infectionEvent = new GenericInfection();
+                    infectionEvent.infectionDate = Input.Date;
+                    //track phenophase
+                    infectionEvent.phenophase = Output.outputsPhenology.bbchPhenophase;
+
+
+                    Output.outputsRule310.infectionEvents.Add(infectionEvent);
+
+                }
+
+                #endregion
+
+               
             }
-            #endregion 
 
             #region Incubation
-            
+
             //calculate incubation
             foreach (var infEvent in Output.outputsRule310.infectionEvents)
             {
-                if (infEvent.phenophase>= 10)
+                if (infEvent.phenophase >= 10 && infEvent.onsetDate.Year == 1)
                 {
                     Utils.utilities.incubationEstimate(infEvent, Parameters.incubationParameters, Input);
+
                 }
             }
             #endregion

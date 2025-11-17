@@ -1,4 +1,5 @@
 ﻿using Models.Datatype;
+using System.Reflection.Metadata;
 
 namespace Models.Infections
 {
@@ -32,13 +33,13 @@ namespace Models.Infections
 
                 #region Germination occurrence
                 infectionEvent.GerminationHours += 1;
-                if (infectionEvent.GerminationHours < Parameters.magareyParameters.numberOfHoursToConsiderGermination)
+                if (infectionEvent.GerminationHours < Convert.ToInt32(Parameters.magareyParameters.numberOfHoursToConsiderGermination))
                 {
                     infectionEvent.TemperatureAverageGerm += Input.Temperature /
                         Parameters.magareyParameters.numberOfHoursToConsiderGermination;
                     infectionEvent.RainSumGerm += Input.Precipitation;
                 }
-                else if (infectionEvent.GerminationHours == Parameters.magareyParameters.numberOfHoursToConsiderGermination)
+                else if (infectionEvent.GerminationHours == Convert.ToInt32(Parameters.magareyParameters.numberOfHoursToConsiderGermination))
                 {
                     //verify germination occurrence
                     if (infectionEvent.TemperatureAverageGerm >= Parameters.magareyParameters.baseTemperatureInfection &&
@@ -55,7 +56,7 @@ namespace Models.Infections
                 {
                     infectionEvent.InfectionHours += 1;
                     infectionEvent.SplashingHours += 1;
-                    if (infectionEvent.InfectionHours <= Parameters.magareyParameters.numberOfHoursToConsiderInfection)
+                    if (infectionEvent.InfectionHours <= Convert.ToInt32(Parameters.magareyParameters.numberOfHoursToConsiderInfection))
                     {
                         infectionEvent.TemperatureAverageSplash += Input.Temperature;
                         infectionEvent.RainSumSplash = Input.Precipitation;
@@ -79,7 +80,7 @@ namespace Models.Infections
                 if (infectionEvent.Splashing == 1)
                 {
                     infectionEvent.InfectionHours += 1;
-                    if (infectionEvent.InfectionHours <= Parameters.magareyParameters.numberOfHoursToConsiderInfection)
+                    if (infectionEvent.InfectionHours <= Convert.ToInt32(Parameters.magareyParameters.numberOfHoursToConsiderInfection))
                     {
                         infectionEvent.DegreeHours += Input.Temperature;
 
@@ -89,7 +90,7 @@ namespace Models.Infections
 
                             double BBCH = Output.outputsPhenology.bbchPhenophaseCode;
 
-                            if (infectionEvent.InfectionHours <= Parameters.magareyParameters.numberOfHoursToConsiderInfection &&
+                            if (infectionEvent.InfectionHours <= Convert.ToInt32(Parameters.magareyParameters.numberOfHoursToConsiderInfection) &&
                                 infectionEvent.TemperatureAverageInf >= Parameters.magareyParameters.baseTemperatureInfection 
                                 && BBCH >= Parameters.magareyParameters.bbchThreshold)
                             {
@@ -116,14 +117,9 @@ namespace Models.Infections
             //calculate incubation
             foreach (var infEvent in Output.outputsMagarey.infectionEvents)
             {
-                // Cast to MagareycastInfectionEvent to access specific properties
-                var PosInfEvent = infEvent as MagareyInfectionEvent; //var for infection occurred
-
-                if (PosInfEvent == null) continue;
-
-                if (PosInfEvent.phenophase >= 10 && PosInfEvent.Infection == 1)
+                if (infEvent.phenophase >= 10 && infEvent.onsetDate.Year == 1)
                 {
-                    Utils.utilities.incubationEstimate(PosInfEvent, Parameters.incubationParameters, Input);
+                    Utils.utilities.incubationEstimate(infEvent, Parameters.incubationParameters, Input);
                 }
             }
             #endregion
@@ -137,7 +133,7 @@ namespace Models.Infections
             //add one hour
             Past_24hours.Add(Input);
             //delete the hour at n hours
-            if (Past_24hours.Count == magareyParameters.numberOfHoursToConsiderRule210)
+            if (Past_24hours.Count == (int)magareyParameters.numberOfHoursToConsiderRule210)
             {
                 Past_24hours.RemoveAt(0);
             }

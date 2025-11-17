@@ -12,7 +12,7 @@
         "useLLM": false,
         "useRandomForest": false,
         "useConsole": false,
-        "modelsToRun": [ "DMCast"],
+        "modelsToRun": [ "EPI"],
         "calibrationVariable":  "Onset"
     },
     "paths": {

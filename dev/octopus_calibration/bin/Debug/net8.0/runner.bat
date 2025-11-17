@@ -32,7 +32,7 @@ for %%M in (%MODELS%) do (
   start "octopus-%%M" "%RUNNER%" "!CONFIG!"
 
   REM Piccolo delay per evitare burst
-  timeout /t 1 >nul
+  timeout /t 6 >nul
 )
 
 echo Tutti i job sono stati inviati.

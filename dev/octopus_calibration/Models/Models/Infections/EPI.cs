@@ -44,32 +44,37 @@ namespace Models.Infections
                 kesum = new List<double>();
             }
 
-            InfectionCount.Add(Input);
+           
 
-            if (Input.Date.Hour == 00)
+            if (Output.outputsEPI.infectionEvents.Count == 0)
             {
-                Output.outputsEPI.epi = KES + PES;
-                if (Output.outputsEPI.epi > Parameters.epiParameters.alertThreshold && Input.Date.Month < 10)
+                InfectionCount.Add(Input);
+
+                if (Input.Date.Hour == 00)
                 {
-                    double DailyPrec = InfectionCount.Where(x => x.Precipitation > 0.2).
-                                       Select(x => x.Precipitation).Sum();
-
-                    double DailyTemp = InfectionCount.Select(x => x.Temperature).Average();
-
-                    //TODO: not used here
-                    double BBCH = Output.outputsPhenology.bbchPhenophaseCode;
-
-                    if (DailyTemp > Parameters.epiParameters.tempThresholdInf &&
-                        DailyPrec > Parameters.epiParameters.precThresholdInf &&
-                        BBCH >= Parameters.epiParameters.bbchThreshold)
+                    Output.outputsEPI.epi = KES + PES;
+                    if (Output.outputsEPI.epi > Parameters.epiParameters.alertThreshold && Input.Date.Month < 10)
                     {
-                        var infectionEvent = new GenericInfection();
-                        infectionEvent.infectionDate = Input.Date;
-                        //track phenophase
-                        infectionEvent.phenophase = Output.outputsPhenology.bbchPhenophase;
-                        Output.outputsEPI.infectionEvents.Add(infectionEvent);
+                        double DailyPrec = InfectionCount.Where(x => x.Precipitation > 0.2).
+                                           Select(x => x.Precipitation).Sum();
+
+                        double DailyTemp = InfectionCount.Select(x => x.Temperature).Average();
+
+                        //TODO: not used here
+                        double BBCH = Output.outputsPhenology.bbchPhenophaseCode;
+
+                        if (DailyTemp > Parameters.epiParameters.tempThresholdInf &&
+                            DailyPrec > Parameters.epiParameters.precThresholdInf &&
+                            BBCH >= Parameters.epiParameters.bbchThreshold)
+                        {
+                            var infectionEvent = new GenericInfection();
+                            infectionEvent.infectionDate = Input.Date;
+                            //track phenophase
+                            infectionEvent.phenophase = Output.outputsPhenology.bbchPhenophase;
+                            Output.outputsEPI.infectionEvents.Add(infectionEvent);
+                        }
+                        InfectionCount = new List<Input>();
                     }
-                    InfectionCount = new List<Input>();
                 }
             }
             #endregion
@@ -80,7 +85,7 @@ namespace Models.Infections
             //calculate incubation
             foreach (var infEvent in Output.outputsEPI.infectionEvents)
             {
-                if (infEvent.phenophase>= 10)
+                if (infEvent.phenophase>= 10 && infEvent.onsetDate.Year==1)
                 {
                     Utils.utilities.incubationEstimate(infEvent, Parameters.incubationParameters, Input);
                 }

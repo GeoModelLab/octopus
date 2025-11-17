@@ -23,6 +23,8 @@ namespace Models.Infections
             Outputs.outputsUCSC.ger = ger;
 
             double BBCH = Outputs.outputsPhenology.bbchPhenophaseCode;
+
+          
             if (ger == 1 && BBCH >= Parameters.ucscParameters.bbchThreshold)
 
             {
@@ -42,6 +44,7 @@ namespace Models.Infections
                 {
                     dor_1 = 0.03;
                 }
+
                 Outputs.outputsUCSC.infectionEvents.Add(infectionEvent);
                 infectionEvent.cohortDensity = dor - dor_1;
             }
@@ -206,6 +209,29 @@ namespace Models.Infections
             }
             #endregion
 
+            #region Incubation
+
+            //calculate incubation
+            foreach (var infEvent in Outputs.outputsUCSC.infectionEvents)
+            {
+                //// Cast to UCSCcastInfectionEvent to access specific properties
+                //var PosInfEvent = infEvent as UCSCInfectionEvent; //var for infection occurred 
+
+                //if (PosInfEvent == null) continue;
+
+                //if (PosInfEvent.phenophase >= 10 && PosInfEvent.infection == 1)
+                //{
+                //    Utils.utilities.incubationEstimate(PosInfEvent, Parameters.incubationParameters, Input);
+                //}
+              
+               
+                if (infEvent.phenophase >= 10)
+                {
+                    Utils.utilities.incubationEstimate(infEvent, Parameters.incubationParameters, Input);
+                }
+            }
+            #endregion
+
             DateTime lastDayOfTheYear = new DateTime(Input.Date.Year, 12, 31);
 
             Outputs.outputsUCSC.infectionEvents.RemoveAll(infectionEvent =>
@@ -215,22 +241,9 @@ namespace Models.Infections
                 // Check if it's the last day of the year and infection is 0
                 return Input.Date == lastDayOfTheYear && ucscInfection.infection == 0;
             });
-            #region Incubation
-            
-            //calculate incubation
-            foreach (var infEvent in Outputs.outputsUCSC.infectionEvents)
-            {
-                // Cast to UCSCcastInfectionEvent to access specific properties
-                var PosInfEvent = infEvent as UCSCInfectionEvent; //var for infection occurred 
 
-                if (PosInfEvent == null) continue;
 
-                if (PosInfEvent.phenophase >= 10 && PosInfEvent.infection == 1)
-                {
-                    Utils.utilities.incubationEstimate(PosInfEvent, Parameters.incubationParameters, Input);
-                }
-            }
-            #endregion
+         
 
         }
         #endregion

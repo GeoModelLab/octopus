@@ -107,6 +107,37 @@ var site_phenoParam = paramReader.read_calibPhenoParam(new DirectoryInfo("calibr
 
 #endregion
 
+#region read weather data
+//read weather data
+var weatherData = new Dictionary<string, Dictionary<DateTime, Input>>();
+WeatherReader weatherReader = new WeatherReader();
+foreach (var site in availableSites)
+{
+
+    weatherData.Add(site, new Dictionary<DateTime, Input>());
+    string weatherFile = site;
+    switch (WeatherTimeStep)
+    {
+        case "hourly":
+            weatherData[site] = weatherReader.readHourly(weatherFile, startYear, endYear);
+            break;
+
+        case "daily":
+            Dictionary<DateTime, InputDaily> weatherDataH = weatherReader.readDaily(weatherDir + "\\" + weatherFile, startYear, endYear);
+            foreach (var day in weatherDataH.Keys)
+            {
+                weatherData[site].AddRange(weatherReader.estimateHourly(weatherDataH[day], day));
+            }
+            break;
+
+        default:
+            Console.WriteLine("Check the WeatherTimeStep in the octoPus.json file, available choices are: \"daily\" or \"hourly\"");
+            break;
+    }
+}
+
+
+#endregion
 
 
 #region execute epidemiological models (the tentacles)
@@ -125,9 +156,9 @@ foreach (var model in model_param_range.Keys)
             // - Ftol: tolerance on objective function for convergence
             // - Itmax: maximum iterations per simplex
             var msx = new MultiStartSimplex();
-            msx.NofSimplexes = 10;
+            msx.NofSimplexes = 1;
             msx.Ftol = 0.000000000001;
-            msx.Itmax = 100000;
+            msx.Itmax = 1000;
             #endregion
 
             #region Define parameter settings for calibration
@@ -204,25 +235,8 @@ foreach (var model in model_param_range.Keys)
             _runner.areEPIDMCASTexecutable = true;
             _runner.site_year_onsetDate = refData;
             _runner.site_phenoParam_value = site_phenoParam;
+            _runner.weatherData = weatherData;
             
-            float numberOfYear = 0;
-
-            #region manage EPI and DMcast execution with low number of weather data (at least 10 years should be available!)
-            if (numberOfYear < 1)
-            {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine("The weather file has less than one year of data!!!!");
-                Console.WriteLine("The EPI and DMCAST models cannot be executed");
-            }
-            else if (numberOfYear < 10)
-            {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine("The weather file has {0} years", numberOfYear);
-                Console.WriteLine("The EPI and DMCAST models will be executed even if less than 10 years are available.");
-            }
-
-            #endregion
-
             if (calibrationVariable == "Onset")
             {
                 #region run octoPus

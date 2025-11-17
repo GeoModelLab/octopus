@@ -21,9 +21,10 @@ namespace Models.Infections
         //N.B. This section could be changed as new versions of the models implement only a simple threshold
         //Based on the temperatures and Precipitations considered for estimating oospore germination (see above)
         //plus a treshold on BBCH 15, see "Plant Health Progress, 2007, 8.1: 66"
-         
+
         public void run(Input Input, Parameters Parameters, Output Output)
         {
+
             #region Infection compute
             //if there is germination
             if (oosporeGerm(Input, Parameters, Output.outputsDMCast) == 1)
@@ -99,22 +100,22 @@ namespace Models.Infections
             });
             #endregion
 
+
+
             #region Incubation
 
             //calculate incubation
             foreach (var infEvent in Output.outputsDMCast.infectionEvents)
             {
-                // Cast to DMcastInfectionEvent to access specific properties
-                var PosInfEvent = infEvent as DMcastInfectionEvent; //var for infection occurred
+               
 
-                if (PosInfEvent == null) continue;
-
-                if (PosInfEvent.phenophase >= 10 && PosInfEvent.Infection == 1)
+                if (infEvent.phenophase >= 10 && infEvent.onsetDate.Year == 1)
                 {
-                    Utils.utilities.incubationEstimate(PosInfEvent, Parameters.incubationParameters, Input);
+                    Utils.utilities.incubationEstimate(infEvent, Parameters.incubationParameters, Input);
                 }
             }
             #endregion
+
 
         }
         #endregion

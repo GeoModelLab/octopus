@@ -118,14 +118,11 @@ namespace Models.Infections
             #endregion
 
             #region Incubation
-            if(Input.Date.Year==2016 && Input.Date.Month == 4)
-            {
-
-            }
+            
             //calculate incubation
             foreach (var infEvent in Output.outputsMisfits.infectionEvents)
             {
-                if (infEvent.phenophase >= 10)
+                if (infEvent.phenophase >= 10 && infEvent.onsetDate.Year == 1)
                 {
                     Utils.utilities.incubationEstimate(infEvent, Parameters.incubationParameters, Input);
                 }
