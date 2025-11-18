@@ -1,0 +1,11 @@
+param, value
+riUpperThreshold,2.8767381731440222
+tmeaniTminThreshold,12.939632278254042
+tmeaniUpperThreshold,1.0455976550955586
+lwiLowerThreshold,1.1622656242741485
+lwiUpperThreshold,4.854436816583657
+rhiUpperThreshold,2.1218788843116414
+ipiTminThreshold,8.24077002612157
+alertThreshold,13.887428961961383
+tempThresholdInf,10.80271281444255
+precThresholdInf,2.4587522038221263

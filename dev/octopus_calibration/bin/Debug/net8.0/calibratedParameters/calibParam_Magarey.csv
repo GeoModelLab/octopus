@@ -1,0 +1,10 @@
+param, value
+baseTemperatureRule210,11.122582706125073
+precipitationThresholdRule210,9.30999292355651
+baseTemperatureInfection,6.996970524336349
+precipitationThresholdInfection,1.7517187749132728
+numberOfHoursToConsiderRule210,24.686637850030944
+numberOfHoursToConsiderGermination,14.855877422432094
+numberOfHoursToConsiderInfection,7.6123690410367
+degreeHoursThresholdInfection,50.54591076647951
+rainTriggeringSplash,0.80601018162658
