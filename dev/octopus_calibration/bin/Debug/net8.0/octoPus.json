@@ -12,7 +12,7 @@
         "useLLM": false,
         "useRandomForest": false,
         "useConsole": false,
-        "modelsToRun": [ "EPI"],
+        "modelsToRun": [ "Rule310"],
         "calibrationVariable":  "Onset"
     },
     "paths": {

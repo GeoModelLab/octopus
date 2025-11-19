@@ -12,6 +12,7 @@ namespace octoPusAI.Readers
         {
             var refData = new Dictionary<string, Dictionary<int, DateTime>>();
 
+
             //read the file
             using (var sr = new StreamReader(new BufferedStream(new FileStream(file, FileMode.Open))))
             {
@@ -41,6 +42,7 @@ namespace octoPusAI.Readers
                         refData.Add(site, new Dictionary<int, DateTime>());
                     }
                     refData[site].Add(year, onsetDate);
+
                 }
                 sr.Close();
             }

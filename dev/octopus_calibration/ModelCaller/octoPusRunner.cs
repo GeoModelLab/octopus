@@ -335,6 +335,7 @@ namespace octoPusAI.ModelCallers
                 magarey = new Magarey();
 
                 //take the reference data for this site
+                 
                 var year_onsetDate = site_year_onsetDate[site.Substring(0,site.Length-4)];
 
                 //adjust simulation period
@@ -439,7 +440,7 @@ namespace octoPusAI.ModelCallers
                     if (hour.DayOfYear == 1)
                     {
                         isAlreadyEvaluated = false;
-                        
+
                     }
 
                     //call the octoPus model
@@ -814,25 +815,25 @@ namespace octoPusAI.ModelCallers
                 var paramClass = paramPheno.Key.Split('_');
 
                 //TODO: check for onset optimization
-                //if (paramClass[0] == "Phenology")
-                //{
-                //    var prop = propsPhenology.FirstOrDefault(p => p.Name == paramClass[1]);
-                //    if (prop != null)
-                //        prop.SetValue(parPhenology, paramPheno.Value);
-                //}
-                //if (paramClass[0] == "BBCH")
-                //{
-                //    var prop = propsBBCH.FirstOrDefault(p => p.Name == paramClass[1]);
+                if (paramClass[0] == "Phenology")
+                {
+                    var prop = propsPhenology.FirstOrDefault(p => p.Name == paramClass[1]);
+                    if (prop != null)
+                        prop.SetValue(parPhenology, paramPheno.Value);
+                }
+                if (paramClass[0] == "BBCH")
+                {
+                    var prop = propsBBCH.FirstOrDefault(p => p.Name == paramClass[1]);
 
-                //    parametersBBCH = new parametersBBCH();
-                //    parameters.bbchParameters.Add(int.Parse(paramClass[1].Substring(4, 2)), parametersBBCH);
-                //    if (parameters.bbchParameters[int.Parse(paramClass[1].Substring(4, 2))].
-                //        cycleCompletion == 0)
-                //    {
-                //        parameters.bbchParameters[int.Parse(paramClass[1].Substring(4, 2))].cycleCompletion =
-                //            (float)(paramPheno.Value); //set the values for this parameter
-                //    }
-                //}
+                    parametersBBCH = new parametersBBCH();
+                    parameters.bbchParameters.Add(int.Parse(paramClass[1].Substring(4, 2)), parametersBBCH);
+                    if (parameters.bbchParameters[int.Parse(paramClass[1].Substring(4, 2))].
+                        cycleCompletion == 0)
+                    {
+                        parameters.bbchParameters[int.Parse(paramClass[1].Substring(4, 2))].cycleCompletion =
+                            (float)(paramPheno.Value); //set the values for this parameter
+                    }
+                }
                 if (paramClass[0] == "Incubation")
                 {
                     var prop = propsIncubation.FirstOrDefault(p => p.Name == paramClass[1]);
@@ -877,7 +878,6 @@ namespace octoPusAI.ModelCallers
 
                 //take the reference data for this site
                 var year_onsetDate = site_year_onsetDate[site.Substring(0, site.Length - 4)];
-
 
                 //adjust simulation period
                 if (modelUnderOptimization != "EPI" || modelUnderOptimization != "DMcast")
@@ -934,22 +934,26 @@ namespace octoPusAI.ModelCallers
                 {
                     parameters.phenologyParameters.ChillingRequirement =
                         site_phenoParam_value[site]["ChillingRequirement"];
-                    parameters.phenologyParameters.ChillingRequirement =
+                    parameters.phenologyParameters.CycleLength =
                        site_phenoParam_value[site]["CycleLength"];
 
                     parametersBBCH par = new parametersBBCH();
                     par.cycleCompletion = site_phenoParam_value[site]["bbch08"];
                     parameters.bbchParameters.Add(8, par);
 
+                    par = new parametersBBCH();
                     par.cycleCompletion = site_phenoParam_value[site]["bbch10"];
                     parameters.bbchParameters.Add(10, par);
 
+                    par = new parametersBBCH();
                     par.cycleCompletion = site_phenoParam_value[site]["bbch11"];
                     parameters.bbchParameters.Add(11, par);
 
+                    par = new parametersBBCH();
                     par.cycleCompletion = site_phenoParam_value[site]["bbch53"];
                     parameters.bbchParameters.Add(53, par);
 
+                    par = new parametersBBCH();
                     par.cycleCompletion = site_phenoParam_value[site]["bbch65"];
                     parameters.bbchParameters.Add(65, par);
 
@@ -959,20 +963,26 @@ namespace octoPusAI.ModelCallers
                 {
                     parameters.phenologyParameters.ChillingRequirement =
                        site_phenoParam_value["global"]["ChillingRequirement"];
+                    parameters.phenologyParameters.CycleLength =
+                       site_phenoParam_value["global"]["CycleLength"];
 
                     parametersBBCH par = new parametersBBCH();
                     par.cycleCompletion = site_phenoParam_value["global"]["bbch08"];
                     parameters.bbchParameters.Add(8, par);
 
+                    par = new parametersBBCH();
                     par.cycleCompletion = site_phenoParam_value["global"]["bbch10"];
                     parameters.bbchParameters.Add(10, par);
 
+                    par = new parametersBBCH();
                     par.cycleCompletion = site_phenoParam_value["global"]["bbch11"];
                     parameters.bbchParameters.Add(11, par);
 
+                    par = new parametersBBCH();
                     par.cycleCompletion = site_phenoParam_value["global"]["bbch53"];
                     parameters.bbchParameters.Add(53, par);
-
+                    
+                    par = new parametersBBCH();
                     par.cycleCompletion = site_phenoParam_value["global"]["bbch65"];
                     parameters.bbchParameters.Add(65, par);
                 }
@@ -985,7 +995,7 @@ namespace octoPusAI.ModelCallers
                 //loop over dates
                 foreach (var hour in weatherData.Keys)
                 {
-                    
+
                     //call the octoPus model
                     modelCall(weatherData[hour], parameters, isFlowered, outputs, modelUnderOptimization, out outputsDaily);
 
@@ -1001,6 +1011,7 @@ namespace octoPusAI.ModelCallers
                         date_outputs.Add(hour, outputsDaily);
                     }
                 }
+
                 writeOctoPusOutputs(weatherFile, date_outputs);
             }            
         }
@@ -1165,13 +1176,13 @@ namespace octoPusAI.ModelCallers
 
             //loop over days
             foreach (var date in date_outputs.Keys)
-            {
+            {   
                 if (date.Hour == 0)
                 {
                     var line = new StringBuilder();
                     line.Append($"{date_outputs[date].Input.Site},");
                     #region Weather data
-                    line.Append($"{date},");
+                    line.Append($"{date.ToShortDateString()},");
                     line.Append($"{date_outputs[date].Input.Tmax},");
                     line.Append($"{date_outputs[date].Input.Tmin},");
                     line.Append($"{date_outputs[date].Input.Precipitation},");
@@ -1233,7 +1244,7 @@ namespace octoPusAI.ModelCallers
                     line.Append($"{date_outputs[date].pressureMagarey},");
                     line.Append($"{date_outputs[date].pressureUCSC},");
                     line.Append($"{date_outputs[date].pressureMisfits},");
-                    line.Append($"{date_outputs[date].pressureLaore},");
+                    line.Append($"{date_outputs[date].pressureLaore}");
                     #endregion
 
                     toWrite.Add(line.ToString());

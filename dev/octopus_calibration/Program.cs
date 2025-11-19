@@ -86,7 +86,6 @@ if(calibrationVariable == "Phenology")
     toExclude = new List<string>() { "Incubation" };
 }
 
-
 #region read reference data
 
     //onset date
@@ -134,6 +133,7 @@ foreach (var site in availableSites)
             Console.WriteLine("Check the WeatherTimeStep in the octoPus.json file, available choices are: \"daily\" or \"hourly\"");
             break;
     }
+
 }
 
 
