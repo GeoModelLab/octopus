@@ -1632,10 +1632,11 @@ namespace octoPusAI.ModelCallers
                     .Where(rossiInfection => rossiInfection.infectionDate > weatherData.Date.AddHours(-24))
                     .ToList();
                 modelsOutput.infectionUCSC = uCSCInfectionsToRemove.Any() ? 1 : 0;
-                foreach (var rossiInfection in uCSCInfectionsToRemove)
-                {
-                    outputs.outputsUCSC.infectionEvents.Remove(rossiInfection);
-                }
+                //TODO: uncomment after calibration!
+                //foreach (var rossiInfection in uCSCInfectionsToRemove)
+                //{
+                //outputs.outputsUCSC.infectionEvents.Remove(rossiInfection);
+                //}
                 pressureUCSC += modelsOutput.infectionUCSC;
                 modelsOutput.pressureUCSC += pressureUCSC;
                 // Misfits
