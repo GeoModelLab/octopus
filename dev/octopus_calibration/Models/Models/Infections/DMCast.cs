@@ -105,11 +105,13 @@ namespace Models.Infections
             #region Incubation
 
             //calculate incubation
-            foreach (var infEvent in Output.outputsDMCast.infectionEvents)
+            foreach (var infectionEvent in Output.outputsDMCast.infectionEvents)
             {
-               
+                var infEvent = infectionEvent as DMcastInfectionEvent;
+                if (infEvent == null)
+                    continue;
 
-                if (infEvent.phenophase >= 10 && infEvent.onsetDate.Year == 1)
+                if (infEvent.Infection == 1 && infEvent.phenophase >= 10 && infEvent.onsetDate.Year == 1)
                 {
                     Utils.utilities.incubationEstimate(infEvent, Parameters.incubationParameters, Input);
                 }

@@ -130,3 +130,6 @@ $RECYCLE.BIN/
 .DS_Store
 
 _NCrunch*
+
+# Directory with oputput and parameters before calibration
+dev/octopus_calibration/Calibration/param and output before calibration/

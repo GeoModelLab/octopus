@@ -12,7 +12,7 @@
         "useLLM": false,
         "useRandomForest": false,
         "useConsole": false,
-        "modelsToRun": [ "Rule310"],
+        "modelsToRun": [ "DMCast"],
         "calibrationVariable":  "Onset"
     },
     "paths": {

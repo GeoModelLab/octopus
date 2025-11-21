@@ -115,9 +115,13 @@ namespace Models.Infections
 
             #region Incubation
             //calculate incubation
-            foreach (var infEvent in Output.outputsMagarey.infectionEvents)
+            foreach (var infectionEvent in Output.outputsMagarey.infectionEvents)
             {
-                if (infEvent.phenophase >= 10 && infEvent.onsetDate.Year == 1)
+                var infEvent = infectionEvent as MagareyInfectionEvent;
+                if (infEvent == null)
+                    continue;
+
+                if (infEvent.Infection == 1 && infEvent.phenophase >= 10 && infEvent.onsetDate.Year == 1)
                 {
                     Utils.utilities.incubationEstimate(infEvent, Parameters.incubationParameters, Input);
                 }

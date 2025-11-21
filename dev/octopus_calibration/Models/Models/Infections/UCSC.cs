@@ -212,8 +212,11 @@ namespace Models.Infections
             #region Incubation
 
             //calculate incubation
-            foreach (var infEvent in Outputs.outputsUCSC.infectionEvents)
+            foreach (var infectionEvent in Outputs.outputsUCSC.infectionEvents)
             {
+                var infEvent = infectionEvent as UCSCInfectionEvent;
+                if (infEvent == null)
+                    continue;
                 //// Cast to UCSCcastInfectionEvent to access specific properties
                 //var PosInfEvent = infEvent as UCSCInfectionEvent; //var for infection occurred 
 
@@ -223,9 +226,9 @@ namespace Models.Infections
                 //{
                 //    Utils.utilities.incubationEstimate(PosInfEvent, Parameters.incubationParameters, Input);
                 //}
-              
-               
-                if (infEvent.phenophase >= 10)
+
+
+                if (infEvent.infection == 1 && infEvent.phenophase >= 10)
                 {
                     Utils.utilities.incubationEstimate(infEvent, Parameters.incubationParameters, Input);
                 }
