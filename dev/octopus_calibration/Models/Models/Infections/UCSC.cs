@@ -14,7 +14,6 @@ namespace Models.Infections
         public void run(Input Input, Parameters Parameters, Output Outputs)
         {
             #region Infection compute
-            
 
             List<double> gerdor = GER(Input, Outputs.outputsUCSC, Parameters.ucscParameters);
             int ger = (int)gerdor[1]; //cast double to int
@@ -168,23 +167,28 @@ namespace Models.Infections
                         infectionEvent.wetHoursInfection += 0;
                     }
                     //Infection condition
-                    double WDTWD = infectionEvent.wetHoursInfection * infectionEvent.averageTempWetHoursInf;
-                    if (WDTWD >= Parameters.ucscParameters.infectionThreshold)
-                    {
+
+                    //TODO: added this condition: infectionEvent.infection == 0
+                    if (infectionEvent.infection == 0) 
+                    { 
+                        double WDTWD = infectionEvent.wetHoursInfection * infectionEvent.averageTempWetHoursInf;
+                        if (WDTWD >= Parameters.ucscParameters.infectionThreshold)
+                        {
                         infectionEvent.infection = 1;
                         infectionEvent.infectionDate = Input.Date;
                         infectionEvent.zoosporesCausingInfection = infectionEvent.dispersedZoospores;
-                    }
-                    else
-                    {
-                        infectionEvent.infection = 0;
-                        infectionEvent.zoosporesCausingInfection = 0;
+                        }
+                        //else
+                        //{
+                        //infectionEvent.infection = 0;
+                        //infectionEvent.zoosporesCausingInfection = 0;
+                        //}
                     }
                 }
                 #endregion
 
                 #region Oil Spot Appearance
-                //computes hourly progress of incubation (INC) and its lower and upper confidence intervals
+                //computes hourly progress of incubation(INC) and its lower and upper confidence intervals
                 if (infectionEvent.infection == 1)
                 {
                     double INClow = 1 / (24 * (45.1 - 3.45 * Input.Temperature + 0.073 * Math.Pow(Input.Temperature, 2)));
@@ -217,23 +221,16 @@ namespace Models.Infections
                 var infEvent = infectionEvent as UCSCInfectionEvent;
                 if (infEvent == null)
                     continue;
-                //// Cast to UCSCcastInfectionEvent to access specific properties
-                //var PosInfEvent = infEvent as UCSCInfectionEvent; //var for infection occurred 
 
-                //if (PosInfEvent == null) continue;
-
-                //if (PosInfEvent.phenophase >= 10 && PosInfEvent.infection == 1)
-                //{
-                //    Utils.utilities.incubationEstimate(PosInfEvent, Parameters.incubationParameters, Input);
-                //}
-
-
-                if (infEvent.infection == 1 && infEvent.phenophase >= 10)
+             // todo usare pressureUCSC>1 per la prima volta che corrisponde alla data di prima infezione   
+                if ((infEvent.infection == 1 || infEvent.incubationProgress > 0) && 
+                    infEvent.phenophase >= 10 && infEvent.onsetDate.Year == 1)
                 {
                     Utils.utilities.incubationEstimate(infEvent, Parameters.incubationParameters, Input);
                 }
             }
             #endregion
+
 
             DateTime lastDayOfTheYear = new DateTime(Input.Date.Year, 12, 31);
 
@@ -244,9 +241,6 @@ namespace Models.Infections
                 // Check if it's the last day of the year and infection is 0
                 return Input.Date == lastDayOfTheYear && ucscInfection.infection == 0;
             });
-
-
-         
 
         }
         #endregion
