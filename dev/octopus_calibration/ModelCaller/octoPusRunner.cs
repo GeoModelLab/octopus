@@ -1628,10 +1628,14 @@ namespace octoPusAI.ModelCallers
                 pressureMagarey += modelsOutput.infectionMagarey;
                 modelsOutput.pressureMagarey += pressureMagarey;
                 // UCSC
+                //modelsOutput.infectionUCSC = outputs.outputsUCSC.infectionEvents.Any(ucscInfection => ucscInfection.infectionDate > weatherData.Date.AddHours(-24)) ? 1 : 0;
+                //pressureUCSC += modelsOutput.infectionUCSC;
+                //modelsOutput.pressureUCSC += pressureUCSC;
                 var uCSCInfectionsToRemove = outputs.outputsUCSC.infectionEvents
-                    .Where(rossiInfection => rossiInfection.infectionDate > weatherData.Date.AddHours(-24))
-                    .ToList();
+                .Where(rossiInfection => rossiInfection.infectionDate > weatherData.Date.AddHours(-24))
+                .ToList();
                 modelsOutput.infectionUCSC = uCSCInfectionsToRemove.Any() ? 1 : 0;
+
                 foreach (var rossiInfection in uCSCInfectionsToRemove)
                 {
                     outputs.outputsUCSC.infectionEvents.Remove(rossiInfection);
