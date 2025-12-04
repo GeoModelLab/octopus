@@ -12,7 +12,7 @@
         "useLLM": false,
         "useRandomForest": false,
         "useConsole": false,
-        "modelsToRun": [ "UCSC"],
+        "modelsToRun": [ "EPI"],
         "calibrationVariable":  "Onset"
     },
     "paths": {

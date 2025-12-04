@@ -767,8 +767,15 @@ write.csv(sensitivity, paste0("Sensitivity_season.csv"),
 
 # Table with weather variable statistics
 # for each cluster
+
+# add cluster column
+
+clust <- df_boxplot|>
+  select(LocationID,clust)
+
 clus_stat <- PcaDfSeason |>
-  group_by(cluster) |>
+  left_join(clust, by = "LocationID")|>
+  group_by(clust) |>
   summarise(across(
     .cols = c(
       tx_mu_wi:prc_mu_fa 
@@ -780,8 +787,16 @@ clus_stat <- PcaDfSeason |>
 
 # Mapping clusters by location 
 # Prepare the data frame for mapping by selecting necessary columns
-df_map<- PcaDfSeason |>
-  select(Region,Province,LocationID,lon,lat,cluster)
+
+
+clust <- df_boxplot|>
+  select(LocationID,clust)
+
+PcadfClust <-PcaDfSeason |>
+  left_join(clust, by = "LocationID")
+
+df_map<- PcadfClust |>
+  select(Region,Province,LocationID,lon,lat,clust)
 
 #libraries
 library(sf)
@@ -796,27 +811,31 @@ Italy <- ne_countries(scale = "medium", country = "Italy", returnclass = "sf")
 df_map <- df_map |>
   mutate(PointID = 1:n())  # Assign seq number to each row
 #plot
+# Define custom color palette for clusters (ordered by cluster level)
+col_clust <- c("gold", "red", "darkgreen", "blue")
+
+# plot aggiornato
 p_map <- ggplot() +
   geom_sf(data = Italy, fill = "gray95", color = "black") +
   geom_point(data = df_map,
-             aes(x = lon, y = lat, color = cluster),
+             aes(x = lon, y = lat, color = clust),
              size = 2.5, alpha = 0.9) +
-  geom_text_repel(data = df_map,
-                  aes(x = lon, y = lat, label = PointID, color = cluster),  # Aggiunto color = cluster qui
-                  size = 2.5,
-                  max.overlaps = 20,
-                  fontface = "bold",
-                  direction = "y",      # move vertically
-                  hjust = 0,            # Align on the left (from the point)
-                  nudge_x = 0.1,        # move to right (from the point)
-                  box.padding = 0.2,
-                  point.padding = 0.1,
-                  min.segment.length = 0,
-                  segment.size = 0.3,
-                  segment.color = "gray50",
-                  segment.alpha = 0.5,
-                  show.legend = FALSE) +  # No legend (created in a separate obj)
-  scale_color_brewer(palette = "Set1") +
+  # geom_text_repel(data = df_map,
+  #                 aes(x = lon, y = lat, label = PointID, color = clust),
+  #                 size = 2.5,
+  #                 max.overlaps = 20,
+  #                 fontface = "bold",
+  #                 direction = "y",
+  #                 hjust = 0,
+  #                 nudge_x = 0.1,
+  #                 box.padding = 0.2,
+  #                 point.padding = 0.1,
+  #                 min.segment.length = 0,
+  #                 segment.size = 0.3,
+  #                 segment.color = "gray50",
+  #                 segment.alpha = 0.5,
+  #                 show.legend = FALSE) +
+  scale_color_manual(values = col_clust) +  # <--- palette personalizzata
   coord_sf(xlim = c(6, 19), ylim = c(36, 48), expand = FALSE) +
   theme_minimal(base_size = 12) +
   labs(title = "Clusters distribution",

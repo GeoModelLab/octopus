@@ -133,3 +133,7 @@ _NCrunch*
 
 # Directory with oputput and parameters before calibration
 dev/octopus_calibration/Calibration/param and output before calibration/
+
+# Ignore compiled libraries only (keep EXE and outputs)
+*.dll
+

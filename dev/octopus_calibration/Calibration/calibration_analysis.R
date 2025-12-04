@@ -16,9 +16,9 @@ library(stringr)
 # Set the working directory to the script's location
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 
-# ---
-# Output simulation ---
-# ---
+###########################################################
+# Output simulation
+###########################################################
 
 # List all calibration files
 calibrationFiles <- list.files(
@@ -42,9 +42,10 @@ df <- do.call(rbind, lapply(calibrationFiles, function(f) {
   
   # Add column
   dat$Model <- model_name
-  
   dat
 }))
+
+
 
 df_long<-df |> 
   select(1,2,16,17,27:34) |> 
@@ -92,6 +93,11 @@ ggplot() +
              aes(yintercept = Onset,fill=factor(year)))+
   facet_wrap(~paste0(site,"_",year))+
   theme(axis.text.x = element_text(angle=90))
+
+
+#################
+##### DOY DIFF
+################
 
 # Calculate differences in onset (between octopus models and Refenrence)
 df_diff <- df|>
@@ -196,80 +202,93 @@ site_diff_p
 ggsave("plot/Sites_diff_50_69.jpg", site_diff_p, width = 10, height = 7)
 
 
-# Differences by year and site
-years <- sort(unique(df_diff$year))
-
-for (yr in years) {
-  
-  df_yr <- df_diff |>
-    filter(year == yr)
-  
-  p <- ggplot(df_yr, aes(x = site, y = diff)) +
-    geom_col(fill = "navy", size = 2) +
-    geom_hline(yintercept = 0, linetype = "dashed") +
-    facet_wrap(~ Model, ncol = 3) +
-    theme_bw() +
-    theme(
-      axis.text.x = element_text(angle = 90, hjust = 1)
-    ) +
-    labs(
-      title = paste("DOY difference (Model – Reference) for year", yr),
-      x = "Site",
-      y = "Diff (days)"
-    )
-  
-  print(p)
-  
-  ggsave(
-    filename = paste0("plot/diff_by_site_year_", yr, ".png"),
-    plot = p,
-    width = 12,
-    height = 8
-  )
-}
-
-
-# un grafico per sito
-# asse x: modello + reference
-# asse y: valori doy
-df_site_plot <- df_diff |>
-  select(site, year, Model, Onset, Onset_ref) |>
-  mutate(Reference = Onset_ref) |>
-  pivot_longer(
-    cols = c(Onset, Reference),
-    names_to = "Type",
-    values_to = "DOY"
-  ) |>
-  mutate(
-    Type = ifelse(Type == "Onset", Model, "Reference"),
-    Model_label = Type
-  ) |>
-  select(site, year, Model_label, DOY)
-
-
-#heat map
+# # Differences by year and site
+# years <- sort(unique(df_diff$year))
+# 
+# for (yr in years) {
+#   
+#   df_yr <- df_diff |>
+#     filter(year == yr)
+#   
+#   p <- ggplot(df_yr, aes(x = site, y = diff)) +
+#     geom_col(fill = "navy", size = 2) +
+#     geom_hline(yintercept = 0, linetype = "dashed") +
+#     facet_wrap(~ Model, ncol = 3) +
+#     theme_bw() +
+#     theme(
+#       axis.text.x = element_text(angle = 90, hjust = 1)
+#     ) +
+#     labs(
+#       title = paste("DOY difference (Model – Reference) for year", yr),
+#       x = "Site",
+#       y = "Diff (days)"
+#     )
+#   
+#   print(p)
+#   
+#   ggsave(
+#     filename = paste0("plot/diff_by_site_year_", yr, ".png"),
+#     plot = p,
+#     width = 12,
+#     height = 8
+#   )
+# }
+# 
+# 
+# # un grafico per sito
+# # asse x: modello + reference
+# # asse y: valori doy
+# df_site_plot <- df_diff |>
+#   select(site, year, Model, Onset, Onset_ref) |>
+#   mutate(Reference = Onset_ref) |>
+#   pivot_longer(
+#     cols = c(Onset, Reference),
+#     names_to = "Type",
+#     values_to = "DOY"
+#   ) |>
+#   mutate(
+#     Type = ifelse(Type == "Onset", Model, "Reference"),
+#     Model_label = Type
+#   ) |>
+#   select(site, year, Model_label, DOY)
+# 
+# 
+# #heat map
 df_heat <- df_diff |> 
   mutate(Model_factor = factor(Model),
          site_factor = factor(site))
 
+min_val <- min(df_heat$diff, na.rm = TRUE)
+max_val <- max(df_heat$diff, na.rm = TRUE)
+
 heat_map <- ggplot(df_heat, aes(x = Model_factor, y = site_factor, fill = diff)) +
   geom_tile() +
-  scale_fill_gradient2(
-    low = "darkgreen", mid = "white", high = "firebrick",
-    midpoint = 0, name = "DOY diff"
+  scale_fill_gradientn(
+    colours = c("#004D66", "lightcyan1", "white", "burlywood1", "#CC5200"),
+    values = scales::rescale(c(min_val, min_val*0.3, 0, max_val*0.3, max_val)),
+    name = "Δ DOY",
+    breaks = c(min_val, max_val),
+    labels = round(c(min_val, max_val), 0)
   ) +
   theme_bw() +
   labs(
-    x = "Model",
-    y = "Site",
-    title = "Differenza (doy simulato – doy osservati)"
+    title = "Differenza per sito (doy simulato – doy osservato)",
+    x = NULL, y = NULL
   ) +
   theme(
-    axis.text.x = element_text(angle = 90, hjust = 1, face = "bold", size = 10),
-    axis.text = element_text(face = "bold", size = 8)
+    plot.title = element_text(size = 18, face = "bold", hjust = 0.5),
+    axis.text.x = element_text(angle = 90, hjust = 1, face = "bold", size = 12),
+    axis.text.y = element_text(size = 10),
+    panel.grid = element_blank(),
+    legend.title = element_text(size = 12, face = "bold"),
+    legend.text = element_text(size = 10)
   )
+
 heat_map
-ggsave("plot/heatmap_diff.jpg",heat_map,width = 10, height = 8)
+ggsave("plot/heatmap_diff_custom.jpg", heat_map,
+       width = 10, height = 8, dpi = 300)
+
+
 
 #boxplot per modello
 box_plot_p <- ggplot(df_diff, aes(x = Model, y = diff)) +
@@ -308,9 +327,34 @@ overal_diff_p
 ggsave("plot/Overall diff.jpg", overal_diff_p, width = 8, height = 6)
 
 
+#####################################################################################
+############################## Param distribution ###################################
+#####################################################################################
+
+
+rm(list=ls())
+
+library(data.table)
+library(dplyr)
+library(tidyr)
+library(sf)
+library(giscoR)
+library(ggplot2)
+library(viridis)
+library(scales)
+library(data.table)
+library(stringr)
+
+
+
+# Set the working directory to the script's location
+setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
+
 # ---
-# Param distribution ---
-# ---
+# Output simulation ---
+
+
+
 
 # File with set parameters
 setParam <- read.csv("../Files/Parameters/octoPusParameters.csv")
@@ -396,17 +440,57 @@ for (m in models) {
   ggsave(paste("plot/param_distr_",m, ".jpeg"),p, width = 10, height = 5)
 }
 
-# Ma queste differenze sono legate all'incubazione oppure alla comparsa dell'infezione????
-
-#1. calcola differenza tra prima infezione e onset simulati di ciascun modello
-#2. usando un valore medio di incubazione, come proxy di stima infezione a partire da
-# onset reali, calcolati la differenza tra le infezioni simulate e e quelle dell'onset reale
 
 
+###############################################################################
+############# evalutation simulated incubation
+############################################################################
+rm(list=ls())
+
+library(data.table)
+library(dplyr)
+library(tidyr)
+library(sf)
+library(giscoR)
+library(ggplot2)
+library(viridis)
+library(scales)
+library(data.table)
+library(stringr)
 
 
 
-# 1. calcola differenza tra infezione e onset simulati
+# Set the working directory to the script's location
+setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
+
+
+# List all calibration files
+calibrationFiles <- list.files(
+  "..//bin//Debug//net8.0//outputs//diseaseModels",
+  full.names = TRUE
+)
+
+df<-do.call(rbind,lapply(calibrationFiles,fread))
+
+# Read each file, add Model column, and row-bind them
+df <- do.call(rbind, lapply(calibrationFiles, function(f) {
+  
+  # Read file (change to readRDS/read.table/etc. if needed)
+  dat <- fread(f)
+  
+  # Extract file name without path
+  fname <- basename(f)
+  
+  # Split by "_" and get first piece
+  model_name <- strsplit(fname, "_")[[1]][1]
+  
+  # Add column
+  dat$Model <- model_name
+  dat
+}))
+
+
+# Calcola differenza tra infezione e onset simulati
 df_onset <- df |>
   select(1, 2,15, 27:34) |>
   mutate(
