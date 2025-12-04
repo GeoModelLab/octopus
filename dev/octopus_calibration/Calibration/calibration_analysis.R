@@ -62,7 +62,7 @@ df_long<-df |>
 
 
 
-df_reference <- fread("..//files//Reference//reference_file.csv") |> 
+df_reference <- fread("..//files//Reference//reference_file_ok.csv") |> 
   mutate(onsetDate = as.Date(onsetDate,format = "%m/%d/%Y")) |> 
   mutate(year = year(onsetDate),
          doy = yday(onsetDate)) |> 
@@ -75,13 +75,26 @@ df_reference <- fread("..//files//Reference//reference_file.csv") |>
 head(df_reference)
 df_all<-rbind(df_long,df_reference)
 
-ggplot(df_all) + 
-  geom_col(aes(x=Model,y=Onset,fill=factor(year)),position=position_dodge())+
-  facet_wrap(~site)+
+df <- df_all %>%
+  filter(year < 2024) %>%
+  group_by(site, year) %>%
+  mutate(Reference = if (any(Model == "Reference")) 
+    Onset[Model == "Reference"] 
+    else 
+      NA_real_) %>%
+  ungroup() |> 
+  filter(!is.na(Reference))
+
+ggplot() + 
+  geom_col(data=df |> filter(Model!="Reference"),
+           aes(x=Model,y=Onset,fill=factor(year)),position=position_dodge())+
+  geom_hline(data = df |> filter(Model=="Reference"),
+             aes(yintercept = Onset,fill=factor(year)))+
+  facet_wrap(~paste0(site,"_",year))+
   theme(axis.text.x = element_text(angle=90))
 
 # Calculate differences in onset (between octopus models and Refenrence)
-df_diff <- df_all|>
+df_diff <- df|>
   group_by(site, year)|>
   mutate(Onset_ref = Onset[match("Reference", Model)],
          diff = Onset - Onset_ref)|>
@@ -388,6 +401,10 @@ for (m in models) {
 #1. calcola differenza tra prima infezione e onset simulati di ciascun modello
 #2. usando un valore medio di incubazione, come proxy di stima infezione a partire da
 # onset reali, calcolati la differenza tra le infezioni simulate e e quelle dell'onset reale
+
+
+
+
 
 # 1. calcola differenza tra infezione e onset simulati
 df_onset <- df |>

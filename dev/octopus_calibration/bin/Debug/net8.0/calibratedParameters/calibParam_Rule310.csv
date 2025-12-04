@@ -1,4 +1,5 @@
 param, value
-baseTemperature,11.178254621973643
-precipitationThreshold,9.402533479679736
-numberOfHoursToConsider,25.14803834821339
+baseTemperature,10.778890579799858
+precipitationThreshold,9.057238261430065
+numberOfHoursToConsider,25.221225886503184
+incubationDuration,18.418793009085586

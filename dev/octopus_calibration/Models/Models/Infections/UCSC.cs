@@ -234,18 +234,16 @@ namespace Models.Infections
 
             DateTime lastDayOfTheYear = new DateTime(Input.Date.Year, 12, 31);
 
-            Outputs.outputsUCSC.infectionEvents.RemoveAll(infectionEvent =>
-            {
-                var ucscInfection = infectionEvent as UCSCInfectionEvent;
+            //Outputs.outputsUCSC.infectionEvents.RemoveAll(infectionEvent =>
+            //{
+            //    var ucscInfection = infectionEvent as UCSCInfectionEvent;
 
-                // Check if it's the last day of the year and infection is 0
-                return Input.Date == lastDayOfTheYear && ucscInfection.infection == 0;
-            });
+            //    // Check if it's the last day of the year and infection is 0
+            //    return Input.Date == lastDayOfTheYear && ucscInfection.infection == 0;
+            //});
 
         }
         #endregion
-
-
 
         #region intermediate functions
         //calculate hydro-thermal time (HT)

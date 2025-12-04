@@ -69,7 +69,7 @@ namespace octoPusAI.Readers
         {
             Dictionary<DateTime, InputDaily> gridWeathersDaily = new Dictionary<DateTime, InputDaily>();
 
-            using (var sr = new StreamReader(new BufferedStream(new FileStream(file, FileMode.Open))))
+            using (var sr = new StreamReader(new BufferedStream(new FileStream(file , FileMode.Open))))
             {
                 //skip the first line
                 sr.ReadLine();

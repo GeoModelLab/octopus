@@ -80,7 +80,7 @@ _runner.Rversion = Rversion;
 //read model names and parameters
 var model_param_range = paramRangeReader(octoPusParametersFile);
 
-List<string> toExclude = new List<string>() { "Phenology", "BBCH", "Incubation" };
+List<string> toExclude = new List<string>() { "Phenology", "BBCH" };
 if(calibrationVariable == "Phenology")
 {
     toExclude = new List<string>() { "Incubation" };
@@ -110,11 +110,11 @@ var site_phenoParam = paramReader.read_calibPhenoParam(new DirectoryInfo("calibr
 //read weather data
 var weatherData = new Dictionary<string, Dictionary<DateTime, Input>>();
 WeatherReader weatherReader = new WeatherReader();
-foreach (var site in availableSites)
+foreach (var site in refData.Keys)
 {
-
+  
     weatherData.Add(site, new Dictionary<DateTime, Input>());
-    string weatherFile = site;
+    string weatherFile = site + ".csv";
     switch (WeatherTimeStep)
     {
         case "hourly":
@@ -156,9 +156,9 @@ foreach (var model in model_param_range.Keys)
             // - Ftol: tolerance on objective function for convergence
             // - Itmax: maximum iterations per simplex
             var msx = new MultiStartSimplex();
-            msx.NofSimplexes = 1;
+            msx.NofSimplexes = 3;
             msx.Ftol = 0.000000000001;
-            msx.Itmax = 1000;
+            msx.Itmax = 10000;
             #endregion
 
             #region Define parameter settings for calibration
@@ -174,6 +174,12 @@ foreach (var model in model_param_range.Keys)
                 }
             }
             _runner.nameParam = nameParam;
+            _runner.nameParam.Add("incubationDuration", new ParameterRange());
+            ParameterRange parIncubationDur = new ParameterRange();
+            parIncubationDur.max =20;
+            parIncubationDur.min = 8;
+            parIncubationDur.calibration = "x";
+            _runner.nameParam["incubationDuration"] = parIncubationDur;
 
             // Determine which parameters are in the calibration subset
             int paramCalibrated = 0;
@@ -199,7 +205,7 @@ foreach (var model in model_param_range.Keys)
             }
 
             // Build bounds array (Limits) for the calibrated subset [min, max] per parameter
-            double[,] Limits = new double[paramCalibrated, 2];
+            double[,] Limits = new double[paramCalibrated+1, 2];
             for (int i = 0; i < calibratedParamNames.Count; i++)
             {
                 var name = calibratedParamNames[i];
@@ -208,14 +214,15 @@ foreach (var model in model_param_range.Keys)
                 Limits[i, 1] = param.max;
             }
 
-
+            //add incubation parameters
+           
             #endregion
 
             //message to console
             Console.WriteLine("CALIBRATION STARTED FOR MODEL {0}", model);
 
             //set runner properties
-            _runner.availableSites = availableSites;
+            _runner.availableSites = refData.Keys.ToList();
             _runner.modelPath = LLMfile;
             _runner.Rversion = Rversion;
             _runner.WeatherTimeStep = WeatherTimeStep;
@@ -245,7 +252,7 @@ foreach (var model in model_param_range.Keys)
                 // Run the multistart simplex optimizer
                 // Results buffer returned by the optimizer (1 row x N params here)
                 double[,] results = new double[1, 1];
-                msx.Multistart(_runner, paramCalibrated, Limits, out results);
+                msx.Multistart(_runner, paramCalibrated+1, Limits, out results);
 
                 //get calibrated parameters
                 var paramCalibValue = new Dictionary<string, float>();

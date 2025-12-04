@@ -1,10 +1,11 @@
 param, value
-vpdThreshold,374.66885378427156
-dormancyBrakingLowerThreshold,0.024145181275965388
-dormancyBrakingUpperThreshold,0.9506009215977571
-germinationThreshold,0.722597380744015
-sporangiaSurvivalThreshold,0.9957030670885825
-zoosporeSurvivalThreshold,1.1936558591126918
-infectionThreshold,70.20202469802742
-incubationLowerThreshold,0.950409901862105
-incubationUpperThreshold,1.2127294530377726
+vpdThreshold,449.19655977334014
+dormancyBrakingLowerThreshold,0.03365475514461097
+dormancyBrakingUpperThreshold,0.9721887219475218
+germinationThreshold,0.7034428952064828
+sporangiaSurvivalThreshold,1.113456364065462
+zoosporeSurvivalThreshold,1.1485871918108974
+infectionThreshold,50.28640701802367
+incubationLowerThreshold,1.029524477935352
+incubationUpperThreshold,1.1004114416182669
+incubationDuration,15.236259953793832
