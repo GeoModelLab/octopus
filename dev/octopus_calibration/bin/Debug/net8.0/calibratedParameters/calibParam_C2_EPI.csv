@@ -1,0 +1,9 @@
+cluster, param, value
+C2,keConstant,0.010007490827514225
+C2,urUpperThreshold,95.90256203778975
+C2,urLowerThreshold,65.21914346355447
+C2,peConstant,0.2019313441220666
+C2,alertThreshold,4.096459690595295
+C2,tempThresholdInf,10.429164365717018
+C2,precThresholdInf,3.085934315896404
+C2,incubationDuration,15.774255277393324

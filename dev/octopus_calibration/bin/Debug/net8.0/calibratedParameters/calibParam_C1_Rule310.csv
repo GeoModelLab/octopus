@@ -1,0 +1,5 @@
+cluster, param, value
+C1,baseTemperature,12.500443740772225
+C1,precipitationThreshold,10.656661971719448
+C1,numberOfHoursToConsider,27.317014908671382
+C1,incubationDuration,18.666431016561774

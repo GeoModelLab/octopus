@@ -88,6 +88,7 @@ namespace octoPusAI.ModelCallers
         public Dictionary<DateTime, OutputsDaily> date_outputs = new Dictionary<DateTime, OutputsDaily>();
         public Dictionary<string, Dictionary<string, float>> site_phenoParam_value = new Dictionary<string, Dictionary<string, float>>();
         public string weatherFile;
+        public string cluster;
         public int startYear;
         public int endYear; 
         public float assistantRisk;
@@ -1286,7 +1287,7 @@ namespace octoPusAI.ModelCallers
             string siteShort = site.Substring(lastIndex + 1) + ".csv";
             
             //save the file
-            System.IO.File.WriteAllLines(@"outputs//diseaseModels//" + modelUnderOptimization + "_" + siteShort , toWrite);
+            System.IO.File.WriteAllLines(@"outputs//diseaseModels//" + modelUnderOptimization + "_" + cluster + "_" + siteShort , toWrite);
             #endregion
 
         }

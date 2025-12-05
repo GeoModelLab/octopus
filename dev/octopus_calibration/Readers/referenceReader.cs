@@ -8,9 +8,9 @@ namespace octoPusAI.Readers
     // reference_file: CSV containing observed onset dates for model validation
     public class ReferenceReader
     {
-        public Dictionary<string, Dictionary<int, DateTime>> readReference(string file)
+        public Dictionary<string,Dictionary<string, Dictionary<int, DateTime>>> readReference(string file)
         {
-            var refData = new Dictionary<string, Dictionary<int, DateTime>>();
+            var refData = new Dictionary<string, Dictionary<string, Dictionary<int, DateTime>>>();
 
 
             //read the file
@@ -25,9 +25,10 @@ namespace octoPusAI.Readers
                     string[] line = sr.ReadLine().Split(',');
 
                     // Read the three columns
-                    string site = line[0].Trim();
-                    string onsetDateStr = line[1].Trim();
-                    string yearStr = line[2].Trim();
+                    string site = line[1].Trim();
+                    string onsetDateStr = line[2].Trim();
+                    string yearStr = line[3].Trim();
+                    string cluster = line[0].Trim();
 
                     // Parse onset date (format: M/d/yyyy)
                     DateTime onsetDate;
@@ -37,11 +38,16 @@ namespace octoPusAI.Readers
                     // Parse year
                     int year = int.TryParse(yearStr, out int y) ? y : 0;
 
-                    if (!refData.ContainsKey(site))
+                    if(!refData.ContainsKey(cluster))
                     {
-                        refData.Add(site, new Dictionary<int, DateTime>());
+                        refData.Add(cluster, new Dictionary<string, Dictionary<int, DateTime>>());
                     }
-                    refData[site].Add(year, onsetDate);
+
+                    if (!refData[cluster].ContainsKey(site))
+                    {
+                        refData[cluster].Add(site, new Dictionary<int, DateTime>());
+                    }
+                    refData[cluster][site].Add(year, onsetDate);
 
                 }
                 sr.Close();

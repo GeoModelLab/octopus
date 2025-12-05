@@ -24,7 +24,7 @@
                   "octoPusParametersPath":  "..\\..\\..\\files\\Parameters\\octoPusParameters.csv",
                   "susceptibilityFileBBCH":  "..\\..\\..\\files\\Parameters\\hostSusceptibilityParameters.csv",
                   "outputDir":  "..\\..\\..\\outputs\\",
-                  "referenceFile":  "..\\..\\..\\Files\\Reference\\reference_file.csv",
+                  "referenceFile":  "..\\..\\..\\Files\\Reference\\reference_file_cluster.csv",
                   "bbchReference":  "..\\..\\..\\Files\\Reference\\bbch_Reference.csv"
               }
 }

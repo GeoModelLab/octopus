@@ -23,6 +23,9 @@
     <None Include="Files\Reference\bbch_Reference.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Include="Files\Reference\reference_file_cluster.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="Files\Reference\reference_file_ok.csv" />
     <None Include="Files\Reference\reference_file.csv" />
     <None Include="Files\Weather\daily\rome.csv" />

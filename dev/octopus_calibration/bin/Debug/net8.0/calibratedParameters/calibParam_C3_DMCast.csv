@@ -1,0 +1,12 @@
+cluster, param, value
+C3,muK1,104.40366592244055
+C3,sigmaK1,15.841519155191513
+C3,thresholdPOM,0.03346735636190752
+C3,precThresholdOosporeGerm,2.511520973063443
+C3,tempThresholdOosporeGerm,10.972932737457938
+C3,tempThresholdSporangiaGerm,10.671934483082183
+C3,daysForSporangiaGerm,5.608295136150509
+C3,precThresholdInf,0.18247341493782404
+C3,tempThresholdInf,10.066402222090629
+C3,daysForInfection,10.530304005273216
+C3,incubationDuration,10.108930788268797
