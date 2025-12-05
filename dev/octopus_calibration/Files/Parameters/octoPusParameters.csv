@@ -3,67 +3,67 @@ Rule310,baseTemperature,8,13,10,°C,x
 Rule310,precipitationThreshold,8,12,10,mm,x
 Rule310,numberOfHoursToConsider,20,30,25,hours,x
 Rule310,bbchThreshold,8,12,10,BBCH code,
-Magarey,baseTemperatureRule210,8,13,10,°C,x
+Magarey,baseTemperatureRule210,7,13,10,°C,x
 Magarey,precipitationThresholdRule210,8,12,10,mm,x
 Magarey,baseTemperatureInfection,5.3,9.6,8,°C,x
 Magarey,precipitationThresholdInfection,1.6,2.4,2,mm,x
-Magarey,numberOfHoursToConsiderRule210,20,32,25,hours,x
+Magarey,numberOfHoursToConsiderRule210,20,33.5,25,hours,x
 Magarey,numberOfHoursToConsiderGermination,11,19,16,hours,x
-Magarey,numberOfHoursToConsiderInfection,6.4,9.6,8,hours,x
+Magarey,numberOfHoursToConsiderInfection,5.5,9.6,8,hours,x
 Magarey,degreeHoursThresholdInfection,38.4,57.6,45,°C day,x
-Magarey,rainTriggeringSplash,0.4,1,0.5,mm,x
+Magarey,rainTriggeringSplash,0.2,1,0.5,mm,x
 Magarey,bbchThreshold,8,12,10,BBCH code,
-EPI,keConstant,0.0096,0.017,0.01,unitless,x
-EPI,urUpperThreshold,80,100,90,%,x
-EPI,urLowerThreshold,60,80,65,%,x
-EPI,peConstant,0.11,0.22,0.2,fraction,x
-EPI,alertThreshold,0,5,5,unitless,x
-EPI,tempThresholdInf,7,13.2,11,°C,x
-EPI,precThresholdInf,2.5,4,2.5,mm,x
+EPI,keConstant,0.0095,0.02,0.01,unitless,x
+EPI,urUpperThreshold,80,110,90,%,x
+EPI,urLowerThreshold,60,86,65,%,x
+EPI,peConstant,0.10,0.22,0.2,fraction,x
+EPI,alertThreshold,0,5,3,unitless,x
+EPI,tempThresholdInf,6.5,13.2,11,°C,x
+EPI,precThresholdInf,2.5,4.3,2.8,mm,x
 EPI,bbchThreshold,12,18,10,BBCH code,
-DMCast,muK1,94.4,141.6,118,unitless,x
-DMCast,sigmaK1,10.8,16.2,13.5,unitless,x
+DMCast,muK1,94.4,143,118,unitless,x
+DMCast,sigmaK1,10.8,16.5,13.5,unitless,x
 DMCast,thresholdPOM,0.024,0.036,0.03,fraction,x
 DMCast,precThresholdOosporeGerm,2,3,2.5,mm,x
 DMCast,tempThresholdOosporeGerm,8.3,13.2,11,°C,x
-DMCast,tempThresholdSporangiaGerm,8.8,14.4,12,°C,x
-DMCast,daysForSporangiaGerm,5.2,9.6,8,days,x
-DMCast,precThresholdInf,0.15,0.24,0.2,mm,x
+DMCast,tempThresholdSporangiaGerm,8.8,15,12,°C,x
+DMCast,daysForSporangiaGerm,5,9.6,8,days,x
+DMCast,precThresholdInf,0.12,0.24,0.2,mm,x
 DMCast,tempThresholdInf,8,13.2,11,°C,x
 DMCast,bbchThreshold,12,18,10,BBCH code,
 DMCast,daysForInfection,8.8,15,11,days,x
-IPI,riUpperThreshold,2.4,3.6,3,unitless,x
-IPI,tmeaniTminThreshold,10,15.6,13,°C,x
+IPI,riUpperThreshold,2,3.6,3,unitless,x
+IPI,tmeaniTminThreshold,10,15.9,13,°C,x
 IPI,tmeaniUpperThreshold,0.8,1.2,1,°C,x
 IPI,lwiLowerThreshold,0.8,1.2,1,hours,x
 IPI,lwiUpperThreshold,4,6,5,hours,x
 IPI,rhiUpperThreshold,1.6,2.4,2,unitless,x
 IPI,ipiTminThreshold,6.5,10.8,9,°C,x
-IPI,alertThreshold,10.4,16.5,13,unitless,x
-IPI,tempThresholdInf,8.8,13.2,11,°C,x
+IPI,alertThreshold,10.2,16.5,13,unitless,x
+IPI,tempThresholdInf,7.8,13.2,11,°C,x
 IPI,precThresholdInf,1,2.7,2.5,mm,x
 IPI,bbchThreshold,12,18,10,BBCH code,
 UCSC,vpdThreshold,360,540,450,Kpa,x
-UCSC,dormancyBrakingLowerThreshold,0.022,0.036,0.03,unitless,x
+UCSC,dormancyBrakingLowerThreshold,0.022,0.04,0.03,unitless,x
 UCSC,dormancyBrakingUpperThreshold,0.776,1.22,0.97,unitless,x
-UCSC,germinationThreshold,0.5,1.1,1,unitless,x
+UCSC,germinationThreshold,0.4,1.1,1,unitless,x
 UCSC,sporangiaSurvivalThreshold,0.8,1.2,1,unitless,x
-UCSC,zoosporeSurvivalThreshold,0.8,1.2,1,unitless,x
+UCSC,zoosporeSurvivalThreshold,0.8,1.3,1,unitless,x
 UCSC,infectionThreshold,48,72,60,unitless,x
-UCSC,incubationLowerThreshold,0.8,1.5,1,unitless,x
-UCSC,incubationUpperThreshold,0.8,1.5,1,unitless,x
+UCSC,incubationLowerThreshold,0.5,1.5,1,unitless,x
+UCSC,incubationUpperThreshold,0.6,1.5,1,unitless,x
 UCSC,bbchThreshold,8,12,10,BBCH code,
-Misfits,LWminMacrosporangiaFormation,6,17,15,hours,x
-Misfits,LWoptMacrosporangiaFormation,20,31,24,hours,x
-Misfits,TminMacrosporangiaInfection,8,12,10,°C,x
+Misfits,LWminMacrosporangiaFormation,6,17.5,15,hours,x
+Misfits,LWoptMacrosporangiaFormation,16,31,24,hours,x
+Misfits,TminMacrosporangiaInfection,7.5,13,10,°C,x
 Misfits,ToptMacrosporangiaInfection,14.4,21.6,18,°C,x
 Misfits,TmaxMacrosporangiaInfection,14,23,22,°C,x
 Misfits,LWminMacrosporangiaInfection,1,3,2,hours,x
 Misfits,RainStartMacrosporangiaSpread,2,5.5,2.5,mm,x
-Misfits,RHminMacrosporangiaFormation,62,88,75,%,x
-Misfits,TminMacrosporangiaFormation,8,12,10,°C,x
+Misfits,RHminMacrosporangiaFormation,57,88,75,%,x
+Misfits,TminMacrosporangiaFormation,7,14,10,°C,x
 Misfits,ToptMacrosporangiaFormation,14.4,22.8,18,°C,x
-Misfits,TmaxMacrosporangiaFormation,19.2,30,24,°C,x
+Misfits,TmaxMacrosporangiaFormation,17,30,24,°C,x
 Misfits,bbchThreshold,8,12,10,BBCH code,
 Laore,infectionThresholdRisk,6,28,13,unitless,x
 Laore,bbchThreshold,8,12,10,BBCH code,

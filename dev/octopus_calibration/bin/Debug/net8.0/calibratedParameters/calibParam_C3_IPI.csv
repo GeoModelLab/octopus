@@ -1,12 +1,12 @@
 cluster, param, value
-C3,riUpperThreshold,2.675679726835586
-C3,tmeaniTminThreshold,15.072664428317292
-C3,tmeaniUpperThreshold,0.865891637154736
-C3,lwiLowerThreshold,0.9780981007287298
-C3,lwiUpperThreshold,4.264466305163816
-C3,rhiUpperThreshold,2.0070282334670937
-C3,ipiTminThreshold,9.15483466046295
-C3,alertThreshold,12.112270936718497
-C3,tempThresholdInf,10.705765468296754
-C3,precThresholdInf,1.8487233374300782
-C3,incubationDuration,10.878146535166675
+C3,riUpperThreshold,2.5117913865356947
+C3,tmeaniTminThreshold,14.25738752645027
+C3,tmeaniUpperThreshold,0.8651273293965751
+C3,lwiLowerThreshold,1.0150786868709751
+C3,lwiUpperThreshold,5.6996532944534914
+C3,rhiUpperThreshold,1.995633166001618
+C3,ipiTminThreshold,7.96425496145867
+C3,alertThreshold,14.652526954841203
+C3,tempThresholdInf,8.105043550109144
+C3,precThresholdInf,1.5878309877222605
+C3,incubationDuration,11.113125624459549
