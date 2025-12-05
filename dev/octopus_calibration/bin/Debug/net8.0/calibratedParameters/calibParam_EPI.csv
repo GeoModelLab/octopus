@@ -1,8 +1,0 @@
-param, value
-keConstant,0.014882898512778341
-urUpperThreshold,53.27859595136686
-urLowerThreshold,73.0668358053763
-peConstant,0.17984897014900303
-alertThreshold,1.2984628628890797
-tempThresholdInf,10.879547315825167
-precThresholdInf,3.001435621147168

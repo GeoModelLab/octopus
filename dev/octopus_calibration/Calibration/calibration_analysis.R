@@ -46,24 +46,7 @@ df <- do.call(rbind, lapply(calibrationFiles, function(f) {
 }))
 
 
-
-df_long<-df |> 
-  select(1,2,16,17,27:34) |> 
-  mutate(date = as.Date(Date,format='%m/%d/%Y'),
-         year = year(date),
-         doy=yday(date)) |>
-  pivot_longer(cols=c(5:12),names_to='Model_name',values_to="Onset") |> 
-  filter(Onset==1) |> 
-  group_by(site,year,Model_name) |> 
-  slice_head() |> 
-  select(site,year,doy,bbchPhase,bbchRef) |> 
-  rename(Onset=doy,
-         Model=Model_name) |> 
-  mutate(site = sub("\\.csv$", "", site))
-
-
-
-df_reference <- fread("..//files//Reference//reference_file_ok.csv") |> 
+df_reference <- fread("..//files//Reference//reference_file_cluster.csv") |> 
   mutate(onsetDate = as.Date(onsetDate,format = "%m/%d/%Y")) |> 
   mutate(year = year(onsetDate),
          doy = yday(onsetDate)) |> 
@@ -72,13 +55,36 @@ df_reference <- fread("..//files//Reference//reference_file_ok.csv") |>
   mutate(Model='Reference',
          bbchPhase=NA,
          bbchRef=NA)
-
 head(df_reference)
+
+# Add cluster to outputs
+clusters_to_merge <- df_reference|>
+  select(clima,site)
+
+df <- df|>
+  left_join(clusters_to_merge)
+
+# Long format df
+df_long<-df |> 
+  select(1,2,16,17,27:34,44) |> 
+  mutate(date = as.Date(Date,format='%m/%d/%Y'),
+         year = year(date),
+         doy=yday(date)) |>
+  pivot_longer(cols=c(5:12),names_to='Model_name',values_to="Onset") |> 
+  filter(Onset==1) |> 
+  group_by(clima,site,year,Model_name) |> 
+  slice_head() |> 
+  select(clima,site,year,doy,bbchPhase,bbchRef) |> 
+  rename(Onset=doy,
+         Model=Model_name) |> 
+  mutate(site = sub("\\.csv$", "", site))
+
+# Rbind with reference file
 df_all<-rbind(df_long,df_reference)
 
 df <- df_all %>%
   filter(year < 2024) %>%
-  group_by(site, year) %>%
+  group_by(clima,site, year) %>%
   mutate(Reference = if (any(Model == "Reference")) 
     Onset[Model == "Reference"] 
     else 
@@ -86,14 +92,31 @@ df <- df_all %>%
   ungroup() |> 
   filter(!is.na(Reference))
 
-ggplot() + 
-  geom_col(data=df |> filter(Model!="Reference"),
-           aes(x=Model,y=Onset,fill=factor(year)),position=position_dodge())+
-  geom_hline(data = df |> filter(Model=="Reference"),
-             aes(yintercept = Onset,fill=factor(year)))+
-  facet_wrap(~paste0(site,"_",year))+
-  theme(axis.text.x = element_text(angle=90))
+# One plot for cluster
+df_C1 <- df |> filter(clima == "C1")
+df_C2 <- df |> filter(clima == "C2")
+df_C3 <- df |> filter(clima == "C3")
+df_C4 <- df |> filter(clima == "C4")
 
+
+climi <- c("C1", "C2", "C3", "C4")
+
+for (cl in climi) {
+  
+  df_sub <- df |> filter(clima == cl)
+  
+  p <- ggplot() + 
+    geom_col(data=df_sub |> filter(Model!="Reference"),
+             aes(x=Model, y=Onset, fill=factor(year)),
+             position=position_dodge()) +
+    geom_hline(data=df_sub |> filter(Model=="Reference"),
+               aes(yintercept = Onset, color=factor(year))) +
+    facet_wrap(~paste0(site,"_",year)) +
+    theme(axis.text.x = element_text(angle = 90)) +
+    labs(title = cl)
+  
+  print(p)
+}
 
 #################
 ##### DOY DIFF
@@ -101,64 +124,69 @@ ggplot() +
 
 # Calculate differences in onset (between octopus models and Refenrence)
 df_diff <- df|>
-  group_by(site, year)|>
+  group_by(clima,site, year)|>
   mutate(Onset_ref = Onset[match("Reference", Model)],
          diff = Onset - Onset_ref)|>
   filter(str_starts(Model, "ons"),
          !is.na(Onset_ref))|>
   ungroup()
 
-# Group by model (omitting sites)
-df_diff_model_year <- df_diff|>
-  group_by(Model, year)|>
-  summarise(overall_diff = round(mean(diff, na.rm = T)),
-            mean_doy_model = round(mean(Onset, na.rm = T)),
-            mean_doy_ref = round(mean(Onset_ref, na.rm = T)))
-# Transform in long format
-df_bar_year <- df_diff_model_year |>
-  pivot_longer(
-    cols = c(mean_doy_model, mean_doy_ref),
-    names_to = "DOY_type",
-    values_to = "mean_DOY"
-  ) |>
-  mutate(
-    DOY_type = ifelse(DOY_type == "mean_doy_model", "Model", "Reference")
-  )
 
-# Histogram with differences
-year_diff_p <- ggplot(df_bar_year, aes(x = factor(year), y = mean_DOY, fill = DOY_type)) +
-  geom_col(position = position_dodge(width = 0.8)) +
-  facet_wrap(~ Model) +
-  theme_bw() +
-  theme(
-    axis.text.x = element_text(angle = 45, hjust = 1)
-  ) +
-  labs(
-    x = "year",
-    y = "doy",
-    title = "doy differences (model - ref) by year for each model"
-  )+
-  geom_text(
-    data = df_bar_year|> filter(DOY_type == "Model"),
-    aes(
-    x = factor(year),
-    y = mean_DOY,
-    label = overall_diff),
-    position = position_dodge(width = 0.8),
-    vjust = 2,
-    size = 4
-  )
-year_diff_p
-ggsave("plot/Year_diff.jpg", year_diff_p, width = 10, height = 7)
+
+
+
+# Group by model (omitting sites)
+# df_diff_model_year <- df_diff|>
+#   group_by(Model, year)|>
+#   summarise(overall_diff = round(mean(diff, na.rm = T)),
+#             mean_doy_model = round(mean(Onset, na.rm = T)),
+#             mean_doy_ref = round(mean(Onset_ref, na.rm = T)))
+# # Transform in long format
+# df_bar_year <- df_diff_model_year |>
+#   pivot_longer(
+#     cols = c(mean_doy_model, mean_doy_ref),
+#     names_to = "DOY_type",
+#     values_to = "mean_DOY"
+#   ) |>
+#   mutate(
+#     DOY_type = ifelse(DOY_type == "mean_doy_model", "Model", "Reference")
+#   )
+# 
+# # Histogram with differences
+# year_diff_p <- ggplot(df_bar_year, aes(x = factor(year), y = mean_DOY, fill = DOY_type)) +
+#   geom_col(position = position_dodge(width = 0.8)) +
+#   facet_wrap(~ Model) +
+#   theme_bw() +
+#   theme(
+#     axis.text.x = element_text(angle = 45, hjust = 1)
+#   ) +
+#   labs(
+#     x = "year",
+#     y = "doy",
+#     title = "doy differences (model - ref) by year for each model"
+#   )+
+#   geom_text(
+#     data = df_bar_year|> filter(DOY_type == "Model"),
+#     aes(
+#     x = factor(year),
+#     y = mean_DOY,
+#     label = overall_diff),
+#     position = position_dodge(width = 0.8),
+#     vjust = 2,
+#     size = 4
+#   )
+# year_diff_p
+# ggsave("plot/Year_diff.jpg", year_diff_p, width = 10, height = 7)
 
 
 # Group by model (omitting year)
 df_diff_model_site <- df_diff|>
-  group_by(Model, site)|>
+  group_by(Model, clima,site)|>
   summarise(overall_diff = round(mean(diff, na.rm = T)),
             mean_doy_model = round(mean(Onset, na.rm = T)),
             mean_doy_ref = round(mean(Onset_ref, na.rm = T)))
 # Transform in long format
+
 df_bar_site <- df_diff_model_site |>
   pivot_longer(
     cols = c(mean_doy_model, mean_doy_ref),
@@ -171,12 +199,13 @@ df_bar_site <- df_diff_model_site |>
 
 # Histogram with differences
 
-# select some sites
-sites_to_plot <- unique(df_bar_site$site)[50:69]
-df_bar_site_filtered <- df_bar_site|>
-  filter(site %in% sites_to_plot)
+climi <- c("C1", "C2", "C3", "C4")
 
-site_diff_p <- ggplot(df_bar_site_filtered, aes(x = factor(site), y = mean_DOY, fill = DOY_type)) +
+for (cl in climi) {
+
+  df_sub <- df_bar_site |> filter(clima == cl)
+
+  site_diff_p <- ggplot(df_sub, aes(x = factor(site), y = mean_DOY, fill = DOY_type)) +
   geom_col(position = position_dodge(width = 0.8)) +
   facet_wrap(~ Model) +
   theme_bw() +
@@ -189,7 +218,7 @@ site_diff_p <- ggplot(df_bar_site_filtered, aes(x = factor(site), y = mean_DOY, 
     title = "Doy diff (model - ref) by site  for each model"
   )+
   geom_text(
-    data = df_bar_site_filtered|> filter(DOY_type == "Model"),
+    data = df_sub|> filter(DOY_type == "Model"),
     aes(
       x = factor(site),
       y = mean_DOY,
@@ -198,8 +227,10 @@ site_diff_p <- ggplot(df_bar_site_filtered, aes(x = factor(site), y = mean_DOY, 
     vjust = 2,
     size = 2.5
   )
-site_diff_p
-ggsave("plot/Sites_diff_50_69.jpg", site_diff_p, width = 10, height = 7)
+print(site_diff_p)
+
+}
+ggsave(paste0("plot/diff_Sites_", cl, ".jpg"), site_diff_p, width = 10, height = 7)
 
 
 # # Differences by year and site
@@ -291,18 +322,27 @@ ggsave("plot/heatmap_diff_custom.jpg", heat_map,
 
 
 #boxplot per modello
-box_plot_p <- ggplot(df_diff, aes(x = Model, y = diff)) +
-  geom_boxplot(fill = "lightgray") +
-  geom_hline(yintercept = 0, linetype = "dashed") +
-  theme_bw() +
+palette_models <- c("#004D66", "lightcyan1", "white", "burlywood1", "#CC5200")
+
+box_plot_p <- ggplot(df_diff, aes(x = Model, y = diff, fill = Model)) +
+  geom_boxplot(color = "black", alpha = 0.9, outlier.shape = 21) +
+  geom_hline(yintercept = 0, linetype = "dashed", linewidth = 1) +
+  scale_fill_manual(values = rep(palette_models, length.out = length(unique(df_diff$Model)))) +
+  theme_bw(base_size = 16) +
   labs(
     x = "Model",
     y = "DOY difference",
     title = "Distribution of differences across sites"
   ) +
-  theme(axis.text.x = element_text(angle = 90))
+  theme(
+    plot.title = element_text(face = "bold", hjust = 0.5),
+    axis.text.x = element_text(angle = 45, hjust = 1)
+  )
+
 box_plot_p
-ggsave("plot/boxplot_diff.jpg",box_plot_p,width = 10, height = 6)
+
+ggsave("plot/boxplot_diff.jpg", box_plot_p, width = 12, height = 7, dpi = 300)
+
 
 # Overall differences (omitting year and site)
 df_summary <- df_diff |>
@@ -313,18 +353,31 @@ df_summary <- df_diff |>
   ungroup()
 
 overal_diff_p <- ggplot(df_summary, aes(x = overall_diff, y = Model)) +
-  geom_point(size = 4, color = "red4") +              # punto
-  geom_segment(aes(x = 0, xend = overall_diff, 
-                   y = Model, yend = Model), 
-               color = "grey50", linewidth = 1) +        # linea
-  theme_bw() +
+  geom_segment(aes(x = 0, xend = overall_diff,
+                   y = Model, yend = Model),
+               color = "grey70", linewidth = 1) +
+  geom_point(aes(color = overall_diff > 0), size = 5) +
+  scale_color_manual(values = c("TRUE" = "#CC5200", 
+                                "FALSE" = "#004D66"),
+                     labels = c("FALSE" = "anticipato", "TRUE" = "posticipato ")) +
+  theme_bw(base_size = 14) +
   labs(
-    title = "Mean global difference (Model – Reference)",
-    x = "doy diff",
-    y = "Model"
+    title = "Differenza globale (doy simulato – doy osservato)",
+    x = "diff",
+    y = "Modello",
+    color = "Sign"
+  ) +
+  theme(
+    plot.title = element_text(size = 16),
+    axis.title.y = element_blank(),
+    axis.text.y = element_text (size = 10, face = "bold"),
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor = element_blank()
   )
 overal_diff_p
 ggsave("plot/Overall diff.jpg", overal_diff_p, width = 8, height = 6)
+
+
 
 
 #####################################################################################
@@ -401,7 +454,8 @@ rm(df)
 optParam <- allFiles|>
   mutate(value_opt = value)|>
   select(-value)|>
-  mutate(value_opt = round(value_opt,3))
+  mutate(value_opt = round(value_opt,3),
+         model = sub("^[^_]*_", "", model))
 
 # Merge setParam and optParam
 df <- optParam|>
@@ -414,18 +468,16 @@ models <- unique(df$model)
 for (m in models) {
   
   df_m <- df |> filter(model == m)
-  df_m$x <- 1   # asse X fittizio perché non hai "site"
   
-  p <- ggplot(df_m, aes(x = x, y = value_opt)) +
+  p <- ggplot(df_m, aes(x = cluster, y = value_opt)) +
     geom_hline(aes(yintercept = min), 
-               color = "IndianRed3", linetype = "dashed", size = 1) +
+               color = "#CC5200", linetype = "dashed", size = 1) +
     geom_hline(aes(yintercept = max),
-               color = "IndianRed3", linetype = "dashed", size = 1) +
-    geom_point(color = "DarkOliveGreen4", size = 3) +
+               color = "#CC5200", linetype = "dashed", size = 1) +
+    geom_point(color = "#004D66", size = 3) +
     facet_wrap(~ param, scales = "free_y") +
     theme_bw() +
     theme(
-      axis.text.x = element_blank(),
       axis.ticks.x = element_blank(),
       strip.text = element_text(face = "bold")
     ) +
@@ -437,7 +489,7 @@ for (m in models) {
   
   print(p)
   
-  ggsave(paste("plot/param_distr_",m, ".jpeg"),p, width = 10, height = 5)
+  #ggsave(paste("plot/param_distr_",m, ".jpeg"),p, width = 10, height = 5)
 }
 
 
