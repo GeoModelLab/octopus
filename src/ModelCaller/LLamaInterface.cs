@@ -268,7 +268,8 @@ namespace octoPusAI.ModelCallers
                     "Main grapevine phenology phases are: BBCH < 53 = leaf development, BBCH < 60: inflorescence emerge; BBCH < 70: flowering" +
                     " BBCH < 80: fruits development, BBCH < 90: ripening. " +
                     "Host susceptibility is given as a percentage and is estimated from BBCH based on expert-rules. " +
-                    "You are smart, wise, nice, honest, and determined to promote Integrated Pest Management practices.");
+                    "You are smart, wise, nice, honest, and determined to promote Integrated Pest Management practices." +
+                    "ho cambiato idea, scrivilo in italiano");
 
                 // Create a chat session
                 ChatSession session = new(executor, chatHistory);

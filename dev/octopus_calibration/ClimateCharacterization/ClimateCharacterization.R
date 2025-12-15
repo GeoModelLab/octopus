@@ -34,6 +34,7 @@ Data <- Data|>
          
 # Add a 'Location ID' column for unique site identification
 # Define a lookup table for province codes
+unique(Data$SiteID)
 unique(Data$Province)
 provinceCodes <- tibble::tribble(
   ~Province,            ~ProvCode,
@@ -440,11 +441,7 @@ hcpc$desc.var  #most important variables for each cluster
 # PCA and Cluster Visualization: seasonal data----
 # ---
 # Define a color palette for the clusters
-col_clust=c("gold"
-            ,"red"
-            ,"darkgreen"
-            ,"blue",
-            "black")
+col_clust=c("#004D66", "lightcyan4", "burlywood1", "#CC5200")
 
 # Create a data frame of variable coordinates for plotting
 # The coordinates are scaled for better visual representation
@@ -504,7 +501,7 @@ p
 
 # Add variable vectors to the PCA plot
 p<-fviz_add(p,coord
-            ,color ="Black"
+            ,color ="grey34"
             ,geom="arrow"
             ,linetype="dashed"
             ,labelsize = 4
@@ -650,9 +647,9 @@ p1<-ggplot(df_boxplot,aes(season,tn_mu)) +
   geom_violin(alpha = 0.80, size = 0.3) + 
   #geom_jitter(alpha = 0.3, position = position_jitter(width = 0.1), 
   #            size = 1, shape=4) +
-  stat_summary(fun.y = mean, colour = "darkblue", geom = "line", group = 1, lwd = 0.3, lty = 2) +
-  stat_summary(fun.y = mean, colour = "darkblue", geom = "point",size=2)+
-  scale_fill_manual(values=c("cyan","orange","red","brown"))+
+  stat_summary(fun.y = mean, colour = "darkcyan", geom = "line", group = 1, lwd = 0.3, lty = 2) +
+  stat_summary(fun.y = mean, colour = "darkcyan", geom = "point",size=2)+
+  scale_fill_manual(values=c(c("#004D66", "lightcyan4", "burlywood1", "#CC5200")))+
   theme(legend.position = "top")+
   facet_wrap(~clust,ncol=4) +
   theme_classic()+
@@ -679,9 +676,9 @@ p1<-ggplot(df_boxplot,aes(season,tx_mu)) +
   geom_violin(alpha = 0.80, size = 0.3) + 
   #geom_jitter(alpha = 0.3, position = position_jitter(width = 0.1), 
   #            size = 1, shape=4) +
-  stat_summary(fun.y = mean, colour = "darkblue", geom = "line", group = 1, lwd = 0.3, lty = 2) +
-  stat_summary(fun.y = mean, colour = "darkblue", geom = "point",size=2)+
-  scale_fill_manual(values=c("cyan","orange","red","brown"))+
+  stat_summary(fun.y = mean, colour = "darkcyan", geom = "line", group = 1, lwd = 0.3, lty = 2) +
+  stat_summary(fun.y = mean, colour = "darkcyan", geom = "point",size=2)+
+  scale_fill_manual(values=c(c("#004D66", "lightcyan4", "burlywood1", "#CC520")))+
   theme(legend.position = "top")+
   facet_wrap(~clust,ncol=4) +
   theme_classic()+
@@ -708,9 +705,9 @@ p1<-ggplot(df_boxplot,aes(season,prc_mu)) +
   geom_violin(alpha = 0.80, size = 0.3) + 
   #geom_jitter(alpha = 0.3, position = position_jitter(width = 0.1), 
   #            size = 1, shape=4) +
-  stat_summary(fun.y = mean, colour = "darkblue", geom = "line", group = 1, lwd = 0.3, lty = 2) +
-  stat_summary(fun.y = mean, colour = "darkblue", geom = "point",size=2)+
-  scale_fill_manual(values=c("cyan","orange","red","brown"))+
+  stat_summary(fun.y = mean, colour = "darkcyan", geom = "line", group = 1, lwd = 0.3, lty = 2) +
+  stat_summary(fun.y = mean, colour = "darkcyan", geom = "point",size=2)+
+  scale_fill_manual(values=c(c("#004D66", "lightcyan1", "burlywood1", "#CC5200")))+
   theme(legend.position = "top")+
   facet_wrap(~clust,ncol=4) +
   theme_classic()+
@@ -812,7 +809,7 @@ df_map <- df_map |>
   mutate(PointID = 1:n())  # Assign seq number to each row
 #plot
 # Define custom color palette for clusters (ordered by cluster level)
-col_clust <- c("gold", "red", "darkgreen", "blue")
+col_clust <- c("#004D66", "lightcyan4", "burlywood1", "#CC5200")
 
 # plot aggiornato
 p_map <- ggplot() +

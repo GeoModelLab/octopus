@@ -2,7 +2,18 @@
     "settings": {
         "startYear": 2018,
         "endYear": 2019,
-        "sites": [ "Calosso.csv" ],
+        "sites": [
+            "Sasso.csv",
+            "Cento di Ferrara.csv",
+            "Colle Belenda.csv",
+            "42.csv",
+            "SanMarzano.csv",
+            "Franchetti Tresivio - Melo.csv",
+            "DECIMOMANNU RU.csv",
+            "Città S. Angelo.csv",
+            "Pesaro.csv",
+            "Adria - Bellombra.csv"
+        ],
         "assistantRisk": 2,
         "veryHighModelsThreshold": 2,
         "WeatherTimeStep": "daily",

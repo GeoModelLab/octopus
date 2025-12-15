@@ -574,7 +574,7 @@ namespace octoPusAI.ModelCallers
                     line.Append($"{date_outputs[date].pressureMagarey},");
                     line.Append($"{date_outputs[date].pressureUCSC},");
                     line.Append($"{date_outputs[date].pressureMisfits},");
-                    line.Append($"{date_outputs[date].pressureLaore},");
+                    line.Append($"{date_outputs[date].pressureLaore}");
                     #endregion
 
                     #region Model suboutputs

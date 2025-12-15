@@ -180,57 +180,57 @@ df_diff <- df|>
 
 
 # Group by model (omitting year)
-df_diff_model_site <- df_diff|>
-  group_by(Model, clima,site)|>
-  summarise(overall_diff = round(mean(diff, na.rm = T)),
-            mean_doy_model = round(mean(Onset, na.rm = T)),
-            mean_doy_ref = round(mean(Onset_ref, na.rm = T)))
-# Transform in long format
-
-df_bar_site <- df_diff_model_site |>
-  pivot_longer(
-    cols = c(mean_doy_model, mean_doy_ref),
-    names_to = "DOY_type",
-    values_to = "mean_DOY"
-  ) |>
-  mutate(
-    DOY_type = ifelse(DOY_type == "mean_doy_model", "Model", "Reference")
-  )
-
-# Histogram with differences
-
-climi <- c("C1", "C2", "C3", "C4")
-
-for (cl in climi) {
-
-  df_sub <- df_bar_site |> filter(clima == cl)
-
-  site_diff_p <- ggplot(df_sub, aes(x = factor(site), y = mean_DOY, fill = DOY_type)) +
-  geom_col(position = position_dodge(width = 0.8)) +
-  facet_wrap(~ Model) +
-  theme_bw() +
-  theme(
-    axis.text.x = element_text(angle = 90, hjust = 1)
-  ) +
-  labs(
-    x = "site",
-    y = "doy",
-    title = "Doy diff (model - ref) by site  for each model"
-  )+
-  geom_text(
-    data = df_sub|> filter(DOY_type == "Model"),
-    aes(
-      x = factor(site),
-      y = mean_DOY,
-      label = overall_diff),
-    position = position_dodge(width = 0.8),
-    vjust = 2,
-    size = 2.5
-  )
-print(site_diff_p)
-
-}
-ggsave(paste0("plot/diff_Sites_", cl, ".jpg"), site_diff_p, width = 10, height = 7)
+# df_diff_model_site <- df_diff|>
+#   group_by(Model, clima,site)|>
+#   summarise(overall_diff = round(mean(diff, na.rm = T)),
+#             mean_doy_model = round(mean(Onset, na.rm = T)),
+#             mean_doy_ref = round(mean(Onset_ref, na.rm = T)))
+# # Transform in long format
+# 
+# df_bar_site <- df_diff_model_site |>
+#   pivot_longer(
+#     cols = c(mean_doy_model, mean_doy_ref),
+#     names_to = "DOY_type",
+#     values_to = "mean_DOY"
+#   ) |>
+#   mutate(
+#     DOY_type = ifelse(DOY_type == "mean_doy_model", "Model", "Reference")
+#   )
+# 
+# # Histogram with differences
+# 
+# climi <- c("C1", "C2", "C3", "C4")
+# 
+# for (cl in climi) {
+# 
+#   df_sub <- df_bar_site |> filter(clima == cl)
+# 
+#   site_diff_p <- ggplot(df_sub, aes(x = factor(site), y = mean_DOY, fill = DOY_type)) +
+#   geom_col(position = position_dodge(width = 0.8)) +
+#   facet_wrap(~ Model) +
+#   theme_bw() +
+#   theme(
+#     axis.text.x = element_text(angle = 90, hjust = 1)
+#   ) +
+#   labs(
+#     x = "site",
+#     y = "doy",
+#     title = "Doy diff (model - ref) by site  for each model"
+#   )+
+#   geom_text(
+#     data = df_sub|> filter(DOY_type == "Model"),
+#     aes(
+#       x = factor(site),
+#       y = mean_DOY,
+#       label = overall_diff),
+#     position = position_dodge(width = 0.8),
+#     vjust = 2,
+#     size = 2.5
+#   )
+# print(site_diff_p)
+# 
+# }
+#ggsave(paste0("plot/diff_Sites_", cl, ".jpg"), site_diff_p, width = 10, height = 7)
 
 
 # # Differences by year and site
@@ -287,12 +287,13 @@ ggsave(paste0("plot/diff_Sites_", cl, ".jpg"), site_diff_p, width = 10, height =
 # #heat map
 df_heat <- df_diff |> 
   mutate(Model_factor = factor(Model),
-         site_factor = factor(site))
+         site_factor = factor(site),
+         cluster_factor = factor(clima))
 
 min_val <- min(df_heat$diff, na.rm = TRUE)
 max_val <- max(df_heat$diff, na.rm = TRUE)
 
-heat_map <- ggplot(df_heat, aes(x = Model_factor, y = site_factor, fill = diff)) +
+heat_map <- ggplot(df_heat, aes(x = Model_factor, y = cluster_factor, fill = diff)) +
   geom_tile() +
   scale_fill_gradientn(
     colours = c("#004D66", "lightcyan1", "white", "burlywood1", "#CC5200"),
@@ -316,11 +317,11 @@ heat_map <- ggplot(df_heat, aes(x = Model_factor, y = site_factor, fill = diff))
   )
 
 heat_map
-ggsave("plot/heatmap_diff_custom.jpg", heat_map,
+ggsave("plot/heatmap_diff_custom_clust.jpg", heat_map,
        width = 10, height = 8, dpi = 300)
 
 
-
+################BOX E OVERAL NON DIVISO PER CLUSTER###########
 #boxplot per modello
 palette_models <- c("#004D66", "lightcyan1", "white", "burlywood1", "#CC5200")
 
@@ -341,7 +342,7 @@ box_plot_p <- ggplot(df_diff, aes(x = Model, y = diff, fill = Model)) +
 
 box_plot_p
 
-ggsave("plot/boxplot_diff.jpg", box_plot_p, width = 12, height = 7, dpi = 300)
+ggsave("plot/boxplot_diff_no clust.jpg", box_plot_p, width = 12, height = 7, dpi = 300)
 
 
 # Overall differences (omitting year and site)
@@ -351,6 +352,7 @@ df_summary <- df_diff |>
     overall_diff = round(mean(diff, na.rm = TRUE))
   ) |>
   ungroup()
+
 
 overal_diff_p <- ggplot(df_summary, aes(x = overall_diff, y = Model)) +
   geom_segment(aes(x = 0, xend = overall_diff,
@@ -375,7 +377,84 @@ overal_diff_p <- ggplot(df_summary, aes(x = overall_diff, y = Model)) +
     panel.grid.minor = element_blank()
   )
 overal_diff_p
-ggsave("plot/Overall diff.jpg", overal_diff_p, width = 8, height = 6)
+ggsave("plot/Overall diff_NO CLUST.jpg", overal_diff_p, width = 8, height = 6)
+
+
+###########BOX PLOT E OVERAL DIVISI PER CLUSTER#######
+
+#boxplot per modello
+palette_models <- c("#004D66", "lightcyan1", "white", "burlywood1", "#CC5200")
+
+climi <- c("C1", "C2", "C3", "C4")
+
+for (cl in climi) {
+  
+  df_sub <- df_diff |> filter(clima == cl)
+
+box_plot_p <- ggplot(df_sub, aes(x = Model, y = diff, fill = Model)) +
+  geom_boxplot(color = "black", alpha = 0.9, outlier.shape = 21) +
+  geom_hline(yintercept = 0, linetype = "dashed", linewidth = 1) +
+  scale_fill_manual(values = rep(palette_models, length.out = length(unique(df_diff$Model)))) +
+  theme_bw(base_size = 16) +
+  labs(
+    x = "Model",
+    y = "DOY difference",
+    title = "Distribution of differences across sites",
+    subtitle = paste0("Cluster: ", cl)
+  ) +
+  theme(
+    plot.title = element_text(face = "bold", hjust = 0.5),
+    axis.text.x = element_text(angle = 45, hjust = 1)
+  )
+
+print(box_plot_p)
+ggsave(paste0("plot/boxplot_diff_", cl,".jpg"), box_plot_p, width = 12, height = 7, dpi = 300)
+}
+
+
+
+
+# Overall differences (omitting year and site)
+df_summary <- df_diff |>
+  group_by(clima,Model) |>
+  summarise(
+    overall_diff = round(mean(diff, na.rm = TRUE))
+  ) |>
+  ungroup()
+
+
+
+for (cl in climi) {
+ 
+  df_sub <- df_summary |> filter(clima == cl)
+
+overal_diff_p <- ggplot(df_sub, aes(x = overall_diff, y = Model)) +
+  geom_segment(aes(x = 0, xend = overall_diff,
+                   y = Model, yend = Model),
+               color = "grey70", linewidth = 1) +
+  geom_point(aes(color = overall_diff > 0), size = 5) +
+  scale_color_manual(values = c("TRUE" = "#CC5200", 
+                                "FALSE" = "#004D66"),
+                     labels = c("FALSE" = "anticipato", "TRUE" = "posticipato ")) +
+  theme_bw(base_size = 14) +
+  labs(
+    title = "Differenza globale (doy simulato – doy osservato)",
+    subtitle = paste0("Cluster: ",cl),
+    x = "diff",
+    y = "Modello",
+    color = "Sign"
+  ) +
+  theme(
+    plot.title = element_text(size = 16),
+    axis.title.y = element_blank(),
+    axis.text.y = element_text (size = 10, face = "bold"),
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor = element_blank()
+  )
+print(overal_diff_p)
+ggsave(paste0("plot/Overall diff_",cl,".jpg"), overal_diff_p, width = 8, height = 6)
+}
+#ggsave("plot/Overall diff_clust.jpg", overal_diff_p, width = 8, height = 6)
 
 
 
@@ -493,7 +572,37 @@ for (m in models) {
 }
 
 
+# Durata Incubazione PARAMETRO
 
+
+# Lista modelli
+df_inc <- df |> 
+  filter(param == "incubationDuration")
+
+p <- ggplot(df_inc, aes(x = cluster, y = value_opt)) +
+  geom_hline(aes(yintercept = 5), 
+             color = "#CC5200", linetype = "dashed", size = 1) +
+  geom_hline(aes(yintercept = 20),
+             color = "#CC5200", linetype = "dashed", size = 1) +
+  geom_point(color = "#004D66", size = 3) +
+  facet_wrap(~ model, scales = "free_y") +   # facet per modello
+  theme_bw() +
+  theme(
+    axis.ticks.x = element_blank(),
+    strip.text = element_text(face = "bold"),
+    plot.title = element_text(size = 16),
+    axis.text.x = element_text(face = "bold", size = 12),
+    axis.text.y = element_text(face = "bold",size = 11)
+  ) +
+  labs(
+    x = "Cluster",
+    y = "Optimized value",
+    title = "Optimized Incubation Duration for all models"
+  )
+
+p
+ggsave("plot/incubation_duration_by_model.jpg", p, 
+       width = 12, height = 8, dpi = 300)
 ###############################################################################
 ############# evalutation simulated incubation
 ############################################################################
