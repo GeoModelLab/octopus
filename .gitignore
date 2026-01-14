@@ -137,3 +137,7 @@ dev/octopus_calibration/Calibration/param and output before calibration/
 # Ignore compiled libraries only (keep EXE and outputs)
 *.dll
 
+
+# Local heavy analysis folders
+dev/octopus_calibration/Calibration/
+dev/octopus_calibration/ClimateCharacterization/
