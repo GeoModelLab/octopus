@@ -12,7 +12,7 @@
         "useLLM": false,
         "useRandomForest": false,
         "useConsole": false,
-        "modelsToRun": [ "Rule310"],
+        "modelsToRun": [ "DMCast"],
         "calibrationVariable":  "Onset"
     },
     "paths": {
@@ -20,7 +20,7 @@
         "octoPusParametersPath": "..\\..\\..\\files\\Parameters\\octoPusParameters.csv",
         "susceptibilityFileBBCH": "..\\..\\..\\files\\Parameters\\hostSusceptibilityParameters.csv",
         "outputDir": "..\\..\\..\\outputs\\",
-        "referenceFile": "..\\..\\..\\Files\\Reference\\reference_file_cluster.csv",
+        "referenceFile": "..\\..\\..\\Files\\Reference\\reference_file_cluster_clean.csv",
         "bbchReference": "..\\..\\..\\Files\\Reference\\bbch_Reference.csv"
     }
 }

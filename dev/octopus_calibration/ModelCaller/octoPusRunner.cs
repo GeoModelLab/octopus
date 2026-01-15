@@ -865,10 +865,18 @@ namespace octoPusAI.ModelCallers
                     {
                         var prop = propsIncubation.FirstOrDefault(p => p.Name == paramClass[1]);
                         if (prop != null)
-                            prop.SetValue(parametersIncubation, paramValue["incubationDuration"]);
-                       
+                            //prop.SetValue(parametersIncubation, paramValue["incubationDuration"]);
+                            prop.SetValue(parametersIncubation, paramPheno.Value); // <-- NON paramValue
+
+                        // 🔍 DEBUG (solo stampa, nessun effetto sulla logica)
+                        Console.ForegroundColor = ConsoleColor.Yellow;
+                        Console.WriteLine(
+                            $"[DEBUG] incubationDuration set from octoPusParameters = {paramPheno.Value}"
+                        );
+                        Console.ResetColor();
                     }
                 }
+
 
             }
 

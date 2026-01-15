@@ -13,16 +13,16 @@ Magarey,numberOfHoursToConsiderInfection,5.5,9.6,8,hours,x
 Magarey,degreeHoursThresholdInfection,38.4,57.6,45,°C day,x
 Magarey,rainTriggeringSplash,0.2,1,0.5,mm,x
 Magarey,bbchThreshold,8,12,10,BBCH code,
-EPI,keConstant,0.0095,0.02,0.01,unitless,x
-EPI,urUpperThreshold,80,110,90,%,x
-EPI,urLowerThreshold,60,86,65,%,x
+EPI,keConstant,0.0095,0.027,0.01,unitless,x
+EPI,urUpperThreshold,80,112,90,%,x
+EPI,urLowerThreshold,60,87,65,%,x
 EPI,peConstant,0.10,0.22,0.2,fraction,x
 EPI,alertThreshold,0,5,3,unitless,x
 EPI,tempThresholdInf,6.5,13.2,11,°C,x
 EPI,precThresholdInf,2.5,4.3,2.8,mm,x
 EPI,bbchThreshold,12,18,10,BBCH code,
-DMCast,muK1,94.4,143,118,unitless,x
-DMCast,sigmaK1,10.8,16.5,13.5,unitless,x
+DMCast,muK1,94.4,145,118,unitless,x
+DMCast,sigmaK1,10.8,16.8,13.5,unitless,x
 DMCast,thresholdPOM,0.024,0.036,0.03,fraction,x
 DMCast,precThresholdOosporeGerm,2,3,2.5,mm,x
 DMCast,tempThresholdOosporeGerm,8.3,13.2,11,°C,x
@@ -32,7 +32,7 @@ DMCast,precThresholdInf,0.12,0.24,0.2,mm,x
 DMCast,tempThresholdInf,8,13.2,11,°C,x
 DMCast,bbchThreshold,12,18,10,BBCH code,
 DMCast,daysForInfection,8.8,15,11,days,x
-IPI,riUpperThreshold,2,3.6,3,unitless,x
+IPI,riUpperThreshold,1.8,3.6,3,unitless,x
 IPI,tmeaniTminThreshold,10,15.9,13,°C,x
 IPI,tmeaniUpperThreshold,0.8,1.2,1,°C,x
 IPI,lwiLowerThreshold,0.8,1.2,1,hours,x
@@ -54,7 +54,7 @@ UCSC,incubationLowerThreshold,0.5,1.5,1,unitless,x
 UCSC,incubationUpperThreshold,0.6,1.5,1,unitless,x
 UCSC,bbchThreshold,8,12,10,BBCH code,
 Misfits,LWminMacrosporangiaFormation,6,17.5,15,hours,x
-Misfits,LWoptMacrosporangiaFormation,16,31,24,hours,x
+Misfits,LWoptMacrosporangiaFormation,14,31,24,hours,x
 Misfits,TminMacrosporangiaInfection,7.5,13,10,°C,x
 Misfits,ToptMacrosporangiaInfection,14.4,21.6,18,°C,x
 Misfits,TmaxMacrosporangiaInfection,14,23,22,°C,x
@@ -87,4 +87,4 @@ BBCH,bbch99,85,100,90,BBCH code,
 Incubation,tminIncubation,8,12,10,°C,
 Incubation,toptIncubation,17,24,25,°C,
 Incubation,tmaxIncubation,25,35,35,°C,
-Incubation,incubationDuration,5,18,8,days,x
+Incubation,incubationDuration,8,18,13,days,
