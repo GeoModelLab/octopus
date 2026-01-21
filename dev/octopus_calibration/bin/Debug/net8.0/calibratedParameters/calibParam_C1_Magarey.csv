@@ -1,11 +1,10 @@
 cluster, param, value
-C1,baseTemperatureRule210,10.294034235801165
-C1,precipitationThresholdRule210,8.495414384199062
-C1,baseTemperatureInfection,8.31189799961831
-C1,precipitationThresholdInfection,1.9640054979074542
-C1,numberOfHoursToConsiderRule210,29.860312951833045
-C1,numberOfHoursToConsiderGermination,15.114236878248175
-C1,numberOfHoursToConsiderInfection,6.961220813440482
-C1,degreeHoursThresholdInfection,50.476774449866156
-C1,rainTriggeringSplash,0.37909763104220434
-C1,incubationDuration,15.934918266007966
+C1,baseTemperatureRule210,11.274775972014641
+C1,precipitationThresholdRule210,8.990141849084157
+C1,baseTemperatureInfection,6.458348775952028
+C1,precipitationThresholdInfection,2.1175724589967393
+C1,numberOfHoursToConsiderRule210,29.330888765944366
+C1,numberOfHoursToConsiderGermination,15.59643595237849
+C1,numberOfHoursToConsiderInfection,7.409764882489865
+C1,degreeHoursThresholdInfection,43.93351563365286
+C1,rainTriggeringSplash,0.2733175549691321

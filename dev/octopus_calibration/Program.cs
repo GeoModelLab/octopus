@@ -183,39 +183,37 @@ foreach (var cluster in refData.Keys)
                     }
                 }
                 _runner.nameParam = nameParam;
-                //if (!_runner.nameParam.ContainsKey("incubationDuration"))
-                //{
-                //    _runner.nameParam.Add("incubationDuration", new ParameterRange());
-                //    ParameterRange parIncubationDur = new ParameterRange();
-                //    parIncubationDur.max = 20;
-                //    parIncubationDur.min = 8;
-                //    parIncubationDur.calibration = "x";
-                //    _runner.nameParam["incubationDuration"] = parIncubationDur;
-                //}
 
+                ////(A) CONDITION: IF YOU WANT CALIBRATE THE DURATION INCUBATION PARAM.
+                if (!_runner.nameParam.ContainsKey("incubationDuration"))
+                {
+                    _runner.nameParam.Add("incubationDuration", new ParameterRange());
+                    ParameterRange parIncubationDur = new ParameterRange();
+                    parIncubationDur.max = 20;
+                    parIncubationDur.min = 6;
+                    parIncubationDur.calibration = "x";
+                    _runner.nameParam["incubationDuration"] = parIncubationDur;
+                }
+
+                ////(B) CONDITION: IF YOU WANT FIX THE DURATION INCUBATION PARAM.
                 // Ensure incubationDuration exists with fixed bounds/value AND NEVER calibrate it
-                if (!nameParam.ContainsKey("incubationDuration"))
-                {
-                    // se nel CSV non c'è, la definisci qui con valori fissi
-                    nameParam["incubationDuration"] = new ParameterRange
-                    {
-                        min = 8,
-                        max = 20,
-                        value = 12,          // <-- metti il default che vuoi
-                        calibration = ""     // <-- IMPORTANTISSIMO: NON calibrato
-                    };
-                }
-                else
-                {
-                    // se nel CSV c'è, forzi comunque che NON sia calibrato
-                    nameParam["incubationDuration"].calibration = "";
+                //if (!nameParam.ContainsKey("incubationDuration"))
+                //{
+                //    // se nel CSV non c'è, la definisci qui con valori fissi
+                //    nameParam["incubationDuration"] = new ParameterRange
+                //    {
+                //        min = 8,
+                //        max = 20,
+                //        value = 12,          // <-- metti il default che vuoi
+                //        calibration = ""     // <-- NON calibrato
+                //    };
+                //}
+                //else
+                //{
+                //    // se nel CSV c'è, forzi comunque che NON sia calibrato
+                //    nameParam["incubationDuration"].calibration = "";
 
-                    // opzionale: se vuoi anche forzare min/max/value fissi da codice
-                    // (solo se NON ti fidi del file input)
-                    // nameParam["incubationDuration"].min = 8;
-                    // nameParam["incubationDuration"].max = 20;
-                    // nameParam["incubationDuration"].value = 12;
-                }
+                //}
 
                 // Determine which parameters are in the calibration subset
                 int paramCalibrated = 0;
