@@ -867,22 +867,22 @@ namespace octoPusAI.ModelCallers
                         if (prop != null)
                         {
                             // (A) CONDITION: IF YOU WANT CALIBRATE THE INCUBATION DURATION PARAM.
-                            //prop.SetValue(parametersIncubation, paramValue["incubationDuration"]); //<-- use paramValue
+                            prop.SetValue(parametersIncubation, paramValue["incubationDuration"]); //<-- use paramValue
 
 
 
                             // (B) CONDITION: IF YOU WANT USE THE FIX INCUBATION DURATION PARAM.
 
                             //(B1) Use a differente value for cluster
-                            float fixedIncubationDuration;
-                            if (cluster == "C1")
-                                fixedIncubationDuration = 14.5f; //median cluster C1
-                            else if (cluster == "C2")
-                                fixedIncubationDuration = 19.5f; //median cluster C2
+                            //float fixedIncubationDuration;
+                            //if (cluster == "C1")
+                            //    fixedIncubationDuration = 14.5f; //median cluster C1
+                            //else if (cluster == "C2")
+                            //    fixedIncubationDuration = 19.5f; //median cluster C2
 
-                            else fixedIncubationDuration = paramPheno.Value; //fallback
+                            //else fixedIncubationDuration = paramPheno.Value; //fallback
 
-                            prop.SetValue(parametersIncubation, fixedIncubationDuration);
+                            //prop.SetValue(parametersIncubation, fixedIncubationDuration);
 
 
                             //(B2)
@@ -892,13 +892,13 @@ namespace octoPusAI.ModelCallers
                             var currentValue = prop.GetValue(parametersIncubation);
 
                             // DEBUG: WHICH VALUE IS ACTUALLY USED?
-                            Console.ForegroundColor = ConsoleColor.Yellow;
-                            Console.WriteLine(
-                                $"[DEBUG] incubationDuration USED = {fixedIncubationDuration} (cluster={cluster})");
+                            //Console.ForegroundColor = ConsoleColor.Yellow;
+                            //Console.WriteLine(
+                            //    $"[DEBUG] incubationDuration USED = {fixedIncubationDuration} (cluster={cluster})");
 
                             //debug version to check the calibrated value 
                             // $"[DEBUG] incubationDuration USED = {paramValue["incubationDuration"]} (CALIBRATED).
-                            Console.ResetColor();
+                            //Console.ResetColor();
                         }
                     }
                 }
