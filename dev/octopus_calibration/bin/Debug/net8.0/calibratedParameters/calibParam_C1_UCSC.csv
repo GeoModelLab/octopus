@@ -1,10 +1,11 @@
 cluster, param, value
-C1,vpdThreshold,507.18873734302565
-C1,dormancyBrakingLowerThreshold,0.0241130216668499
-C1,dormancyBrakingUpperThreshold,0.9379809181604258
-C1,germinationThreshold,0.8276295434017436
-C1,sporangiaSurvivalThreshold,0.9298227598231293
-C1,zoosporeSurvivalThreshold,1.1657692639012875
-C1,infectionThreshold,56.24796365244039
-C1,incubationLowerThreshold,0.5191569175115055
-C1,incubationUpperThreshold,1.1219059312199093
+C1,vpdThreshold,466.76558208261235
+C1,dormancyBrakingLowerThreshold,0.0324586106416143
+C1,dormancyBrakingUpperThreshold,0.9863048885331058
+C1,germinationThreshold,0.7317975164318957
+C1,sporangiaSurvivalThreshold,0.9417236673102651
+C1,zoosporeSurvivalThreshold,1.1721520551145552
+C1,infectionThreshold,63.251051224894525
+C1,incubationLowerThreshold,1.0532058002292057
+C1,incubationUpperThreshold,1.3112163912151718
+C1,incubationDuration,8.338959276133473

@@ -1,2 +1,3 @@
 cluster, param, value
-C1,infectionThresholdRisk,14.455728112632086
+C1,infectionThresholdRisk,6.658918643855108
+C1,incubationDuration,12.423627683045915

@@ -1,12 +1,13 @@
 cluster, param, value
-C2,LWminMacrosporangiaFormation,11.571496990494104
-C2,LWoptMacrosporangiaFormation,25.737199206092995
-C2,TminMacrosporangiaInfection,11.26421401821245
-C2,ToptMacrosporangiaInfection,19.42982458393982
-C2,TmaxMacrosporangiaInfection,19.420891601613867
-C2,LWminMacrosporangiaInfection,2.1590326675134652
-C2,RainStartMacrosporangiaSpread,3.6433485392857072
-C2,RHminMacrosporangiaFormation,71.73706547248125
-C2,TminMacrosporangiaFormation,9.245661737534968
-C2,ToptMacrosporangiaFormation,19.90095793039694
-C2,TmaxMacrosporangiaFormation,24.090725480643243
+C2,LWminMacrosporangiaFormation,11.531267252318283
+C2,LWoptMacrosporangiaFormation,25.010209703791787
+C2,TminMacrosporangiaInfection,10.830010853308842
+C2,ToptMacrosporangiaInfection,19.362958016461874
+C2,TmaxMacrosporangiaInfection,19.369607154376027
+C2,LWminMacrosporangiaInfection,1.9320630046554452
+C2,RainStartMacrosporangiaSpread,4.755989413500723
+C2,RHminMacrosporangiaFormation,69.61164214322747
+C2,TminMacrosporangiaFormation,12.864991381306734
+C2,ToptMacrosporangiaFormation,17.667272915845516
+C2,TmaxMacrosporangiaFormation,26.482661553219977
+C2,incubationDuration,19.865749231014515
