@@ -1,6 +1,6 @@
 ﻿{
     "settings": {
-        "startYear": 2007,
+        "startYear": 2021,
         "endYear": 2025,
         "sites": [ "Calosso.csv" ],
         "assistantRisk": 2,
@@ -12,7 +12,7 @@
         "useLLM": false,
         "useRandomForest": false,
         "useConsole": false,
-        "modelsToRun": [ "Rule310"],
+        "modelsToRun": [ "EPI"],
         "calibrationVariable":  "Onset"
     },
     "paths": {

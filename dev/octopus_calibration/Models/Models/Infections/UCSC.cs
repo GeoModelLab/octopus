@@ -250,34 +250,37 @@ namespace Models.Infections
         public double HTi(Input Input, OutputsUCSC uCSCOutputs, parametersUCSC rossiParameters)
         {
             double HTi = 0;
-            DateTime lastDayOfTheYear = new DateTime(Input.Date.Year, 12, 31);
-            //VPD
-            if (Input.Date < lastDayOfTheYear)
+
+            // ✅ RESET stagionale: azzera la lista SOLO il 1 ottobre alle 00
+            if (Input.Date.Month == 10 && Input.Date.Day == 1 && Input.Date.Hour == 0)
             {
-                //VPD calculation method by Monteith and Unsworth (1990)
-                double SVP = 610.7 * Math.Pow(10, 7.5 * Input.Temperature / (237.3 + Input.Temperature));
-                double VPD = SVP * (1 - Input.RelativeHumidity / 100);
-                //define parameter M
-                double M = 0;
-                if (Input.Precipitation > 0 || VPD <= rossiParameters.vpdThreshold)
-                {
-                    M = 1;
-                }
-                else if (Input.Precipitation == 0 && VPD > rossiParameters.vpdThreshold)
-                {
-                    M = 0;
-                }
-                //compute HTi
-                if (Input.Temperature > 0)
-                {
-                    HTi = M / (1330.1 - 116.19 * Input.Temperature + 2.6256 * Math.Pow(Input.Temperature, 2));
-                }
-                HT_List.Add(HTi);
+                HT_List.Clear();
             }
-            else
+
+            // VPD calculation method by Monteith and Unsworth (1990)
+            double SVP = 610.7 * Math.Pow(10, 7.5 * Input.Temperature / (237.3 + Input.Temperature));
+            double VPD = SVP * (1 - Input.RelativeHumidity / 100);
+
+            //define parameter M
+            double M = 0;
+            if (Input.Precipitation > 0 || VPD <= rossiParameters.vpdThreshold)
             {
-                HT_List = new List<double>();
+                M = 1;
             }
+            else if (Input.Precipitation == 0 && VPD > rossiParameters.vpdThreshold)
+            {
+                M = 0;
+            }
+
+            //compute HTi
+            if (Input.Temperature > 0)
+            {
+                HTi = M / (1330.1 - 116.19 * Input.Temperature + 2.6256 * Math.Pow(Input.Temperature, 2));
+            }
+
+            // ✅ qui aggiungiamo sempre, nessun reset a fine anno
+            HT_List.Add(HTi);
+
             //send hydrothermal time to outputs
             uCSCOutputs.hti = HTi;
 
@@ -288,6 +291,8 @@ namespace Models.Infections
         {
             double DOR;
             double HT = HT_List.Sum();
+
+
             //send cumulated hydrothermal time to outputs
             uCSCOutputs.hts = HT;
 
@@ -295,6 +300,8 @@ namespace Models.Infections
 
             //send DOR to outputs
             uCSCOutputs.dor = DOR;
+
+
             return DOR;
         }
         //calculate germination of oospores (GER)

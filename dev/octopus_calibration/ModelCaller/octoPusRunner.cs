@@ -6,6 +6,7 @@ using System.Text;
 using octoPusAI.Readers;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace octoPusAI.ModelCallers
 {
@@ -352,7 +353,9 @@ namespace octoPusAI.ModelCallers
                 var year_onsetDate = site_year_onsetDate[site];
 
                 //adjust simulation period
-                if(modelUnderOptimization!= "EPI" || modelUnderOptimization != "DMcast")
+                if(modelUnderOptimization == "EPI" ||
+                    modelUnderOptimization == "DMCast" ||
+                    modelUnderOptimization == "UCSC")
                 {
                     startYear = year_onsetDate.Keys.First() - 1;
                     endYear = year_onsetDate.Keys.Last();
@@ -451,8 +454,11 @@ namespace octoPusAI.ModelCallers
                 var x = weatherData[site].Keys.Last();
 
                 //loop over dates
+
                 foreach (var hour in weatherData[site].Keys)
                 {
+                    // Se vuoi "qualsiasi ora" del 1/1/2023
+                   
                     if (hour.Year >= startYear)
                     {
                         if (hour.DayOfYear == 1)
@@ -943,7 +949,9 @@ namespace octoPusAI.ModelCallers
                 var year_onsetDate = site_year_onsetDate[site];
 
                 //adjust simulation period
-                if (modelUnderOptimization != "EPI" || modelUnderOptimization != "DMcast")
+                if (modelUnderOptimization == "EPI" ||
+                    modelUnderOptimization == "DMCast"||
+                    modelUnderOptimization == "UCSC")
                 {
                     startYear = year_onsetDate.Keys.First() - 1;
                     endYear = year_onsetDate.Keys.Last();
@@ -1053,6 +1061,7 @@ namespace octoPusAI.ModelCallers
                 parameters = _detailedCropParameters;
                 parameters.bbchSusceptibilityParameters = BBCH_Susceptibility;
                 parameters.incubationParameters = parametersIncubation;
+
 
 
                 //loop over dates
@@ -1486,10 +1495,11 @@ namespace octoPusAI.ModelCallers
                     epi.KeCounts = new List<Input>();
                     epi.InfectionCount = new List<Input>();
                 }
-                if (modelUnderOptimization == "UCSC")
-                {
-                    ucsc = new UCSC();
-                }
+                //if (modelUnderOptimization == "UCSC")
+                //{
+                //    //ucsc = new UCSC();
+
+                //}
 
                 //clean infection lists from previous year
                 outputs.outputsEPI.infectionEvents = new List<GenericInfection>();

@@ -79,7 +79,7 @@ BBCH,bbch81,25,50,60,BBCH code
 BBCH,bbch85,30,65,65,BBCH code
 BBCH,bbch89,50,85,80,BBCH code
 BBCH,bbch99,85,100,90,BBCH code
-Incubation,tminIncubation,8,12,10,°C
-Incubation,toptIncubation,24,28,18,°C
+Incubation,tminIncubation,6,10,8,°C
+Incubation,toptIncubation,20,25,22,°C
 Incubation,tmaxIncubation,30,35,32,°C
-Incubation,incubationDuration,8,12,10,days
+Incubation,incubationDuration,5,20,10,days

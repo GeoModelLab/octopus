@@ -165,9 +165,10 @@ foreach (var cluster in refData.Keys)
                 // - Ftol: tolerance on objective function for convergence
                 // - Itmax: maximum iterations per simplex
                 var msx = new MultiStartSimplex();
-                msx.NofSimplexes = 5;
+                msx.NofSimplexes = 1;
                 msx.Ftol = 0.000000000001;
-                msx.Itmax = 1111111111;
+                msx.Itmax = 1;
+
                 #endregion
 
                 #region Define parameter settings for calibration
