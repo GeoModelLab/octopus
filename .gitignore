@@ -143,4 +143,6 @@ dev/octopus_calibration/Calibration/
 dev/octopus_calibration/ClimateCharacterization/
 
 # outputs
-dev\octopus_calibration\bin\Debug\net8.0\outputs
+dev/octopus_calibration/bin/Debug/net8.0/outputs
+dev/octopus_calibration/bin/Debug/net8.0/calibratedParameters
+dev/octopus_calibration/bin/Debug/net8.0/calibratedParametersPhenology
