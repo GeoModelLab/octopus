@@ -146,3 +146,6 @@ dev/octopus_calibration/ClimateCharacterization/
 dev/octopus_calibration/bin/Debug/net8.0/outputs
 dev/octopus_calibration/bin/Debug/net8.0/calibratedParameters
 dev/octopus_calibration/bin/Debug/net8.0/calibratedParametersPhenology
+
+# weather file
+dev/octopus_calibration/Files/Weather/
