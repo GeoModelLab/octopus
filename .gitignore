@@ -141,3 +141,6 @@ dev/octopus_calibration/Calibration/param and output before calibration/
 # Local heavy analysis folders
 dev/octopus_calibration/Calibration/
 dev/octopus_calibration/ClimateCharacterization/
+
+# outputs
+dev\octopus_calibration\bin\Debug\net8.0\outputs
