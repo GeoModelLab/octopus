@@ -81,7 +81,7 @@ namespace octoPusAI.Readers
 
                     // Parse bbch date (format: M/d/yyyy)
                     DateTime bbchDate;
-                    DateTime.TryParseExact(bbchDateStr, "M/d/yy", CultureInfo.InvariantCulture,
+                    DateTime.TryParseExact(bbchDateStr, "M/d/yyyy", CultureInfo.InvariantCulture,
                         DateTimeStyles.None, out bbchDate);
 
                     // Parse year

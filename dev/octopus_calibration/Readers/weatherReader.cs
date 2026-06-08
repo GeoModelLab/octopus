@@ -8,60 +8,52 @@ namespace octoPusAI.Readers
         //The Dictionary has the date as key and the Input data class as value
         public Dictionary<DateTime, Input> readHourly(string file, int startYear, int endYear)
         {
-            //Dictionary to store the weather data
             Dictionary<DateTime, Input> gridWeathers = new Dictionary<DateTime, Input>();
 
-            //read the file
             using (var sr = new StreamReader(new BufferedStream(new FileStream(file, FileMode.Open))))
             {
-                //skip the first line
-                sr.ReadLine();
+                sr.ReadLine(); // skip header
 
-                //loop over the file
                 while (!sr.EndOfStream)
                 {
-                    //split the line by comma (adjust the split according to the settings of your laptop)
                     string[] line = sr.ReadLine().Split(',');
 
-                    //create a new Input object
                     Input gw = new Input();
-               
-                    //date elements
-                    int year = int.Parse(line[1]);
-                    int month = int.Parse(line[2]);
-                    int day = int.Parse(line[3]);
-                    int hour = int.Parse(line[4]);
-                    //set the date
-                    gw.Date = new DateTime(year,month,day).AddHours(hour-1);
 
-                    //check if the date is in the range indicated in the configuration file
+                    // Colonna 0: "2000-01-01 00:00:00+00:00" → strip timezone e parse
+                    string dateRaw = line[0].Trim();
+                    // Rimuove il timezone offset (+00:00 o simili)
+                    if (dateRaw.Contains('+'))
+                        dateRaw = dateRaw.Substring(0, dateRaw.LastIndexOf('+'));
+
+                    gw.Date = DateTime.ParseExact(dateRaw.Trim(),
+                        "yyyy-MM-dd HH:mm:ss",
+                        System.Globalization.CultureInfo.InvariantCulture);
+
                     if (gw.Date.Year >= startYear && gw.Date.Year <= endYear)
                     {
-                        gw.Temperature = float.Parse(line[5]);
-                        gw.Precipitation = float.Parse(line[6]);
-                        gw.RelativeHumidity = float.Parse(line[7]);
-                        gw.LeafWetness = float.Parse(line[8]);
+                        gw.Temperature = float.Parse(line[1], System.Globalization.CultureInfo.InvariantCulture);
+                        gw.RelativeHumidity = float.Parse(line[2], System.Globalization.CultureInfo.InvariantCulture);
+                        // line[3] = dew_point, non serve
+                        gw.Precipitation = float.Parse(line[4], System.Globalization.CultureInfo.InvariantCulture);
+                        // line[5] = evapotraspiration, line[7] = wind_speed, line[8] = shortwave_radiation
+                        gw.LeafWetness = float.Parse(line[6], System.Globalization.CultureInfo.InvariantCulture);
 
-                        //add the weather to the dictionary
                         if (!gridWeathers.ContainsKey(gw.Date))
                             gridWeathers.Add(gw.Date, gw);
-
                     }
                 }
-                //close the stream
                 sr.Close();
 
-                //message to console if the date is out of the range
-                if (gridWeathers.Count==0)
+                if (gridWeathers.Count == 0)
                 {
                     Console.ForegroundColor = ConsoleColor.Red;
                     Console.WriteLine("There are no dates in the weather {2} file from {0} to {1}", startYear, endYear, file);
+                    Console.ResetColor();
                 }
             }
 
-            //return the dictionary
             return gridWeathers;
-
         }
 
         //reader of the daily data, date as key and the InputDaily data class as value

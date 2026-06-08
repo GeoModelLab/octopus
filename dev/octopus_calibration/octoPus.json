@@ -1,26 +1,26 @@
 ﻿{
     "settings": {
-        "startYear": 2021,
+        "startYear": 2012,
         "endYear": 2025,
-        "sites": [ "Calosso.csv" ],
+        "sites": [ "" ],
         "assistantRisk": 2,
         "veryHighModelsThreshold": 2,
-        "WeatherTimeStep": "daily",
+        "WeatherTimeStep": "hourly",
         "colorScale": "Viridis",
         "consoleTextColor": "White",
         "consoleBackgroundColor": "Black",
         "useLLM": false,
         "useRandomForest": false,
         "useConsole": false,
-        "modelsToRun": [ "EPI"],
-        "calibrationVariable":  "Onset"
+        "modelsToRun": [ "Phenology" ],
+        "calibrationVariable": "Phenology"
     },
     "paths": {
-        "weatherDir": "..\\..\\..\\Files\\Weather\\sites_2003_2023",
+        "weatherDir": "..\\..\\..\\Files\\Weather\\sites_openMeteo",
         "octoPusParametersPath": "..\\..\\..\\files\\Parameters\\octoPusParameters.csv",
         "susceptibilityFileBBCH": "..\\..\\..\\files\\Parameters\\hostSusceptibilityParameters.csv",
         "outputDir": "..\\..\\..\\outputs\\",
-        "referenceFile": "..\\..\\..\\Files\\Reference\\reference_file_2cluster_new.csv",
-        "bbchReference": "..\\..\\..\\Files\\Reference\\bbch_Reference.csv"
+        "referenceFile": "..\\..\\..\\Files\\Reference\\reference_file_2026_Cluster.csv",
+        "bbchReference": "..\\..\\..\\Files\\Reference\\bbch_Reference_2026.csv"
     }
 }

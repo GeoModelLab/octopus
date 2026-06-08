@@ -16,7 +16,7 @@ Magarey,bbchThreshold,8,12,10,BBCH code,
 EPI,keConstant,0.0095,0.027,0.01,unitless,x
 EPI,urUpperThreshold,80,112,90,%,x
 EPI,urLowerThreshold,60,87,65,%,x
-EPI,peConstant,0.10,0.22,0.2,fraction,x
+EPI,peConstant,0.1,0.22,0.2,fraction,x
 EPI,alertThreshold,0,5,3,unitless,x
 EPI,tempThresholdInf,6.5,13.2,11,°C,x
 EPI,precThresholdInf,2.5,4.3,2.8,mm,x
@@ -67,17 +67,17 @@ Misfits,TmaxMacrosporangiaFormation,17,30,24,°C,x
 Misfits,bbchThreshold,8,12,10,BBCH code,
 Laore,infectionThresholdRisk,6,28,13,unitless,x
 Laore,bbchThreshold,8,12,10,BBCH code,
-Phenology,TminPlant,5,8,10,°C,
+Phenology,TminPlant,5,10,8,°C,
 Phenology,ToptPlant,20,30,22,°C,
 Phenology,TmaxPlant,28,42,35,°C,
 Phenology,ChillThreshold,5,12,8,°C,
-Phenology,ChillingRequirement,50,200,100,hours,
-Phenology,CycleLength,1600,2800,2900,°C day,
-BBCH,bbch08,0,4,0,BBCH code,
-BBCH,bbch10,0,4,0,BBCH code,
-BBCH,bbch11,0,25,16,BBCH code,
-BBCH,bbch53,30,70,20,BBCH code,
-BBCH,bbch65,15,45,55,BBCH code,
+Phenology,ChillingRequirement,50,200,100,hours,x
+Phenology,CycleLength,1600,2800,2500,°C day,x
+BBCH,bbch08,0,4,0,BBCH code,x
+BBCH,bbch10,0,4,0,BBCH code,x
+BBCH,bbch11,0,25,16,BBCH code,x
+BBCH,bbch53,30,70,50,BBCH code,x
+BBCH,bbch65,15,55,45,BBCH code,
 BBCH,bbch71,10,30,20,BBCH code,
 BBCH,bbch77,20,35,30,BBCH code,
 BBCH,bbch81,25,50,40,BBCH code,

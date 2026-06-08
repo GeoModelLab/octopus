@@ -134,22 +134,21 @@ namespace octoPusAI.ModelCallers
         List<int> UCSC_GER = new List<int>();
         #endregion
 
-       //this is the main call method of the octoPus model
+        //this is the main call method of the octoPus model
         //public void octoPus(out Dictionary<DateTime, OutputsDaily> date_outputs)
         public double ObjfuncVal(double[] Coefficient, double[,] limits)
         {
             #region Calibration methods
-            for (int j = 0; j < Coefficient.Length; j++)
+            for (int j = 0; j < Coefficient.Length && j < limits.GetLength(0); j++)
             {
-                if (Coefficient[j] == 0)
+                if (calibrationVariable != "Phenology" && Coefficient[j] == 0)
                 {
                     break;
                 }
-                if (Coefficient[j] <= limits[j, 0] | Coefficient[j] > limits[j, 1])
+                if (Coefficient[j] < limits[j, 0] | Coefficient[j] > limits[j, 1])
                 {
                     return 1E+300;
                 }
-
             }
             _neval++;
             _ncompute++;
@@ -243,22 +242,23 @@ namespace octoPusAI.ModelCallers
                     var prop = propsDMCast.FirstOrDefault(p => p.Name == propertyName);
                     if (prop != null)
                         prop.SetValue(parDMCast, isCalibrated ? (float)Coefficient[i++] : param_outCalibration[param]);
-                }   
-                if(calibrationVariable == "Phenology")
+                }
+                if (calibrationVariable == "Phenology")
                 {
-                    var prop =  propsPhenology.FirstOrDefault(p => p.Name == propertyName);
-                    if (prop != null)
-                        prop.SetValue(parPhenology, isCalibrated ? (float)Coefficient[i++] : param_outCalibration[param]);
-
-                    if (propertyName.Contains("bbch"))
+                    if (!propertyName.Contains("bbch"))
                     {
+                        // parametri Phenology puri: ChillingRequirement, CycleLength, ecc.
+                        var prop = propsPhenology.FirstOrDefault(p => p.Name == propertyName);
+                        if (prop != null)
+                            prop.SetValue(parPhenology, isCalibrated ? (float)Coefficient[i++] : param_outCalibration[param]);
+                    }
+                    else
+                    {
+                        // parametri BBCH: sovrascrive sempre ad ogni iterazione
                         int bbchCode = int.Parse(propertyName.Substring(4, 2));
-                        if (!parameters.bbchParameters.ContainsKey(bbchCode))
-                            parameters.bbchParameters[bbchCode] = new parametersBBCH();
-
-                        var bbchParam = parameters.bbchParameters[bbchCode];
-                        if (bbchParam.cycleCompletion == 0)
-                            bbchParam.cycleCompletion = isCalibrated ? (float)Coefficient[i++] : param_outCalibration[param];
+                        parameters.bbchParameters[bbchCode] = new parametersBBCH();
+                        parameters.bbchParameters[bbchCode].cycleCompletion =
+                            isCalibrated ? (float)Coefficient[i++] : param_outCalibration[param];
                     }
                 }
                 if (calibrationVariable != "Phenology")
@@ -324,6 +324,12 @@ namespace octoPusAI.ModelCallers
 
             #region assign phenology parameters for detailed crop parameters estimation
             parameters.bbchParameters = parameters.bbchParameters.OrderBy(kvp => kvp.Key).ToDictionary(kvp => kvp.Key, kvp => kvp.Value); ;
+
+            // NEW: salva gli anchor BBCH calibrati prima che generateDetailed li espanda
+            var calibratedBbchAnchors = parameters.bbchParameters
+                .ToDictionary(kvp => kvp.Key,
+                              kvp => new parametersBBCH { cycleCompletion = kvp.Value.cycleCompletion });
+
             Parameters _detailedCropParameters = generateDetailedPhenologyParameters(parameters);
             parameters = _detailedCropParameters;
             parameters.bbchSusceptibilityParameters = BBCH_Susceptibility;
@@ -348,20 +354,24 @@ namespace octoPusAI.ModelCallers
                 epi = new EPI();
                 magarey = new Magarey();
 
-                //take the reference data for this site
-                 
-                var year_onsetDate = site_year_onsetDate[site];
-
-                //adjust simulation period
-                if(modelUnderOptimization == "EPI" ||
-                    modelUnderOptimization == "DMCast" ||
-                    modelUnderOptimization == "UCSC")
+                //take the reference data for this site (only for onset/epi calibration)
+                Dictionary<int, DateTime> year_onsetDate = new Dictionary<int, DateTime>();
+                if (calibrationVariable != "Phenology")
                 {
-                    startYear = year_onsetDate.Keys.First() - 1;
-                    endYear = year_onsetDate.Keys.Last();
+                    year_onsetDate = site_year_onsetDate[site];
+
+                    //adjust simulation period
+                    if (modelUnderOptimization == "EPI" ||
+                        modelUnderOptimization == "DMCast" ||
+                        modelUnderOptimization == "UCSC")
+                    {
+                        startYear = year_onsetDate.Keys.First() - 1;
+                        endYear = year_onsetDate.Keys.Last();
+                    }
                 }
 
-              
+
+
 
                 if (areEPIDMCASTexecutable && 
                     (modelUnderOptimization == "EPI" || modelUnderOptimization == "DMCast"))
@@ -388,64 +398,73 @@ namespace octoPusAI.ModelCallers
                 //assign calibrated parameters
                 parameters.bbchParameters = new Dictionary<int, parametersBBCH>();
 
-                if (site_phenoParam_value.ContainsKey(site))
+                if (calibrationVariable != "Phenology")
                 {
-                    parameters.phenologyParameters.ChillingRequirement =
-                        site_phenoParam_value[site]["ChillingRequirement"];
-                    parameters.phenologyParameters.CycleLength =
-                       site_phenoParam_value[site]["CycleLength"];
+                    if (site_phenoParam_value.ContainsKey(site))
+                    {
+                        parameters.phenologyParameters.ChillingRequirement =
+                            site_phenoParam_value[site]["ChillingRequirement"];
+                        parameters.phenologyParameters.CycleLength =
+                           site_phenoParam_value[site]["CycleLength"];
 
-                    parametersBBCH par = new parametersBBCH();
-                    par.cycleCompletion = site_phenoParam_value[site]["bbch08"];
-                    parameters.bbchParameters.Add(8, par);
+                        parametersBBCH par = new parametersBBCH();
+                        par.cycleCompletion = site_phenoParam_value[site]["bbch08"];
+                        parameters.bbchParameters.Add(8, par);
 
-                    par = new parametersBBCH();
-                    par.cycleCompletion = site_phenoParam_value[site]["bbch10"];
-                    parameters.bbchParameters.Add(10, par);
+                        par = new parametersBBCH();
+                        par.cycleCompletion = site_phenoParam_value[site]["bbch10"];
+                        parameters.bbchParameters.Add(10, par);
 
-                    par = new parametersBBCH();
-                    par.cycleCompletion = site_phenoParam_value[site]["bbch11"];
-                    parameters.bbchParameters.Add(11, par);
+                        par = new parametersBBCH();
+                        par.cycleCompletion = site_phenoParam_value[site]["bbch11"];
+                        parameters.bbchParameters.Add(11, par);
 
-                    par = new parametersBBCH();
-                    par.cycleCompletion = site_phenoParam_value[site]["bbch53"];
-                    parameters.bbchParameters.Add(53, par);
+                        par = new parametersBBCH();
+                        par.cycleCompletion = site_phenoParam_value[site]["bbch53"];
+                        parameters.bbchParameters.Add(53, par);
 
-                    par = new parametersBBCH();
-                    par.cycleCompletion = site_phenoParam_value[site]["bbch65"];
-                    parameters.bbchParameters.Add(65, par);
+                        par = new parametersBBCH();
+                        par.cycleCompletion = site_phenoParam_value[site]["bbch65"];
+                        parameters.bbchParameters.Add(65, par);
+                    }
+                    else//global parameters
+                    {
+                        parameters.phenologyParameters.ChillingRequirement =
+                           site_phenoParam_value["global"]["ChillingRequirement"];
+                        parameters.phenologyParameters.CycleLength =
+                       site_phenoParam_value["global"]["CycleLength"];
 
+                        parametersBBCH par = new parametersBBCH();
+                        par.cycleCompletion = site_phenoParam_value["global"]["bbch08"];
+                        parameters.bbchParameters.Add(8, par);
 
+                        par = new parametersBBCH();
+                        par.cycleCompletion = site_phenoParam_value["global"]["bbch10"];
+                        parameters.bbchParameters.Add(10, par);
+
+                        par = new parametersBBCH();
+                        par.cycleCompletion = site_phenoParam_value["global"]["bbch11"];
+                        parameters.bbchParameters.Add(11, par);
+
+                        par = new parametersBBCH();
+                        par.cycleCompletion = site_phenoParam_value["global"]["bbch53"];
+                        parameters.bbchParameters.Add(53, par);
+
+                        par = new parametersBBCH();
+                        par.cycleCompletion = site_phenoParam_value["global"]["bbch65"];
+                        parameters.bbchParameters.Add(65, par);
+                    }
                 }
-                else//global parameters
+                else
                 {
-                    parameters.phenologyParameters.ChillingRequirement =
-                       site_phenoParam_value["global"]["ChillingRequirement"];
-                    parameters.phenologyParameters.CycleLength=
-                   site_phenoParam_value["global"]["CycleLength"];
-
-                    parametersBBCH par = new parametersBBCH();
-                    par.cycleCompletion = site_phenoParam_value["global"]["bbch08"];
-                    parameters.bbchParameters.Add(8, par);      
-                           
-                    par = new parametersBBCH();
-                    par.cycleCompletion = site_phenoParam_value["global"]["bbch10"];
-                    parameters.bbchParameters.Add(10, par);    
-                      
-                    par = new parametersBBCH();
-                    par.cycleCompletion = site_phenoParam_value["global"]["bbch11"];
-                    parameters.bbchParameters.Add(11, par);     
-                        
-                    par = new parametersBBCH();
-                    par.cycleCompletion = site_phenoParam_value["global"]["bbch53"];
-                    parameters.bbchParameters.Add(53, par);
-
-                    par = new parametersBBCH();
-                    par.cycleCompletion = site_phenoParam_value["global"]["bbch65"];
-                    parameters.bbchParameters.Add(65, par);
+                    // NEW: ripristina gli anchor BBCH calibrati dall'ottimizzatore,
+                    // altrimenti bbchParameters resta vuoto e il modello non raggiunge mai gli stadi 8-15
+                    foreach (var kvp in calibratedBbchAnchors)
+                        parameters.bbchParameters[kvp.Key] =
+                            new parametersBBCH { cycleCompletion = kvp.Value.cycleCompletion };
                 }
 
-                 _detailedCropParameters = generateDetailedPhenologyParameters(parameters);
+                _detailedCropParameters = generateDetailedPhenologyParameters(parameters);
                 parameters = _detailedCropParameters;
                 parameters.bbchSusceptibilityParameters = BBCH_Susceptibility;
                 parameters.incubationParameters = parametersIncubation;
@@ -846,7 +865,7 @@ namespace octoPusAI.ModelCallers
                     if (prop != null)
                         prop.SetValue(parPhenology, paramPheno.Value);
                 }
-                if (paramClass[0] == "BBCH")
+                if (paramClass[0] == "BBCH" && calibrationVariable != "Phenology")
                 {
                     var prop = propsBBCH.FirstOrDefault(p => p.Name == paramClass[1]);
 
@@ -926,6 +945,12 @@ namespace octoPusAI.ModelCallers
 
             #region assign phenology parameters for detailed crop parameters estimation
             parameters.bbchParameters = parameters.bbchParameters.OrderBy(kvp => kvp.Key).ToDictionary(kvp => kvp.Key, kvp => kvp.Value); ;
+
+            // NEW: salva gli anchor BBCH calibrati prima che generateDetailed li espanda
+            var calibratedBbchAnchors = parameters.bbchParameters
+                .ToDictionary(kvp => kvp.Key,
+                              kvp => new parametersBBCH { cycleCompletion = kvp.Value.cycleCompletion });
+
             Parameters _detailedCropParameters = generateDetailedPhenologyParameters(parameters);
             parameters = _detailedCropParameters;
             parameters.bbchSusceptibilityParameters = BBCH_Susceptibility;
@@ -945,16 +970,19 @@ namespace octoPusAI.ModelCallers
                 magarey = new Magarey();
 
 
-                //take the reference data for this site
-                var year_onsetDate = site_year_onsetDate[site];
-
-                //adjust simulation period
-                if (modelUnderOptimization == "EPI" ||
-                    modelUnderOptimization == "DMCast"||
-                    modelUnderOptimization == "UCSC")
+                ///take the reference data for this site (only for onset/epi calibration)
+                Dictionary<int, DateTime> year_onsetDate = new Dictionary<int, DateTime>();
+                if (calibrationVariable != "Phenology")
                 {
-                    startYear = year_onsetDate.Keys.First() - 1;
-                    endYear = year_onsetDate.Keys.Last();
+                    year_onsetDate = site_year_onsetDate[site];
+                    //adjust simulation period
+                    if (modelUnderOptimization == "EPI" ||
+                        modelUnderOptimization == "DMCast" ||
+                        modelUnderOptimization == "UCSC")
+                    {
+                        startYear = year_onsetDate.Keys.First() - 1;
+                        endYear = year_onsetDate.Keys.Last();
+                    }
                 }
 
                 //read weather data
@@ -963,7 +991,9 @@ namespace octoPusAI.ModelCallers
                 switch (WeatherTimeStep)
                 {
                     case "hourly":
-                        weatherData = weatherReader.readHourly(weatherFile, startYear, endYear);
+                        weatherData = weatherReader.readHourly(
+                        Path.Combine(weatherDir, "weather_station_" + site + ".csv"),
+                        startYear, endYear);
                         break;
 
                     case "daily":
@@ -1001,62 +1031,60 @@ namespace octoPusAI.ModelCallers
                 //assign calibrated parameters
                 parameters.bbchParameters = new Dictionary<int, parametersBBCH>();
 
-                if (site_phenoParam_value.ContainsKey(site))
+                if (calibrationVariable != "Phenology")
                 {
-                    parameters.phenologyParameters.ChillingRequirement =
-                        site_phenoParam_value[site]["ChillingRequirement"];
-                    parameters.phenologyParameters.CycleLength =
-                       site_phenoParam_value[site]["CycleLength"];
-
-                    parametersBBCH par = new parametersBBCH();
-                    par.cycleCompletion = site_phenoParam_value[site]["bbch08"];
-                    parameters.bbchParameters.Add(8, par);
-
-                    par = new parametersBBCH();
-                    par.cycleCompletion = site_phenoParam_value[site]["bbch10"];
-                    parameters.bbchParameters.Add(10, par);
-
-                    par = new parametersBBCH();
-                    par.cycleCompletion = site_phenoParam_value[site]["bbch11"];
-                    parameters.bbchParameters.Add(11, par);
-
-                    par = new parametersBBCH();
-                    par.cycleCompletion = site_phenoParam_value[site]["bbch53"];
-                    parameters.bbchParameters.Add(53, par);
-
-                    par = new parametersBBCH();
-                    par.cycleCompletion = site_phenoParam_value[site]["bbch65"];
-                    parameters.bbchParameters.Add(65, par);
-
-
+                    if (site_phenoParam_value.ContainsKey(site))
+                    {
+                        parameters.phenologyParameters.ChillingRequirement =
+                            site_phenoParam_value[site]["ChillingRequirement"];
+                        parameters.phenologyParameters.CycleLength =
+                           site_phenoParam_value[site]["CycleLength"];
+                        parametersBBCH par = new parametersBBCH();
+                        par.cycleCompletion = site_phenoParam_value[site]["bbch08"];
+                        parameters.bbchParameters.Add(8, par);
+                        par = new parametersBBCH();
+                        par.cycleCompletion = site_phenoParam_value[site]["bbch10"];
+                        parameters.bbchParameters.Add(10, par);
+                        par = new parametersBBCH();
+                        par.cycleCompletion = site_phenoParam_value[site]["bbch11"];
+                        parameters.bbchParameters.Add(11, par);
+                        par = new parametersBBCH();
+                        par.cycleCompletion = site_phenoParam_value[site]["bbch53"];
+                        parameters.bbchParameters.Add(53, par);
+                        par = new parametersBBCH();
+                        par.cycleCompletion = site_phenoParam_value[site]["bbch65"];
+                        parameters.bbchParameters.Add(65, par);
+                    }
+                    else //global parameters
+                    {
+                        parameters.phenologyParameters.ChillingRequirement =
+                           site_phenoParam_value["global"]["ChillingRequirement"];
+                        parameters.phenologyParameters.CycleLength =
+                           site_phenoParam_value["global"]["CycleLength"];
+                        parametersBBCH par = new parametersBBCH();
+                        par.cycleCompletion = site_phenoParam_value["global"]["bbch08"];
+                        parameters.bbchParameters.Add(8, par);
+                        par = new parametersBBCH();
+                        par.cycleCompletion = site_phenoParam_value["global"]["bbch10"];
+                        parameters.bbchParameters.Add(10, par);
+                        par = new parametersBBCH();
+                        par.cycleCompletion = site_phenoParam_value["global"]["bbch11"];
+                        parameters.bbchParameters.Add(11, par);
+                        par = new parametersBBCH();
+                        par.cycleCompletion = site_phenoParam_value["global"]["bbch53"];
+                        parameters.bbchParameters.Add(53, par);
+                        par = new parametersBBCH();
+                        par.cycleCompletion = site_phenoParam_value["global"]["bbch65"];
+                        parameters.bbchParameters.Add(65, par);
+                    }
                 }
-                else//global parameters
+                else
                 {
-                    parameters.phenologyParameters.ChillingRequirement =
-                       site_phenoParam_value["global"]["ChillingRequirement"];
-                    parameters.phenologyParameters.CycleLength =
-                       site_phenoParam_value["global"]["CycleLength"];
-
-                    parametersBBCH par = new parametersBBCH();
-                    par.cycleCompletion = site_phenoParam_value["global"]["bbch08"];
-                    parameters.bbchParameters.Add(8, par);
-
-                    par = new parametersBBCH();
-                    par.cycleCompletion = site_phenoParam_value["global"]["bbch10"];
-                    parameters.bbchParameters.Add(10, par);
-
-                    par = new parametersBBCH();
-                    par.cycleCompletion = site_phenoParam_value["global"]["bbch11"];
-                    parameters.bbchParameters.Add(11, par);
-
-                    par = new parametersBBCH();
-                    par.cycleCompletion = site_phenoParam_value["global"]["bbch53"];
-                    parameters.bbchParameters.Add(53, par);
-                    
-                    par = new parametersBBCH();
-                    par.cycleCompletion = site_phenoParam_value["global"]["bbch65"];
-                    parameters.bbchParameters.Add(65, par);
+                    foreach (var kvp in calibratedBbchAnchors)
+                        parameters.bbchParameters[kvp.Key] =
+                            new parametersBBCH { cycleCompletion = kvp.Value.cycleCompletion };
                 }
+
                 _detailedCropParameters = generateDetailedPhenologyParameters(parameters);
                 parameters = _detailedCropParameters;
                 parameters.bbchSusceptibilityParameters = BBCH_Susceptibility;

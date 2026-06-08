@@ -25,7 +25,7 @@ int endYear = config.settings.endYear.GetValueOrDefault();
 //sites
 var sites = config.settings.sites;
 //risk level to call the Llama assistant - values: very low, low, medium, high, very high
-float assistantRisk = config.settings.assistantRisk.GetValueOrDefault(); 
+float assistantRisk = config.settings.assistantRisk.GetValueOrDefault();
 var veryHighModelsThreshold = config.settings.veryHighModelsThreshold.GetValueOrDefault();
 //parameters files
 string octoPusParametersFile = config.paths.octoPusParametersPath;
@@ -67,7 +67,7 @@ var BBCH_susceptibility = paramReader.BBCH_Susceptibility(hostSusceptibilityFile
 #endregion
 
 #region weather data files
-DirectoryInfo directoryInfo = new DirectoryInfo(weatherDir );
+DirectoryInfo directoryInfo = new DirectoryInfo(weatherDir);
 FileInfo[] files = directoryInfo.GetFiles();
 List<string> availableSites = files.Select(x => x.Name).ToList();
 #endregion
@@ -81,20 +81,20 @@ _runner.Rversion = Rversion;
 var model_param_range = paramRangeReader(octoPusParametersFile);
 
 List<string> toExclude = new List<string>() { "Phenology", "BBCH" };
-if(calibrationVariable == "Phenology")
+if (calibrationVariable == "Phenology")
 {
     toExclude = new List<string>() { "Incubation" };
 }
 
 #region read reference data
 
-    //onset date
-    ReferenceReader _refReader = new ReferenceReader();
-    var refData = _refReader.readReference(referenceFile);
+//onset date
+ReferenceReader _refReader = new ReferenceReader();
+var refData = _refReader.readReference(referenceFile);
 
-    // bbch 
-    BBCHReferenceReader _refReaderbbch = new BBCHReferenceReader();
-    var refDatabbch = _refReaderbbch.BbchreadReference(bbch_Reference);
+// bbch 
+BBCHReferenceReader _refReaderbbch = new BBCHReferenceReader();
+var refDatabbch = _refReaderbbch.BbchreadReference(bbch_Reference);
 
 
 #endregion
@@ -109,30 +109,80 @@ var site_phenoParam = paramReader.read_calibPhenoParam(new DirectoryInfo("calibr
 
 
 
-#region execute epidemiological models (the tentacles)
-
-//loop over models
-foreach (var cluster in refData.Keys)
+// -------------------------------------------------------------------------
+// FIX 1: separate phenology calibration branch from the onset/epi loop
+// -------------------------------------------------------------------------
+if (calibrationVariable == "Phenology")
 {
-    #region read weather data
-    //read weather data
-    var weatherData = new Dictionary<string, Dictionary<DateTime, Input>>();
-    WeatherReader weatherReader = new WeatherReader();
-    foreach (var site in refData[cluster].Keys)
+    #region PHENOLOGY CALIBRATION
+
+    // Build phenology parameter space once (Phenology + BBCH), using fresh copies
+    // FIX 2: use new Dictionary copies to avoid mutating model_param_range between sites
+    var nameParamPheno = new Dictionary<string, ParameterRange>();
+    foreach (var kvp in model_param_range["Phenology"])
+        nameParamPheno[kvp.Key] = kvp.Value;
+    foreach (var kvp in model_param_range["BBCH"])
+        nameParamPheno[kvp.Key] = kvp.Value;
+
+    // Determine calibrated vs fixed parameters
+    int paramCalibratedPheno = 0;
+    var param_outCalibrationPheno = new Dictionary<string, float>();
+    var calibratedParamNamesPheno = new List<string>();
+
+    foreach (var kvp in nameParamPheno)
     {
-        weatherData.Add(site, new Dictionary<DateTime, Input>());
-        string weatherFile = site + ".csv";
+        if (!string.IsNullOrWhiteSpace(kvp.Value.calibration))
+        {
+            paramCalibratedPheno++;
+            calibratedParamNamesPheno.Add(kvp.Key);
+        }
+        else
+        {
+            param_outCalibrationPheno[kvp.Key] = kvp.Value.value;
+        }
+    }
+
+    // Build bounds array
+    double[,] LimitsPheno = new double[paramCalibratedPheno + 1, 2];
+    for (int i = 0; i < calibratedParamNamesPheno.Count; i++)
+    {
+        LimitsPheno[i, 0] = nameParamPheno[calibratedParamNamesPheno[i]].min;
+        LimitsPheno[i, 1] = nameParamPheno[calibratedParamNamesPheno[i]].max;
+    }
+
+    // FIX 3: loop directly over weather files (availableSites), filter by refDatabbch
+    // files are named "weather_station_AL001.csv" → siteKey = "AL001"
+    foreach (var siteFile in availableSites)
+    {
+        // strip "weather_station_" prefix and ".csv" suffix to get the site key
+        string siteKey;
+        string prefix = "weather_station_";
+        if (siteFile.StartsWith(prefix))
+            siteKey = siteFile.Substring(prefix.Length, siteFile.Length - prefix.Length - 4);
+        else
+            siteKey = siteFile.Substring(0, siteFile.Length - 4);
+
+        if (!refDatabbch.ContainsKey(siteKey))
+            continue;
+
+        Console.WriteLine("CALIBRATION STARTED FOR SITE {0}", siteKey);
+
+        // Read weather data for this site only — readHourly needs the full path
+        string weatherFilePheno = Path.Combine(weatherDir, siteFile);
+        var weatherDataPheno = new Dictionary<string, Dictionary<DateTime, Input>>();
+        WeatherReader weatherReaderPheno = new WeatherReader();
+        weatherDataPheno[siteKey] = new Dictionary<DateTime, Input>();
         switch (WeatherTimeStep)
         {
             case "hourly":
-                weatherData[site] = weatherReader.readHourly(weatherFile, startYear, endYear);
+                weatherDataPheno[siteKey] = weatherReaderPheno.readHourly(weatherFilePheno, startYear, endYear);
                 break;
 
             case "daily":
-                Dictionary<DateTime, InputDaily> weatherDataH = weatherReader.readDaily(weatherDir + "\\" + weatherFile, startYear, endYear);
-                foreach (var day in weatherDataH.Keys)
+                Dictionary<DateTime, InputDaily> weatherDataHPheno = weatherReaderPheno.readDaily(weatherFilePheno, startYear, endYear);
+                foreach (var day in weatherDataHPheno.Keys)
                 {
-                    weatherData[site].AddRange(weatherReader.estimateHourly(weatherDataH[day], day));
+                    weatherDataPheno[siteKey].AddRange(weatherReaderPheno.estimateHourly(weatherDataHPheno[day], day));
                 }
                 break;
 
@@ -141,147 +191,239 @@ foreach (var cluster in refData.Keys)
                 break;
         }
 
-    }
+        #region define optimizer settings
+        var msxPheno = new MultiStartSimplex();
+        msxPheno.NofSimplexes = 10;
+        msxPheno.Ftol = 0.01;
+        msxPheno.Itmax = 10000;
+        #endregion
 
+        // set runner properties
+        _runner.nameParam = nameParamPheno;
+        _runner.param_outCalibration = param_outCalibrationPheno;
+        _runner.calibrationVariable = calibrationVariable;
+        _runner.modelUnderOptimization = "Phenology";
+        _runner.availableSites = new List<string> { siteKey };
+        _runner.weatherData = weatherDataPheno;
+        _runner.Year_bbchDate_Ref = refDatabbch[siteKey];
+        _runner.modelPath = LLMfile;
+        _runner.Rversion = Rversion;
+        _runner.WeatherTimeStep = WeatherTimeStep;
+        _runner.BBCH_Susceptibility = BBCH_susceptibility;
+        _runner.octoPusParameters = octoPusParameters;
+        _runner.startYear = startYear;
+        _runner.endYear = endYear;
+        _runner.assistantRisk = assistantRisk;
+        _runner.veryHighModelsThreshold = veryHighModelsThreshold;
+        _runner.useLLM = useLLM;
+        _runner.useRandomForest = useRandomForest;
+        _runner.useConsole = useConsole;
+        _runner.weatherDir = weatherDir;
+        _runner.areEPIDMCASTexecutable = false;
+        _runner.site_phenoParam_value = site_phenoParam;
 
-    #endregion
+        #region run phenology model
+        double[,] resultsPheno = new double[1, 1];
+        // DEBUG
+        Console.WriteLine($"[DEBUG] paramCalibratedPheno = {paramCalibratedPheno}");
+        Console.WriteLine($"[DEBUG] params = {string.Join(", ", calibratedParamNamesPheno)}");
+        for (int d = 0; d < calibratedParamNamesPheno.Count; d++)
+            Console.WriteLine($"[DEBUG]   {calibratedParamNamesPheno[d]}: [{LimitsPheno[d, 0]}, {LimitsPheno[d, 1]}]");
+        msxPheno.Multistart(_runner, paramCalibratedPheno+ 1, LimitsPheno, out resultsPheno);
 
-    var thisRefData = refData[cluster];
+        var paramCalibValuePheno = new Dictionary<string, float>();
+        int countPheno = 0;
 
-   
-
-    foreach (var model in model_param_range.Keys)
-    {
-        _runner.nameParam = new Dictionary<string, ParameterRange>();
-        if (modelsToRun.Contains(model))
+        string headerPheno = "param, value";
+        List<string> writeParamPheno = new List<string>();
+        writeParamPheno.Add(headerPheno);
+        foreach (var param in calibratedParamNamesPheno)
         {
-            //to avoid calibrating on parameter classes different from the eight 'octopus models'
-            if (!toExclude.Contains(model))
+            string line = "";
+            line += param + ",";
+            line += resultsPheno[0, countPheno];
+            writeParamPheno.Add(line);
+            paramCalibValuePheno.Add(param, (float)resultsPheno[0, countPheno]);
+            countPheno++;
+        }
+
+        //write calibrated parameters to file
+        System.IO.File.WriteAllLines("calibratedParametersPhenology//calibParam_" + siteKey + ".csv", writeParamPheno);
+
+        //execute model with calibrated parameters
+        _runner.oneShot(paramCalibValuePheno);
+        #endregion
+    }
+    #endregion
+}
+else
+{
+    #region ONSET CALIBRATION (epidemiological models)
+
+    //loop over clusters
+    foreach (var cluster in refData.Keys)
+    {
+        #region read weather data
+        //read weather data
+        var weatherData = new Dictionary<string, Dictionary<DateTime, Input>>();
+        WeatherReader weatherReader = new WeatherReader();
+        foreach (var site in refData[cluster].Keys)
+        {
+            weatherData.Add(site, new Dictionary<DateTime, Input>());
+            string weatherFile = Path.Combine(weatherDir, "weather_station_" + site + ".csv");
+            switch (WeatherTimeStep)
             {
-                Console.WriteLine("Running calibration on cluster {0}\r", cluster);
-                #region define optimizer settings
-                // Multistart Nelder–Mead simplex configuration:
-                // - NofSimplexes: number of random starts
-                // - Ftol: tolerance on objective function for convergence
-                // - Itmax: maximum iterations per simplex
-                var msx = new MultiStartSimplex();
-                msx.NofSimplexes = 1;
-                msx.Ftol = 0.000000000001;
-                msx.Itmax = 1;
+                case "hourly":
+                    weatherData[site] = weatherReader.readHourly(weatherFile, startYear, endYear);
+                    break;
 
-                #endregion
-
-                #region Define parameter settings for calibration
-
-
-                // The entire parameter space (nameParam) is available to the optimizer
-                Dictionary<string, ParameterRange> nameParam = model_param_range[model];
-                if (calibrationVariable == "Phenology")
-                {
-                    foreach (var name in model_param_range["BBCH"].Keys)
+                case "daily":
+                    Dictionary<DateTime, InputDaily> weatherDataH = weatherReader.readDaily(weatherFile, startYear, endYear);
+                    foreach (var day in weatherDataH.Keys)
                     {
-                        nameParam.Add(name, model_param_range["BBCH"][name]);
+                        weatherData[site].AddRange(weatherReader.estimateHourly(weatherDataH[day], day));
                     }
-                }
-                _runner.nameParam = nameParam;
+                    break;
 
-                ////(A) CONDITION: IF YOU WANT CALIBRATE THE DURATION INCUBATION PARAM.
-                //if (!_runner.nameParam.ContainsKey("incubationDuration"))
-                //{
-                //    _runner.nameParam.Add("incubationDuration", new ParameterRange());
-                //    ParameterRange parIncubationDur = new ParameterRange();
-                //    parIncubationDur.max = 20;
-                //    parIncubationDur.min = 6;
-                //    parIncubationDur.calibration = "x";
-                //    _runner.nameParam["incubationDuration"] = parIncubationDur;
-                //}
+                default:
+                    Console.WriteLine("Check the WeatherTimeStep in the octoPus.json file, available choices are: \"daily\" or \"hourly\"");
+                    break;
+            }
 
-                ////(B) CONDITION: IF YOU WANT FIX THE DURATION INCUBATION PARAM.
-                // Ensure incubationDuration exists with fixed bounds/value AND NEVER calibrate it
-                if (!nameParam.ContainsKey("incubationDuration"))
+        }
+        #endregion
+
+        var thisRefData = refData[cluster];
+
+        foreach (var model in model_param_range.Keys)
+        {
+            _runner.nameParam = new Dictionary<string, ParameterRange>();
+            if (modelsToRun.Contains(model))
+            {
+                //to avoid calibrating on parameter classes different from the eight 'octopus models'
+                if (!toExclude.Contains(model))
                 {
-                    // se nel CSV non c'è, la definisci qui con valori fissi
-                    nameParam["incubationDuration"] = new ParameterRange
+                    Console.WriteLine("Running calibration on cluster {0}\r", cluster);
+                    #region define optimizer settings
+                    // Multistart Nelder–Mead simplex configuration:
+                    // - NofSimplexes: number of random starts
+                    // - Ftol: tolerance on objective function for convergence
+                    // - Itmax: maximum iterations per simplex
+                    var msx = new MultiStartSimplex();
+                    msx.NofSimplexes = 1;
+                    msx.Ftol = 0.000000000001;
+                    msx.Itmax = 1;
+
+                    #endregion
+
+                    #region Define parameter settings for calibration
+
+                    // FIX 2: build a FRESH COPY of the parameter dictionary for this model
+                    // (old code used a reference: Dictionary<string,ParameterRange> nameParam = model_param_range[model]
+                    //  which caused an ArgumentException "duplicate key" at the 2nd model iteration)
+                    var nameParam = new Dictionary<string, ParameterRange>(model_param_range[model]);
+                    _runner.nameParam = nameParam;
+
+                    //(A) CONDITION: IF YOU WANT TO CALIBRATE incubationDuration
+                    //if (!nameParam.ContainsKey("incubationDuration"))
+                    //{
+                    //    nameParam["incubationDuration"] = new ParameterRange
+                    //    {
+                    //        min = 6,
+                    //        max = 20,
+                    //        calibration = "x"   // <-- calibrated
+                    //    };
+                    //}
+                    //else
+                    //{
+                    //    nameParam["incubationDuration"].calibration = "x";
+                    //}
+
+                    //(B) CONDITION: IF YOU WANT TO FIX incubationDuration (not calibrated)
+                    // Ensure incubationDuration exists with fixed bounds/value AND NEVER calibrate it
+                    if (!nameParam.ContainsKey("incubationDuration"))
                     {
-                        min = 8,
-                        max = 20,
-                        //value = 15,          // <-- metti il default che vuoi
-                        calibration = ""     // <-- NON calibrato
-                    };
-                }
-                else
-                {
-                    //    // se nel CSV c'è, forzi comunque che NON sia calibrato
-                    nameParam["incubationDuration"].calibration = "";
-
-                }
-
-                // Determine which parameters are in the calibration subset
-                int paramCalibrated = 0;
-                var param_outCalibration = new Dictionary<string, float>();
-                var calibratedParamNames = new List<string>();
-
-                // Decide: parameters matching the calibrationVariable (or "all") and marked with a non-empty calibration tag
-                foreach (var kvp in nameParam)
-                {
-                    string name = kvp.Key;
-                    var param = kvp.Value;
-
-                    if (!string.IsNullOrWhiteSpace(param.calibration))
-                    {
-                        paramCalibrated++;
-                        calibratedParamNames.Add(name);
+                        // se nel CSV non c'è, la definisci qui con valori fissi
+                        nameParam["incubationDuration"] = new ParameterRange
+                        {
+                            min = 8,
+                            max = 20,
+                            //value = 15,          // <-- metti il default che vuoi
+                            calibration = ""     // <-- NON calibrato
+                        };
                     }
                     else
                     {
-                        // Keep default value for parameters outside the calibration subset
-                        param_outCalibration[name] = param.value;
+                        //    // se nel CSV c'è, forzi comunque che NON sia calibrato
+                        nameParam["incubationDuration"].calibration = "";
+
                     }
-                }
 
-                // Build bounds array (Limits) for the calibrated subset [min, max] per parameter
-                double[,] Limits = new double[paramCalibrated + 1, 2];
-                for (int i = 0; i < calibratedParamNames.Count; i++)
-                {
-                    var name = calibratedParamNames[i];
-                    var param = nameParam[name];
-                    Limits[i, 0] = param.min;
-                    Limits[i, 1] = param.max;
-                }
+                    // Determine which parameters are in the calibration subset
+                    int paramCalibrated = 0;
+                    var param_outCalibration = new Dictionary<string, float>();
+                    var calibratedParamNames = new List<string>();
 
-                //add incubation parameters
+                    // Decide: parameters matching the calibrationVariable (or "all") and marked with a non-empty calibration tag
+                    foreach (var kvp in nameParam)
+                    {
+                        string name = kvp.Key;
+                        var param = kvp.Value;
 
-                #endregion
+                        if (!string.IsNullOrWhiteSpace(param.calibration))
+                        {
+                            paramCalibrated++;
+                            calibratedParamNames.Add(name);
+                        }
+                        else
+                        {
+                            // Keep default value for parameters outside the calibration subset
+                            param_outCalibration[name] = param.value;
+                        }
+                    }
 
-                //message to console
-                Console.WriteLine("CALIBRATION STARTED FOR MODEL {0}", model);
+                    // Build bounds array (Limits) for the calibrated subset [min, max] per parameter
+                    double[,] Limits = new double[paramCalibrated + 1, 2];
+                    for (int i = 0; i < calibratedParamNames.Count; i++)
+                    {
+                        var name = calibratedParamNames[i];
+                        var param = nameParam[name];
+                        Limits[i, 0] = param.min;
+                        Limits[i, 1] = param.max;
+                    }
 
-                //set runner properties
-                _runner.availableSites = refData[cluster].Keys.ToList();
-                _runner.modelPath = LLMfile;
-                _runner.Rversion = Rversion;
-                _runner.WeatherTimeStep = WeatherTimeStep;
-                _runner.BBCH_Susceptibility = BBCH_susceptibility;
-                //_runner.weatherFile = weatherDir + "\\" + WeatherTimeStep + "\\" + site; //edit euge
-                _runner.octoPusParameters = octoPusParameters;
-                _runner.startYear = startYear;
-                _runner.endYear = endYear;
-                _runner.assistantRisk = assistantRisk;
-                _runner.veryHighModelsThreshold = veryHighModelsThreshold;
-                _runner.useLLM = useLLM;
-                _runner.useRandomForest = useRandomForest;
-                _runner.useConsole = useConsole;
-                _runner.modelUnderOptimization = model;
-                _runner.weatherDir = weatherDir;
-                _runner.param_outCalibration = param_outCalibration;
-                _runner.areEPIDMCASTexecutable = true;
-                _runner.site_year_onsetDate = thisRefData;
-                _runner.cluster = cluster;
-                _runner.site_phenoParam_value = site_phenoParam;
-                _runner.weatherData = weatherData;
+                    //add incubation parameters
 
-                if (calibrationVariable == "Onset")
-                {
+                    #endregion
+
+                    //message to console
+                    Console.WriteLine("CALIBRATION STARTED FOR MODEL {0}", model);
+
+                    //set runner properties
+                    _runner.availableSites = refData[cluster].Keys.ToList();
+                    _runner.modelPath = LLMfile;
+                    _runner.Rversion = Rversion;
+                    _runner.WeatherTimeStep = WeatherTimeStep;
+                    _runner.BBCH_Susceptibility = BBCH_susceptibility;
+                    //_runner.weatherFile = weatherDir + "\\" + WeatherTimeStep + "\\" + site; //edit euge
+                    _runner.octoPusParameters = octoPusParameters;
+                    _runner.startYear = startYear;
+                    _runner.endYear = endYear;
+                    _runner.assistantRisk = assistantRisk;
+                    _runner.veryHighModelsThreshold = veryHighModelsThreshold;
+                    _runner.useLLM = useLLM;
+                    _runner.useRandomForest = useRandomForest;
+                    _runner.useConsole = useConsole;
+                    _runner.modelUnderOptimization = model;
+                    _runner.weatherDir = weatherDir;
+                    _runner.param_outCalibration = param_outCalibration;
+                    _runner.areEPIDMCASTexecutable = true;
+                    _runner.site_year_onsetDate = thisRefData;
+                    _runner.cluster = cluster;
+                    _runner.site_phenoParam_value = site_phenoParam;
+                    _runner.weatherData = weatherData;
+                    _runner.calibrationVariable = calibrationVariable;
+
                     #region run octoPus
                     //empty list of dates and SWELL outputs
                     var dateOutputs = new Dictionary<DateTime, OutputsDaily>();
@@ -318,72 +460,11 @@ foreach (var cluster in refData.Keys)
                     _runner.oneShot(paramCalibValue);
                     #endregion
                 }
-                else if (calibrationVariable == "Phenology")
-                {
-                    foreach (var site in availableSites)
-                    {
-                        var siteKey = site.Substring(0, site.Length - 4);
-
-                        if (refDatabbch.ContainsKey(siteKey))
-                        {
-
-
-
-                            //message to console
-                            Console.WriteLine("CALIBRATION STARTED FOR SITE {0}", site);
-
-                            var singleSite = new List<string>();
-                            singleSite.Add(site);
-                            _runner.availableSites = singleSite;
-
-                            _runner.calibrationVariable = calibrationVariable;
-
-                            _runner.Year_bbchDate_Ref = refDatabbch[siteKey];
-
-
-                            #region run phenology model
-                            //empty list of dates and SWELL outputs
-                            var dateOutputs = new Dictionary<DateTime, OutputsDaily>();
-                            // Run the multistart simplex optimizer
-                            // Results buffer returned by the optimizer (1 row x N params here)
-                            double[,] results = new double[1, 1];
-                            msx.Multistart(_runner, paramCalibrated, Limits, out results);
-
-                            //get calibrated parameters
-                            var paramCalibValue = new Dictionary<string, float>();
-                            int count = 0;
-
-                            #region write calibrated parameters
-                            string header = "param, value";
-                            List<string> writeParam = new List<string>();
-                            writeParam.Add(header);
-                            foreach (var param in calibratedParamNames)
-                            {
-                                //write a line for each parameter
-                                string line = "";
-                                line += param + ",";
-                                line += results[0, count];
-                                writeParam.Add(line);
-                                paramCalibValue.Add(param, (float)results[0, count]);
-                                count++;
-                            }
-
-                            //write calibrated parameters to file
-                            System.IO.File.WriteAllLines("calibratedParametersPhenology//calibParam_" + site, writeParam);
-                            #endregion
-
-                            //execute model with calibrated parameters
-                            _runner.oneShot(paramCalibValue);
-
-                            #endregion
-                        }
-                    }
-                }
             }
         }
     }
+    #endregion
 }
-#endregion
 
 //read model and parameters from file
 Dictionary<string, Dictionary<string, ParameterRange>> paramRangeReader(string fileName)
@@ -417,16 +498,16 @@ Dictionary<string, Dictionary<string, ParameterRange>> paramRangeReader(string f
 
     }
     sr.Close();
-    return(mod_par_ran);
+    return (mod_par_ran);
 
 }
 
 public class ParameterRange
 {
-    public float min { get; set; }  
+    public float min { get; set; }
     public float max { get; set; }
     public float value { get; set; }
-    public string calibration {  get; set; }
+    public string calibration { get; set; }
 }
 
 
@@ -439,7 +520,7 @@ public class root
 {
     public settings? settings { get; set; }
     public paths? paths { get; set; }
-    
+
 
 }
 
@@ -475,5 +556,3 @@ public class paths
     public string? bbchReference { get; set; }
 }
 #endregion
-
-
