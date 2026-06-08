@@ -194,7 +194,7 @@ if (calibrationVariable == "Phenology")
         #region define optimizer settings
         var msxPheno = new MultiStartSimplex();
         msxPheno.NofSimplexes = 10;
-        msxPheno.Ftol = 0.01;
+        msxPheno.Ftol = 0.001;
         msxPheno.Itmax = 10000;
         #endregion
 

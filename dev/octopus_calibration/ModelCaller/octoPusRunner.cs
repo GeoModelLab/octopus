@@ -463,6 +463,18 @@ namespace octoPusAI.ModelCallers
                         parameters.bbchParameters[kvp.Key] =
                             new parametersBBCH { cycleCompletion = kvp.Value.cycleCompletion };
                 }
+                // Monotonicita' BBCH (solo fenologia): forza ogni anchor >= al precedente
+                if (calibrationVariable == "Phenology")
+                {
+                    var monoCodes = parameters.bbchParameters.Keys.OrderBy(c => c).ToList();
+                    for (int m = 1; m < monoCodes.Count; m++)
+                    {
+                        if (parameters.bbchParameters[monoCodes[m]].cycleCompletion < parameters.bbchParameters[monoCodes[m - 1]].cycleCompletion)
+                        {
+                            parameters.bbchParameters[monoCodes[m]].cycleCompletion = parameters.bbchParameters[monoCodes[m - 1]].cycleCompletion;
+                        }
+                    }
+                }
 
                 _detailedCropParameters = generateDetailedPhenologyParameters(parameters);
                 parameters = _detailedCropParameters;
@@ -1083,6 +1095,19 @@ namespace octoPusAI.ModelCallers
                     foreach (var kvp in calibratedBbchAnchors)
                         parameters.bbchParameters[kvp.Key] =
                             new parametersBBCH { cycleCompletion = kvp.Value.cycleCompletion };
+                }
+
+                // Monotonicita' BBCH (solo fenologia): forza ogni anchor >= al precedente
+                if (calibrationVariable == "Phenology")
+                {
+                    var monoCodes = parameters.bbchParameters.Keys.OrderBy(c => c).ToList();
+                    for (int m = 1; m < monoCodes.Count; m++)
+                    {
+                        if (parameters.bbchParameters[monoCodes[m]].cycleCompletion < parameters.bbchParameters[monoCodes[m - 1]].cycleCompletion)
+                        {
+                            parameters.bbchParameters[monoCodes[m]].cycleCompletion = parameters.bbchParameters[monoCodes[m - 1]].cycleCompletion;
+                        }
+                    }
                 }
 
                 _detailedCropParameters = generateDetailedPhenologyParameters(parameters);
