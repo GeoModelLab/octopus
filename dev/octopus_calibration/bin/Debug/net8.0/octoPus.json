@@ -21,6 +21,6 @@
         "susceptibilityFileBBCH": "..\\..\\..\\files\\Parameters\\hostSusceptibilityParameters.csv",
         "outputDir": "..\\..\\..\\outputs\\",
         "referenceFile": "..\\..\\..\\Files\\Reference\\reference_file_2026_Cluster.csv",
-        "bbchReference": "..\\..\\..\\Files\\Reference\\bbch_Reference_2026.csv"
+        "bbchReference": "..\\..\\..\\Files\\Reference\\bbch_Reference_2026_cleaned.csv"
     }
 }
