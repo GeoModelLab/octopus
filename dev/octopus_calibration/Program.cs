@@ -239,13 +239,22 @@ if (calibrationVariable == "Phenology")
         writeParamPheno.Add(headerPheno);
         foreach (var param in calibratedParamNamesPheno)
         {
-            string line = "";
-            line += param + ",";
-            line += resultsPheno[0, countPheno];
-            writeParamPheno.Add(line);
             paramCalibValuePheno.Add(param, (float)resultsPheno[0, countPheno]);
             countPheno++;
         }
+
+        // Monotonicita' BBCH: forza ogni anchor >= al precedente, prima di salvare il file
+        var bbchKeysPheno = paramCalibValuePheno.Keys.Where(k => k.StartsWith("bbch")).OrderBy(k => int.Parse(k.Substring(4, 2))).ToList();
+        for (int b = 1; b < bbchKeysPheno.Count; b++)
+        {
+            if (paramCalibValuePheno[bbchKeysPheno[b]] < paramCalibValuePheno[bbchKeysPheno[b - 1]])
+                paramCalibValuePheno[bbchKeysPheno[b]] = paramCalibValuePheno[bbchKeysPheno[b - 1]];
+        }
+
+        // ricostruisci le righe del file con i valori corretti
+        writeParamPheno = new List<string> { headerPheno };
+        foreach (var param in calibratedParamNamesPheno)
+            writeParamPheno.Add(param + "," + paramCalibValuePheno[param]);
 
         //write calibrated parameters to file
         System.IO.File.WriteAllLines("calibratedParametersPhenology//calibParam_" + siteKey + ".csv", writeParamPheno);

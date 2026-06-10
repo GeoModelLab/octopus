@@ -74,7 +74,7 @@ Phenology,ChillThreshold,5,12,8,°C,
 Phenology,ChillingRequirement,50,200,100,hours,x
 Phenology,CycleLength,1600,2800,2500,°C day,x
 BBCH,bbch08,0,4,1,BBCH code,x
-BBCH,bbch10,0,5,1,BBCH code,x
+BBCH,bbch10,0,5,2,BBCH code,x
 BBCH,bbch11,1,22,16,BBCH code,x
 BBCH,bbch53,30,70,50,BBCH code,x
 BBCH,bbch65,15,55,45,BBCH code,
