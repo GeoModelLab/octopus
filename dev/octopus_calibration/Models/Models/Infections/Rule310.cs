@@ -34,27 +34,27 @@ namespace Models.Infections
             double Temperature = Temperatures.Average();
             double BBCH = Output.outputsPhenology.bbchPhenophaseCode;
 
-            if (Output.outputsRule310.infectionEvents.Count == 0)
+        //if (Output.outputsRule310.infectionEvents.Count == 0)
+        //{
+            //The rule
+            if (Precipitation >= Parameters.rule310Parameters.precipitationThreshold &&
+            Temperature >= Parameters.rule310Parameters.baseTemperature &&
+            BBCH >= Parameters.rule310Parameters.bbchThreshold)
             {
-                //The rule
-                if (Precipitation >= Parameters.rule310Parameters.precipitationThreshold &&
-                Temperature >= Parameters.rule310Parameters.baseTemperature &&
-                BBCH >= Parameters.rule310Parameters.bbchThreshold)
-                {
-                    var infectionEvent = new GenericInfection();
-                    infectionEvent.infectionDate = Input.Date;
-                    //track phenophase
-                    infectionEvent.phenophase = Output.outputsPhenology.bbchPhenophase;
+                var infectionEvent = new GenericInfection();
+                infectionEvent.infectionDate = Input.Date;
+                //track phenophase
+                infectionEvent.phenophase = Output.outputsPhenology.bbchPhenophase;
 
 
-                    Output.outputsRule310.infectionEvents.Add(infectionEvent);
+                Output.outputsRule310.infectionEvents.Add(infectionEvent);
 
-                }
+            }
 
-                #endregion
+            #endregion
 
                
-            }
+        //}
 
             #region Incubation
 

@@ -1,6 +1,6 @@
 ﻿{
     "settings": {
-        "startYear": 2011,
+        "startYear": 2015,
         "endYear": 2025,
         "sites": [ "" ],
         "assistantRisk": 2,
@@ -12,12 +12,12 @@
         "useLLM": false,
         "useRandomForest": false,
         "useConsole": false,
-        "modelsToRun": [ "Phenology" ],
-        "calibrationVariable": "Phenology"
+        "modelsToRun": [ "IPI" ],
+        "calibrationVariable": "onset"
     },
     "paths": {
         "weatherDir": "..\\..\\..\\Files\\Weather\\sites_openMeteo",
-        "octoPusParametersPath": "..\\..\\..\\files\\Parameters\\octoPusParameters.csv",
+        "octoPusParametersPath": "..\\..\\..\\files\\Parameters\\octoPusParameters_param before.csv",
         "susceptibilityFileBBCH": "..\\..\\..\\files\\Parameters\\hostSusceptibilityParameters.csv",
         "outputDir": "..\\..\\..\\outputs\\",
         "referenceFile": "..\\..\\..\\Files\\Reference\\reference_file_2026_Cluster.csv",

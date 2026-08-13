@@ -365,7 +365,7 @@ namespace octoPusAI.ModelCallers
                         modelUnderOptimization == "DMCast" ||
                         modelUnderOptimization == "UCSC")
                     {
-                        startYear = year_onsetDate.Keys.First() - 1;
+                        startYear = year_onsetDate.Keys.First() - 10;
                         endYear = year_onsetDate.Keys.Last();
                     }
                 }
@@ -992,7 +992,7 @@ namespace octoPusAI.ModelCallers
                         modelUnderOptimization == "DMCast" ||
                         modelUnderOptimization == "UCSC")
                     {
-                        startYear = year_onsetDate.Keys.First() - 1;
+                        startYear = year_onsetDate.Keys.First() - 10;
                         endYear = year_onsetDate.Keys.Last();
                     }
                 }

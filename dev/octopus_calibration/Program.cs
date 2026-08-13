@@ -304,6 +304,21 @@ else
 
         var thisRefData = refData[cluster];
 
+        // Multistart Nelder-Mead simplex configuration.
+        //
+        // NofSimplexes = number of random restarts. This is the setting that matters:
+        // the objective (RMSE on integer onset dates) is piecewise constant, so a single
+        // simplex can stall on a plateau or on a local minimum depending on its starting
+        // point. Scale it with the number of calibrated parameters, roughly 1.5x:
+        //
+        //    n. calibrated params |  NofSimplexes  |
+        //    ---------------------|----------------|
+        //              3          |       5        
+        //              5          |       8        
+        //              8          |      10        
+        //             12          |      12        
+        //
+
         foreach (var model in model_param_range.Keys)
         {
             _runner.nameParam = new Dictionary<string, ParameterRange>();
@@ -319,9 +334,9 @@ else
                     // - Ftol: tolerance on objective function for convergence
                     // - Itmax: maximum iterations per simplex
                     var msx = new MultiStartSimplex();
-                    msx.NofSimplexes = 1;
-                    msx.Ftol = 0.000000000001;
-                    msx.Itmax = 1;
+                    msx.NofSimplexes = 10;
+                    msx.Ftol = 0.0001;
+                    msx.Itmax = 10000;
 
                     #endregion
 
@@ -334,39 +349,39 @@ else
                     _runner.nameParam = nameParam;
 
                     //(A) CONDITION: IF YOU WANT TO CALIBRATE incubationDuration
-                    //if (!nameParam.ContainsKey("incubationDuration"))
-                    //{
-                    //    nameParam["incubationDuration"] = new ParameterRange
-                    //    {
-                    //        min = 6,
-                    //        max = 20,
-                    //        calibration = "x"   // <-- calibrated
-                    //    };
-                    //}
-                    //else
-                    //{
-                    //    nameParam["incubationDuration"].calibration = "x";
-                    //}
-
-                    //(B) CONDITION: IF YOU WANT TO FIX incubationDuration (not calibrated)
-                    // Ensure incubationDuration exists with fixed bounds/value AND NEVER calibrate it
                     if (!nameParam.ContainsKey("incubationDuration"))
                     {
-                        // se nel CSV non c'è, la definisci qui con valori fissi
                         nameParam["incubationDuration"] = new ParameterRange
                         {
-                            min = 8,
-                            max = 20,
-                            //value = 15,          // <-- metti il default che vuoi
-                            calibration = ""     // <-- NON calibrato
+                            min = 4,
+                            max = 24,
+                            calibration = "x"   // <-- calibrated
                         };
                     }
                     else
                     {
-                        //    // se nel CSV c'è, forzi comunque che NON sia calibrato
-                        nameParam["incubationDuration"].calibration = "";
-
+                        nameParam["incubationDuration"].calibration = "x";
                     }
+
+                    //(B) CONDITION: IF YOU WANT TO FIX incubationDuration (not calibrated)
+                    // Ensure incubationDuration exists with fixed bounds/value AND NEVER calibrate it
+                    //if (!nameParam.ContainsKey("incubationDuration"))
+                    //{
+                    //    // se nel CSV non c'è, la definisci qui con valori fissi
+                    //    nameParam["incubationDuration"] = new ParameterRange
+                    //    {
+                    //        min = 8,
+                    //        max = 20,
+                    //        //value = 15,          // <-- metti il default che vuoi
+                    //        calibration = ""     // <-- NON calibrato
+                    //    };
+                    //}
+                    //else
+                    //{
+                    //    //    // se nel CSV c'è, forzi comunque che NON sia calibrato
+                    //    nameParam["incubationDuration"].calibration = "";
+
+                    //}
 
                     // Determine which parameters are in the calibration subset
                     int paramCalibrated = 0;

@@ -1,0 +1,90 @@
+class,parameter,min,max,value,units,calibration
+Rule310,baseTemperature,8,13,11.573,°C,x
+Rule310,precipitationThreshold,8,12,10.275,mm,x
+Rule310,numberOfHoursToConsider,20,30,23,hours,x
+Rule310,bbchThreshold,8,12,15,BBCH code,
+Magarey,baseTemperatureRule210,7,13,11.603,°C,x
+Magarey,precipitationThresholdRule210,8,12,10.191,mm,x
+Magarey,baseTemperatureInfection,5.3,9.6,7.396,°C,x
+Magarey,precipitationThresholdInfection,1.6,2.4,1.999,mm,x
+Magarey,numberOfHoursToConsiderRule210,20,33.5,26,hours,x
+Magarey,numberOfHoursToConsiderGermination,11,19,16,hours,x
+Magarey,numberOfHoursToConsiderInfection,5.5,9.6,8,hours,x
+Magarey,degreeHoursThresholdInfection,38.4,57.6,45.733,°C day,x
+Magarey,rainTriggeringSplash,0.2,1,0.686,mm,x
+Magarey,bbchThreshold,8,12,15,BBCH code,
+EPI,keConstant,0.0095,0.027,0.027,unitless,x
+EPI,urUpperThreshold,80,112,92.467,%,x
+EPI,urLowerThreshold,60,87,71.25,%,x
+EPI,peConstant,0.1,0.22,0.107,fraction,x
+EPI,alertThreshold,0,5,4.171,unitless,x
+EPI,tempThresholdInf,6.5,13.2,8.786,°C,x
+EPI,precThresholdInf,2.5,4.3,2.946,mm,x
+EPI,bbchThreshold,12,18,15,BBCH code,
+DMCast,muK1,94.4,145,121.508,unitless,x
+DMCast,sigmaK1,10.8,16.8,13.134,unitless,x
+DMCast,thresholdPOM,0.024,0.036,0.029,fraction,x
+DMCast,precThresholdOosporeGerm,2,3,2.373,mm,x
+DMCast,tempThresholdOosporeGerm,8.3,13.2,8.649,°C,x
+DMCast,tempThresholdSporangiaGerm,8.8,15,11.777,°C,x
+DMCast,daysForSporangiaGerm,5,9.6,7.663,days,x
+DMCast,precThresholdInf,0.12,0.24,0.177,mm,x
+DMCast,tempThresholdInf,8,13.2,10.581,°C,x
+DMCast,bbchThreshold,12,18,15,BBCH code,
+DMCast,daysForInfection,8.8,15,13.311,days,x
+IPI,riUpperThreshold,1.8,3.6,3.066,unitless,x
+IPI,tmeaniTminThreshold,10,15.9,11.594,°C,x
+IPI,tmeaniUpperThreshold,0.8,1.2,1.079,°C,x
+IPI,lwiLowerThreshold,0.8,1.2,1,hours,x
+IPI,lwiUpperThreshold,4,6,4.517,hours,x
+IPI,rhiUpperThreshold,1.6,2.4,1.929,unitless,x
+IPI,ipiTminThreshold,6.5,10.8,8.6,°C,x
+IPI,alertThreshold,10.2,16.5,12.955,unitless,x
+IPI,tempThresholdInf,7.8,13.2,9.407,°C,x
+IPI,precThresholdInf,1,2.7,1.536,mm,x
+IPI,bbchThreshold,12,18,15,BBCH code,
+UCSC,vpdThreshold,360,540,450.237,Kpa,x
+UCSC,dormancyBrakingLowerThreshold,0.022,0.04,0.032,unitless,x
+UCSC,dormancyBrakingUpperThreshold,0.776,1.22,0.996,unitless,x
+UCSC,germinationThreshold,0.4,1.1,0.882,unitless,x
+UCSC,sporangiaSurvivalThreshold,0.8,1.2,1.028,unitless,x
+UCSC,zoosporeSurvivalThreshold,0.8,1.3,1.032,unitless,x
+UCSC,infectionThreshold,48,72,64.086,unitless,x
+UCSC,incubationLowerThreshold,0.5,1.5,0.876,unitless,x
+UCSC,incubationUpperThreshold,0.6,1.5,1.186,unitless,x
+UCSC,bbchThreshold,8,12,15,BBCH code,
+Misfits,LWminMacrosporangiaFormation,6,17.5,11,hours,x
+Misfits,LWoptMacrosporangiaFormation,14,31,21,hours,x
+Misfits,TminMacrosporangiaInfection,7.5,13,10.809,°C,x
+Misfits,ToptMacrosporangiaInfection,14.4,21.6,18.386,°C,x
+Misfits,TmaxMacrosporangiaInfection,14,23,17.297,°C,x
+Misfits,LWminMacrosporangiaInfection,1,3,2,hours,x
+Misfits,RainStartMacrosporangiaSpread,2,5.5,3.926,mm,x
+Misfits,RHminMacrosporangiaFormation,57,88,65.102,%,x
+Misfits,TminMacrosporangiaFormation,7,14,11.942,°C,x
+Misfits,ToptMacrosporangiaFormation,14.4,22.8,18.931,°C,x
+Misfits,TmaxMacrosporangiaFormation,17,30,24.279,°C,x
+Misfits,bbchThreshold,8,12,15,BBCH code,
+Laore,infectionThresholdRisk,6,28,22.425,unitless,x
+Laore,bbchThreshold,8,12,15,BBCH code,
+Phenology,TminPlant,5,8,10,°C,
+Phenology,ToptPlant,20,30,22,°C,
+Phenology,TmaxPlant,28,42,35,°C,
+Phenology,ChillThreshold,5,12,8,°C,
+Phenology,ChillingRequirement,50,200,100,hours,x
+Phenology,CycleLength,1600,2800,2900,°C day,x
+BBCH,bbch08,0,4,0,BBCH code,x
+BBCH,bbch10,0,4,0,BBCH code,x
+BBCH,bbch11,0,25,16,BBCH code,x
+BBCH,bbch53,30,70,20,BBCH code,x
+BBCH,bbch65,15,45,55,BBCH code,
+BBCH,bbch71,10,30,20,BBCH code,
+BBCH,bbch77,20,35,30,BBCH code,
+BBCH,bbch81,25,50,40,BBCH code,
+BBCH,bbch85,30,65,65,BBCH code,
+BBCH,bbch89,50,85,80,BBCH code,
+BBCH,bbch99,85,100,90,BBCH code,
+Incubation,tminIncubation,5,10,8,°C,
+Incubation,toptIncubation,17,25,22,°C,
+Incubation,tmaxIncubation,25,35,32,°C,
+Incubation,incubationDuration,4,28,10,days,x

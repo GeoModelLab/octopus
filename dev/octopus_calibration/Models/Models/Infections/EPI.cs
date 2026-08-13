@@ -46,37 +46,38 @@ namespace Models.Infections
 
            
 
-            if (Output.outputsEPI.infectionEvents.Count == 0)
+            //if (Output.outputsEPI.infectionEvents.Count == 0)
+            //{
+            InfectionCount.Add(Input);
+
+            if (Input.Date.Hour == 00)
             {
-                InfectionCount.Add(Input);
-
-                if (Input.Date.Hour == 00)
+                Output.outputsEPI.epi = KES + PES;
+                if (Output.outputsEPI.epi > Parameters.epiParameters.alertThreshold && Input.Date.Month < 10)
                 {
-                    Output.outputsEPI.epi = KES + PES;
-                    if (Output.outputsEPI.epi > Parameters.epiParameters.alertThreshold && Input.Date.Month < 10)
+                    double DailyPrec = InfectionCount.Where(x => x.Precipitation > 0.2).
+                                        Select(x => x.Precipitation).Sum();
+
+                    double DailyTemp = InfectionCount.Select(x => x.Temperature).Average();
+
+                    //TODO: not used here
+                    double BBCH = Output.outputsPhenology.bbchPhenophaseCode;
+
+                    if (DailyTemp > Parameters.epiParameters.tempThresholdInf &&
+                        DailyPrec > Parameters.epiParameters.precThresholdInf &&
+                        BBCH >= Parameters.epiParameters.bbchThreshold)
                     {
-                        double DailyPrec = InfectionCount.Where(x => x.Precipitation > 0.2).
-                                           Select(x => x.Precipitation).Sum();
-
-                        double DailyTemp = InfectionCount.Select(x => x.Temperature).Average();
-
-                        //TODO: not used here
-                        double BBCH = Output.outputsPhenology.bbchPhenophaseCode;
-
-                        if (DailyTemp > Parameters.epiParameters.tempThresholdInf &&
-                            DailyPrec > Parameters.epiParameters.precThresholdInf &&
-                            BBCH >= Parameters.epiParameters.bbchThreshold)
-                        {
-                            var infectionEvent = new GenericInfection();
-                            infectionEvent.infectionDate = Input.Date;
-                            //track phenophase
-                            infectionEvent.phenophase = Output.outputsPhenology.bbchPhenophase;
-                            Output.outputsEPI.infectionEvents.Add(infectionEvent);
-                        }
-                        InfectionCount = new List<Input>();
+                        var infectionEvent = new GenericInfection();
+                        infectionEvent.infectionDate = Input.Date;
+                        //track phenophase
+                        infectionEvent.phenophase = Output.outputsPhenology.bbchPhenophase;
+                        Output.outputsEPI.infectionEvents.Add(infectionEvent);
                     }
+                    InfectionCount = new List<Input>();
                 }
             }
+
+            //}
             #endregion
 
             #region Incubation
