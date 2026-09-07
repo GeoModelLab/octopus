@@ -90,6 +90,7 @@ namespace octoPusAI.ModelCallers
         public Dictionary<string, Dictionary<string, float>> site_phenoParam_value = new Dictionary<string, Dictionary<string, float>>();
         public string weatherFile;
         public string cluster;
+        public float fixedIncubationDuration;
         public int startYear;
         public int endYear; 
         public float assistantRisk;
@@ -138,6 +139,7 @@ namespace octoPusAI.ModelCallers
         //public void octoPus(out Dictionary<DateTime, OutputsDaily> date_outputs)
         public double ObjfuncVal(double[] Coefficient, double[,] limits)
         {
+
             #region Calibration methods
             for (int j = 0; j < Coefficient.Length && j < limits.GetLength(0); j++)
             {
@@ -365,7 +367,7 @@ namespace octoPusAI.ModelCallers
                         modelUnderOptimization == "DMCast" ||
                         modelUnderOptimization == "UCSC")
                     {
-                        startYear = year_onsetDate.Keys.First() - 10;
+                        startYear = year_onsetDate.Keys.First() - 20;
                         endYear = year_onsetDate.Keys.Last();
                     }
                 }
@@ -705,8 +707,11 @@ namespace octoPusAI.ModelCallers
             }
 
             int totalInnerKeys = site_year_onsetDate.Sum(kvp => kvp.Value.Count);
+            if (_neval % 200 == 0 && calibrationVariable != "Phenology")
+            {
+                Console.WriteLine($"\n[COVERAGE] errors={errors.Count} expected={totalInnerKeys}");
+            }
 
-         
             double objectiveFunction = 0;
             if (calibrationVariable == "Phenology")
             {
@@ -892,49 +897,32 @@ namespace octoPusAI.ModelCallers
                 }
                 if (paramClass[0] == "Incubation")
                 {
-                    if (!paramPheno.Key.Contains("incubationDuration"))
+                    var prop = propsIncubation.FirstOrDefault(p => p.Name == paramClass[1]);
+                    if (prop != null)
                     {
-                        var prop = propsIncubation.FirstOrDefault(p => p.Name == paramClass[1]);
-                        if (prop != null)
-                            prop.SetValue(parametersIncubation, paramPheno.Value);
-                    }
-                    else
-                    {
-                        var prop = propsIncubation.FirstOrDefault(p => p.Name == paramClass[1]);
-                        if (prop != null)
+                        if (paramClass[1] != "incubationDuration")
                         {
-                            // (A) CONDITION: IF YOU WANT CALIBRATE THE INCUBATION DURATION PARAM.
-                            //prop.SetValue(parametersIncubation, paramValue["incubationDuration"]); //<-- use paramValue
+                            //tminIncubation, toptIncubation, tmaxIncubation: sempre dal file parametri
+                            prop.SetValue(parametersIncubation, paramPheno.Value);
+                        }
+                        else
+                        {
+                            
+                            bool isCalibratedIncubation =
+                                nameParam.ContainsKey("incubationDuration") &&
+                                !string.IsNullOrWhiteSpace(nameParam["incubationDuration"].calibration);
 
+                            float incDur;
+                            if (isCalibratedIncubation && paramValue.ContainsKey("incubationDuration"))
+                                incDur = paramValue["incubationDuration"];   // FASE 1: valore calibrato
+                            else
+                                incDur = fixedIncubationDuration;            // FASI SUCCESSIVE: valore fisso
 
+                            prop.SetValue(parametersIncubation, incDur);
 
-                            // (B) CONDITION: IF YOU WANT USE THE FIX INCUBATION DURATION PARAM.
-
-                            //(B1) Use a differente value for cluster
-                            float fixedIncubationDuration;
-                            if (cluster == "C1")
-                                fixedIncubationDuration = 9f; //median cluster C1
-                            else if (cluster == "C2")
-                                fixedIncubationDuration = 17f; //median cluster C2
-
-                            else fixedIncubationDuration = paramPheno.Value; //fallback
-
-                            prop.SetValue(parametersIncubation, fixedIncubationDuration);
-
-
-                            //(B2)
-                            //prop.SetValue(parametersIncubation, paramPheno.Value); // <-- FORCE NON paramValue
-
-                            //check current value of durationIcubation
-                            var currentValue = prop.GetValue(parametersIncubation);
-
-                            // DEBUG: WHICH VALUE IS ACTUALLY USED?
                             Console.ForegroundColor = ConsoleColor.Yellow;
-                            Console.WriteLine(
-                                $"[DEBUG] incubationDuration USED = {fixedIncubationDuration} (cluster={cluster})");
-
-                            //debug version to check the calibrated value 
-                            // $"[DEBUG] incubationDuration USED = {paramValue["incubationDuration"]} (CALIBRATED).
+                            Console.WriteLine($"[DEBUG] incubationDuration USED = {incDur} " +
+                                              $"(cluster={cluster}, calibrated={isCalibratedIncubation})");
                             Console.ResetColor();
                         }
                     }
@@ -992,7 +980,7 @@ namespace octoPusAI.ModelCallers
                         modelUnderOptimization == "DMCast" ||
                         modelUnderOptimization == "UCSC")
                     {
-                        startYear = year_onsetDate.Keys.First() - 10;
+                        startYear = year_onsetDate.Keys.First() - 20;
                         endYear = year_onsetDate.Keys.Last();
                     }
                 }

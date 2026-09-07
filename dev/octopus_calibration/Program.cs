@@ -269,9 +269,23 @@ else
 {
     #region ONSET CALIBRATION (epidemiological models)
 
+    // Durata dell'incubazione fissata per cluster, ricavata dalla FASE 1.
+    // Dopo il run di fase 1: aggiorna questi valori con le mediane ottenute,
+    // poi metti calibrateIncubationDuration = false.
+    var incubationByCluster = new Dictionary<string, float>
+{
+    { "C1",  7f },
+    { "C2", 6f },
+    { "C3", 20f }
+};
+
+
     //loop over clusters
     foreach (var cluster in refData.Keys)
     {
+        // cluster filtering if you need --> COMMENT IF YOU USE ALL CLUSTERS
+        if (cluster != "C3") continue;
+
         #region read weather data
         //read weather data
         var weatherData = new Dictionary<string, Dictionary<DateTime, Input>>();
@@ -304,20 +318,7 @@ else
 
         var thisRefData = refData[cluster];
 
-        // Multistart Nelder-Mead simplex configuration.
-        //
-        // NofSimplexes = number of random restarts. This is the setting that matters:
-        // the objective (RMSE on integer onset dates) is piecewise constant, so a single
-        // simplex can stall on a plateau or on a local minimum depending on its starting
-        // point. Scale it with the number of calibrated parameters, roughly 1.5x:
-        //
-        //    n. calibrated params |  NofSimplexes  |
-        //    ---------------------|----------------|
-        //              3          |       5        
-        //              5          |       8        
-        //              8          |      10        
-        //             12          |      12        
-        //
+   
 
         foreach (var model in model_param_range.Keys)
         {
@@ -336,7 +337,7 @@ else
                     var msx = new MultiStartSimplex();
                     msx.NofSimplexes = 10;
                     msx.Ftol = 0.0001;
-                    msx.Itmax = 10000;
+                    msx.Itmax = 1000;
 
                     #endregion
 
@@ -348,40 +349,43 @@ else
                     var nameParam = new Dictionary<string, ParameterRange>(model_param_range[model]);
                     _runner.nameParam = nameParam;
 
-                    //(A) CONDITION: IF YOU WANT TO CALIBRATE incubationDuration
-                    if (!nameParam.ContainsKey("incubationDuration"))
+                    // ============================================================
+                    // INTERRUTTORE UNICO per incubationDuration
+                    //   true  = FASE 1: calibrato insieme ai parametri del modello
+                    //   false = FASI SUCCESSIVE: fissato alla mediana del cluster
+                    // ============================================================
+                    bool calibrateIncubationDuration = false;
+
+                    float fixedIncubation;
+                    if (!incubationByCluster.TryGetValue(cluster, out fixedIncubation))
+                    {
+                        fixedIncubation = 10f;
+                        Console.WriteLine($"[WARN] cluster '{cluster}' assente da incubationByCluster: uso {fixedIncubation}");
+                    }
+
+                    if (calibrateIncubationDuration)
                     {
                         nameParam["incubationDuration"] = new ParameterRange
                         {
                             min = 4,
                             max = 24,
-                            calibration = "x"   // <-- calibrated
+                            value = fixedIncubation,
+                            calibration = "x"
                         };
                     }
                     else
                     {
-                        nameParam["incubationDuration"].calibration = "x";
+                        nameParam["incubationDuration"] = new ParameterRange
+                        {
+                            min = fixedIncubation,
+                            max = fixedIncubation,
+                            value = fixedIncubation,
+                            calibration = ""
+                        };
                     }
 
-                    //(B) CONDITION: IF YOU WANT TO FIX incubationDuration (not calibrated)
-                    // Ensure incubationDuration exists with fixed bounds/value AND NEVER calibrate it
-                    //if (!nameParam.ContainsKey("incubationDuration"))
-                    //{
-                    //    // se nel CSV non c'è, la definisci qui con valori fissi
-                    //    nameParam["incubationDuration"] = new ParameterRange
-                    //    {
-                    //        min = 8,
-                    //        max = 20,
-                    //        //value = 15,          // <-- metti il default che vuoi
-                    //        calibration = ""     // <-- NON calibrato
-                    //    };
-                    //}
-                    //else
-                    //{
-                    //    //    // se nel CSV c'è, forzi comunque che NON sia calibrato
-                    //    nameParam["incubationDuration"].calibration = "";
-
-                    //}
+                    Console.WriteLine($"[SETUP] cluster {cluster} | modello {model} | incubationDuration: " +
+                        (calibrateIncubationDuration ? "CALIBRATO [4,24]" : $"FISSO = {fixedIncubation}"));
 
                     // Determine which parameters are in the calibration subset
                     int paramCalibrated = 0;
@@ -444,6 +448,7 @@ else
                     _runner.areEPIDMCASTexecutable = true;
                     _runner.site_year_onsetDate = thisRefData;
                     _runner.cluster = cluster;
+                    _runner.fixedIncubationDuration = fixedIncubation;
                     _runner.site_phenoParam_value = site_phenoParam;
                     _runner.weatherData = weatherData;
                     _runner.calibrationVariable = calibrationVariable;
@@ -474,6 +479,21 @@ else
                         writeParam.Add(line);
                         paramCalibValue.Add(param, (float)results[0, count]);
                         count++;
+                    }
+
+
+                    // check on max min bounds (the opt values is inside the range?
+                    foreach (var param in calibratedParamNames)
+                    {
+                        float v = paramCalibValue[param];
+                        float lo = nameParam[param].min;
+                        float hi = nameParam[param].max;
+                        if (v < lo || v > hi)
+                        {
+                            Console.WriteLine($"[WARN] {model}: {param} = {v} fuori da [{lo}, {hi}] " +
+                                              $"-> riportato al bound. Ottimizzazione non affidabile per questo modello.");
+                            paramCalibValue[param] = Math.Clamp(v, lo, hi);
+                        }
                     }
 
                     //write calibrated parameters to file
