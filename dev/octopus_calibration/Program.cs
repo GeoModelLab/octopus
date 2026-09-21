@@ -194,7 +194,7 @@ if (calibrationVariable == "Phenology")
         #region define optimizer settings
         var msxPheno = new MultiStartSimplex();
         msxPheno.NofSimplexes = 10;
-        msxPheno.Ftol = 0.001;
+        msxPheno.Ftol = 0.0001;
         msxPheno.Itmax = 10000;
         #endregion
 
@@ -284,7 +284,7 @@ else
     foreach (var cluster in refData.Keys)
     {
         // cluster filtering if you need --> COMMENT IF YOU USE ALL CLUSTERS
-        if (cluster != "C3") continue;
+        //if (cluster != "C2") continue;
 
         #region read weather data
         //read weather data

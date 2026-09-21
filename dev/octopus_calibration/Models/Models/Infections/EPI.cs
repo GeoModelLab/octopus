@@ -38,14 +38,15 @@ namespace Models.Infections
             double KES = kesum.Sum();
 
             //empty Lists at 1 October
-            if (Input.Date.Month == 10)
+            if (Input.Date.Month == 10 && Input.Date.Day == 1 && Input.Date.Hour == 0)
             {
                 pesum = new List<double>();
                 kesum = new List<double>();
             }
 
            
-
+            // note for the calibration: the alertThreshold is negative, cold'n be calibrated; so the 
+            // parameters is removed from the calibration
             //if (Output.outputsEPI.infectionEvents.Count == 0)
             //{
             InfectionCount.Add(Input);
@@ -129,9 +130,11 @@ namespace Models.Infections
                         TemperatureAverage = 0;
                     }
                     //define UR range calculation
+                    
                     double Um = (5 * ClimaticRelativeHumidityNight[Input.Date.Month] +
                                                 3 * RelativeHumidityDay) / 8;
-                    if (Um <= epiParameters.urLowerThreshold && Um >= epiParameters.urUpperThreshold)
+                    // TODO: verificare se corretta questa condizione prima di calibrare
+                    if (Um <= epiParameters.urLowerThreshold || Um >= epiParameters.urUpperThreshold)
                     {
                         Um = 0;
                     }
@@ -204,6 +207,11 @@ namespace Models.Infections
             //Pe is calculated between 1 October and 31 March 
             if (currentDate.Month >= 9 || currentDate.Month <= 3)
             {
+                //PE accumulation restarts from zero on 1 October
+                if (currentDate.Month == 10 && currentDate.Day == 1 && currentDate.Hour == 0)
+                {
+                    DecadeCounts = new List<Input>();
+                }
                 //add one grid weather (hour) to the list
                 DecadeCounts.Add(Input);
                 MonthlyCounts.Add(Input);

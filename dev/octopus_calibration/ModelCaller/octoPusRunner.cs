@@ -1204,14 +1204,16 @@ namespace octoPusAI.ModelCallers
                 #region climatic monthly rainfall and rainy days
                 ClimaticLast24Hours.Add(Input);
                 int lastDayOfMonth = DateTime.DaysInMonth(Input.Date.Year, Input.Date.Month);
-                if (ClimaticLast24Hours.Count == 23 * lastDayOfMonth)
+                // NON sostituire con 24: la finestra deve restare confrontabile con le 719 ore
+                // di MonthlyCounts usate per Rm in EPI.Pe(). Con 24 la calibrazione EPI non converge.
+                if (ClimaticLast24Hours.Count == 24 * lastDayOfMonth)
                 {
                     //rainfall sum in the decade
                     double MonthlyRain = ClimaticLast24Hours.Where(x => x.Precipitation > 0.2).
                         Select(x => x.Precipitation).Sum();
                     //number of rainy days
                     int RainyDays = 0;
-                    for (int i = 0; i < 23 * lastDayOfMonth; i++)
+                    for (int i = 0; i < 24 * lastDayOfMonth; i++)
                     {
                         if (ClimaticLast24Hours[i].Precipitation > 0.2)
                         {
