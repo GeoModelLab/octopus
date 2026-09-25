@@ -15,6 +15,9 @@ namespace Models.Infections
         public Dictionary<int, double> ClimaticRainfallSum = new Dictionary<int, double>();
         public Dictionary<int, double> ClimaticRainyDays = new Dictionary<int, double>();
         public Dictionary<int, double> ClimaticStdRainfallSum = new Dictionary<int, double>();
+        // [FIX-2026-09-21 NEG-mensile] accumulatori mensili (di istanza, come RaList)
+        private double _posM = 0, _excM = 0, _lacM = 0;
+        private int _raLastMonth = -1;
         #endregion
 
         #region model run
@@ -158,55 +161,56 @@ namespace Models.Infections
             DateTime currentDate = Input.Date;
             DateTime endDate = new DateTime(Input.Date.Year, 1, 31);
             DateTime startDate = new DateTime(Input.Date.Year, 09, 21); //change to 30 sept in updated model
-                                                                        //add weather variables to the list
             PastMonth.Add(Input);
             if (currentDate <= endDate || currentDate >= startDate)
             {
-                //number of monthly rainy days
                 int RDm = RainyDays.Sum();
 
                 if (currentDate.Hour == 00)
                 {
-                    //define minimum threshold for daily rainfall Hm
-                    double Hm = ClimaticRainfallSum[currentDate.Month] / ClimaticRainyDays[currentDate.Month];
-                    //define maximum threshold for daily rainfall HM
-                    double HM = (ClimaticRainfallSum[currentDate.Month] + ClimaticStdRainfallSum[currentDate.Month]) / ClimaticRainyDays[currentDate.Month]; //to verify this condition see TRAN MANH SUNG et. al, 1990 (Plant Disease).
-
-                    double POS = 0; //positive effect of Rain over oospore maturation
-                    double LAC = 0; //lack of rain - negative effect of rain on oospore maturation
-                    double EXC = 0; //excess of rain - negative effect of rain on oospore maturation
-                                    //Try considering only rainy days
-                    if (_Ri > 0.2)
-                    {
-                        if (_Ri <= HM && _Ri > Hm)
-                        {
-                            POS = _Ri;
-                        }
-                        else if (_Ri < Hm)
-                        {
-                            LAC = Hm - _Ri;
-                        }
-                        else if (_Ri > HM)
-                        {
-                            EXC = _Ri - HM;
-                            POS = HM;
-                        }
-                    }
-                    //negative effect of rain on oospore maturation
-                    double NEG = Math.Abs(EXC - LAC);
-                    //final calculation of the maturation index
-                    double Rai = POS - NEG;
-                    RaList.Add(Rai);
-
-                    //restart after 31st January 
-                    if (currentDate.Date == startDate)
+                    // [FIX-2026-09-21 NEG-mensile] reset stagionale PRIMA dell'accumulo:
+                    // il 21 settembre apre la stagione nuova, quindi la sua pioggia deve
+                    // contare in quella nuova e non chiudere la vecchia.
+                    if (currentDate.Date == startDate.Date)
                     {
                         RaList = new List<double>();
+                        _posM = 0; _excM = 0; _lacM = 0; _raLastMonth = -1;
                     }
+
+                    double Hm = ClimaticRainfallSum[currentDate.Month] / ClimaticRainyDays[currentDate.Month];
+                    double HM = (ClimaticRainfallSum[currentDate.Month] + ClimaticStdRainfallSum[currentDate.Month]) / ClimaticRainyDays[currentDate.Month];
+
+                    double POS = 0; //positive effect of Rain over oospore maturation
+                    double LAC = 0; //lack of rain
+                    double EXC = 0; //excess of rain
+                    if (_Ri > 0.2)
+                    {
+                        if (_Ri <= HM && _Ri > Hm) { POS = _Ri; }
+                        else if (_Ri < Hm) { LAC = Hm - _Ri; }
+                        else if (_Ri > HM) { EXC = _Ri - HM; POS = HM; }
+                    }
+
+                    // [FIX-2026-09-21 NEG-mensile] Tran Manh Sung et al. (1990), Plant Disease 74:120-124:
+                    // POS(M)=SUM POS(d); NEG(M)=|SUM EXC(d) - SUM LAC(d)|; Im(M)=[POS(M)-NEG(M)]+Im(M-1).
+                    // Prima: NEG = Math.Abs(EXC - LAC) calcolato per giorno. Poiche' EXC e LAC sono
+                    // rami esclusivi, nel singolo giorno |EXC-LAC| = EXC+LAC: le due penalita' si
+                    // sommavano invece di compensarsi. Essendo |a-b| <= a+b, Ra risultava depresso
+                    // (negativo in 41 site-year su 42, contro 8 positivi su 12 nella Tab.1 del paper).
+                    if (_raLastMonth != -1 && currentDate.Month != _raLastMonth)
+                    {
+                        RaList.Add(_posM - Math.Abs(_excM - _lacM));   // Im del mese appena chiuso
+                        _posM = 0; _excM = 0; _lacM = 0;
+                    }
+                    _raLastMonth = currentDate.Month;
+
+                    _posM += POS;
+                    _excM += EXC;
+                    _lacM += LAC;
                 }
             }
-            //Compute cumulative effect of rainfall (Ra)
-            Ra = RaList.Sum();
+            // [FIX-2026-09-21 NEG-mensile] include il mese ancora aperto (settembre parziale
+            // e gennaio finale non vengono chiusi dal cambio mese). NESSUN reset qui.
+            Ra = RaList.Sum() + (_posM - Math.Abs(_excM - _lacM));
             return Ra;
         }
 
@@ -245,27 +249,33 @@ namespace Models.Infections
             int ooGerm = 0;
             ooGermCount.Add(Input);
             double PomSum = PomList.Sum();
-            //cumulated Pom to output
             dmcastOutput.pomsum = PomSum;
-            DateTime endDate = new DateTime(Input.Date.Year, 09, 22); //change to 1 Oct in updated model
+            DateTime endDate = new DateTime(Input.Date.Year, 09, 22);
 
-            if (PomSum >= Parameters.dmcastParameters.thresholdPOM && Input.Date < endDate)
+            // [FIX-2026-09-21 gate-giornaliero-oospore] Il reset di ooGermCount era dentro
+            // l'if sul superamento di thresholdPOM: prima di quel momento la lista accumulava
+            // per mesi, quindi DailyPrec e DailyTemp non erano valori giornalieri. Park et al.
+            // (1997) definiscono il gate su quantita' giornaliere ("average temperature above
+            // 11 C and rainfall exceeded 2 mm"). Ora la finestra si chiude ogni giorno.
+            if (Input.Date.Hour == 00)
             {
-                if (Input.Date.Hour == 00)
+                double DailyPrec = ooGermCount.Where(x => x.Precipitation > 0.2).
+                                  Select(x => x.Precipitation).Sum();
+
+                double DailyTemp = ooGermCount.Select(x => x.Temperature).Average();
+
+                if (PomSum >= Parameters.dmcastParameters.thresholdPOM && Input.Date < endDate)
                 {
-                    double DailyPrec = ooGermCount.Where(x => x.Precipitation > 0.2).
-                                      Select(x => x.Precipitation).Sum();
-
-                    double DailyTemp = ooGermCount.Select(x => x.Temperature).Average();
-
-                    if (DailyTemp > Parameters.dmcastParameters.tempThresholdOosporeGerm && DailyPrec > Parameters.dmcastParameters.precThresholdOosporeGerm)
+                    if (DailyTemp > Parameters.dmcastParameters.tempThresholdOosporeGerm &&
+                        DailyPrec > Parameters.dmcastParameters.precThresholdOosporeGerm)
                     {
                         ooGerm = 1;
                     }
-
-                    ooGermCount = new List<Input>();
                 }
+
+                ooGermCount = new List<Input>();
             }
+
             return ooGerm;
         }
 

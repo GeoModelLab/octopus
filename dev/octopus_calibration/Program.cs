@@ -284,7 +284,7 @@ else
     foreach (var cluster in refData.Keys)
     {
         // cluster filtering if you need --> COMMENT IF YOU USE ALL CLUSTERS
-        //if (cluster != "C2") continue;
+        #//if (cluster == "C1") continue;
 
         #region read weather data
         //read weather data
