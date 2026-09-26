@@ -1,0 +1,32 @@
+station_id,stationName,Latitude,Longitude,Province,Municipality,region
+AL001,Carpeneto (AL),44.6851,8.622,Alessandria,Carpeneto,Piemonte
+AN001,Agugliano,43.547681,13.365583,Ancona,Agugliano,Marche
+BG001,Scanzorosciate,45.7113,9.7832,Bergamo,Scanzorosciate,Lombardia
+GEBI05,SESTRI LEVANTE,44.264674,9.438105,Genova,Sestri Levante,Liguria
+GEBI19,GENOVA,44.425159,8.912517,Genova,Genova,Liguria
+GEVE11,CASTIGLIONE CHIAVARESE,44.276213,9.535932,Genova,Castiglione Chiavarese,Liguria
+GEVE25,CHIAVARI,44.320577,9.326655,Genova,Chiavari,Liguria
+IMRO12,DOLCEACQUA,43.842299,7.610465,Imperia,Dolceacqua,Liguria
+IMVE18,DIANO CASTELLO,43.926665,8.06583,Imperia,Diano Castello,Liguria
+MC001,Montefano,43.422293,13.452771,Macerata,Montefano,Marche
+MC002,Montefano,43.43469,13.459132,Macerata,Montefano,Marche
+NU007,Perd'arba - Jerzu,39.7793,9.5475,Ogliastra,Jerzu,Sardegna
+PU001,Piagge,43.753583,12.995426,Pesaro e Urbino,Piagge,Marche
+PU003,San Costanzo,43.77471,13.104961,Pesaro e Urbino,San Costanzo,Marche
+PV001,Torrazza Coste,44.9829,9.0931,Pavia,Montebello della Battaglia,Lombardia
+PV002,Torrazza Coste,44.9827,9.0934,Pavia,Montebello della Battaglia,Lombardia
+PZ001,Viggiano,40.32643,15.9055,Potenza,Viggiano,Basilicata
+PZ001s,Viggiano,40.32643,15.9055,Potenza,Viggiano,Basilicata
+PZ002,Senise,40.131656,16.295956,Potenza,Senise,Basilicata
+PZ003,Viggiano,40.3401,15.84,Potenza,Viggiano,Basilicata
+SO001,Sondrio,46.1681,9.8504,Sondrio,Sondrio,Lombardia
+SO003,Sondrio,46.1679,9.8505,Sondrio,Sondrio,Lombardia
+SPSG39,Sarzana,44.096207,9.986081,La Spezia,Sarzana,Liguria
+SPVE60,S.Stefano,44.158329,9.930175,La Spezia,Santo Stefano di Magra,Liguria
+SVGR13,FINALE LIGURE,44.182917,8.322622,Savona,Finale Ligure,Liguria
+SVPI04,ORTOVERO,44.055003,8.092065,Savona,Ortovero,Liguria
+TV001,Onigo di Pederobba (TV),45.8491134,11.9950992,Treviso,Levada,Veneto
+TV002,Onigo di Pederobba (TV),45.8491134,11.9950992,Treviso,Levada,Veneto
+VI001,Breganze (VI),45.707591,11.570448,Vicenza,Breganze,Veneto
+VR001,S.Pietro in Cariano (VR),45.514868,10.881832,Verona,San Pietro in Cariano,Veneto
+VR002,San Briccio,45.453431,11.120864,Verona,San Briccio,Veneto
