@@ -105,8 +105,9 @@ namespace Models.Infections
                     {
                         infectionEvent.wetHoursRelease += 0;
                     }
-                    //Zoospore release
-                    double releaseThreshold = Math.Exp((-1.022 + 19.634) /
+                    //FIX-2026-09-28 formula-rilascio: Rossi et al. 2008, p. 484: WD >= exp(-1.022 + 19.634 / TWD).
+                    //Originale: Math.Exp((-1.022 + 19.634) / infectionEvent.averageTempWetHoursRel);
+                    double releaseThreshold = Math.Exp(-1.022 + 19.634 /
                         infectionEvent.averageTempWetHoursRel);
                     if (infectionEvent.wetHoursRelease >= releaseThreshold)
                     {
@@ -134,7 +135,8 @@ namespace Models.Infections
                         infectionEvent.wetHoursSurvival += 0;
                     }
                     //define survival threshold
-                    int survivalTime = infectionEvent.hoursAfterRelease / infectionEvent.wetHoursSurvival;
+                    //FIX-2026-09-28 SUZ-reale: rapporto reale (Rossi et al. 2008, eq. 7). Originale: int / int, che tronca.
+                    double survivalTime = (double)infectionEvent.hoursAfterRelease / infectionEvent.wetHoursSurvival;
                     if (survivalTime > Parameters.ucscParameters.zoosporeSurvivalThreshold)
                     {
                         infectionEvent.releasedZoospores = 0;

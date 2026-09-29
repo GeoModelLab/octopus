@@ -274,8 +274,8 @@ else
     // poi metti calibrateIncubationDuration = false.
     var incubationByCluster = new Dictionary<string, float>
 {
-    { "C1",  7f },
-    { "C2", 6f },
+    { "C1",  14f },
+    { "C2", 12f },
     { "C3", 20f }
 };
 
@@ -284,7 +284,7 @@ else
     foreach (var cluster in refData.Keys)
     {
         // cluster filtering if you need --> COMMENT IF YOU USE ALL CLUSTERS
-        #//if (cluster == "C1") continue;
+        //if (cluster == "C3" || cluster == "C2") continue;
 
         #region read weather data
         //read weather data
@@ -337,7 +337,7 @@ else
                     var msx = new MultiStartSimplex();
                     msx.NofSimplexes = 10;
                     msx.Ftol = 0.0001;
-                    msx.Itmax = 1000;
+                    msx.Itmax = 10000;
 
                     #endregion
 

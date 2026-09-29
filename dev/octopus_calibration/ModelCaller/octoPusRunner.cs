@@ -91,6 +91,21 @@ namespace octoPusAI.ModelCallers
         public string weatherFile;
         public string cluster;
         public float fixedIncubationDuration;
+        // Soglia di Huber (giorni): sotto la soglia l'errore conta al quadrato, sopra cresce solo linearmente.
+        // Fissata a priori sul rumore atteso delle osservazioni di campo; non va modificata guardando i risultati.
+        public double HuberDelta = 15;
+
+        // Errore assegnato a ogni sito-anno di riferimento senza onset simulato.
+        // Serve a impedire che l'ottimizzatore migliori la funzione obiettivo "perdendo" gli anni difficili.
+        public double MissingOnsetPenalty = 100;
+
+        // Perdita di Huber, scalata in modo da coincidere con e^2 sotto la soglia.
+        // Riduce il peso dei pochi errori molto grandi rispetto all'errore quadratico.
+        private double LossTerm(double e)
+        {
+            double a = Math.Abs(e);
+            return a <= HuberDelta ? e * e : 2 * HuberDelta * a - HuberDelta * HuberDelta;
+        }
         public int startYear;
         public int endYear; 
         public float assistantRisk;
@@ -345,7 +360,8 @@ namespace octoPusAI.ModelCallers
 
             foreach (var site in availableSites)
             {
-               
+                int nErrBefore = errors.Count; // per contare gli anni valutati in questo sito
+
                 //reinitialize the models (for internal lists)
                 rule310 = new Rule310();
                 misfits = new Misfits();
@@ -551,7 +567,7 @@ namespace octoPusAI.ModelCallers
                                                 simOnsetDate = outputs.outputsRule310.infectionEvents[0].onsetDate;
                                                 //compute the error
                                                 var thisYearError = (simOnsetDate - year_onsetDate[hour.Year]).Days;
-                                                errors.Add((float)Math.Pow(thisYearError, 2));
+                                                errors.Add((float)LossTerm(thisYearError)); // Huber al posto dell'errore quadratico
                                                 isAlreadyEvaluated = true;
                                             }
                                         }
@@ -571,7 +587,7 @@ namespace octoPusAI.ModelCallers
                                                 simOnsetDate = outputs.outputsLaore.infectionEvents[0].onsetDate;
                                                 //compute the error
                                                 var thisYearError = (simOnsetDate - year_onsetDate[hour.Year]).Days;
-                                                errors.Add((float)Math.Pow(thisYearError, 2));
+                                                errors.Add((float)LossTerm(thisYearError)); // Huber al posto dell'errore quadratico
                                                 isAlreadyEvaluated = true;
                                             }
                                         }
@@ -591,7 +607,7 @@ namespace octoPusAI.ModelCallers
                                                 simOnsetDate = outputs.outputsEPI.infectionEvents[0].onsetDate;
                                                 //compute the error
                                                 var thisYearError = (simOnsetDate - year_onsetDate[hour.Year]).Days;
-                                                errors.Add((float)Math.Pow(thisYearError, 2));
+                                                errors.Add((float)LossTerm(thisYearError)); // Huber al posto dell'errore quadratico
                                                 isAlreadyEvaluated = true;
                                             }
                                         }
@@ -611,7 +627,7 @@ namespace octoPusAI.ModelCallers
                                                 simOnsetDate = outputs.outputsIPI.infectionEvents[0].onsetDate;
                                                 //compute the error
                                                 var thisYearError = (simOnsetDate - year_onsetDate[hour.Year]).Days;
-                                                errors.Add((float)Math.Pow(thisYearError, 2));
+                                                errors.Add((float)LossTerm(thisYearError)); // Huber al posto dell'errore quadratico
                                                 isAlreadyEvaluated = true;
                                             }
                                         }
@@ -631,7 +647,7 @@ namespace octoPusAI.ModelCallers
                                                 simOnsetDate = outputs.outputsDMCast.infectionEvents[0].onsetDate;
                                                 //compute the error
                                                 var thisYearError = (simOnsetDate - year_onsetDate[hour.Year]).Days;
-                                                errors.Add((float)Math.Pow(thisYearError, 2));
+                                                errors.Add((float)LossTerm(thisYearError)); // Huber al posto dell'errore quadratico
                                                 isAlreadyEvaluated = true;
                                             }
                                         }
@@ -651,7 +667,7 @@ namespace octoPusAI.ModelCallers
                                                 simOnsetDate = outputs.outputsMagarey.infectionEvents[0].onsetDate;
                                                 //compute the error
                                                 var thisYearError = (simOnsetDate - year_onsetDate[hour.Year]).Days;
-                                                errors.Add((float)Math.Pow(thisYearError, 2));
+                                                errors.Add((float)LossTerm(thisYearError)); // Huber al posto dell'errore quadratico
                                                 isAlreadyEvaluated = true;
                                             }
                                         }
@@ -671,29 +687,54 @@ namespace octoPusAI.ModelCallers
                                                 simOnsetDate = outputs.outputsMisfits.infectionEvents[0].onsetDate;
                                                 //compute the error
                                                 var thisYearError = (simOnsetDate - year_onsetDate[hour.Year]).Days;
-                                                errors.Add((float)Math.Pow(thisYearError, 2));
+                                                errors.Add((float)LossTerm(thisYearError)); // Huber al posto dell'errore quadratico
                                                 isAlreadyEvaluated = true;
                                             }
                                         }
                                     }
                                 }
                                 //UCSC
+                                //FIX-2026-09-28 onset-tutte-le-coorti: in Rossi et al. 2008 il primo onset stagionale
+                                //puo' venire da qualsiasi coorte (es. Lavezzola 2001: le prime sei abortiscono).
+                                //Il codice originale leggeva solo infectionEvents[0], cioe' la prima coorte.
+                                //--- ORIGINALE (commentato) ---
+                                //if (modelUnderOptimization == "UCSC")
+                                //{
+                                //    var simOnsetDate = new DateTime();
+                                //    if (outputs.outputsUCSC.infectionEvents.Count >= 1)
+                                //    {
+                                //        if (outputs.outputsUCSC.infectionEvents[0].onsetDate.Year > 1)
+                                //        {
+                                //            if (!isAlreadyEvaluated)
+                                //            {
+                                //                //take the onset date
+                                //                simOnsetDate = outputs.outputsUCSC.infectionEvents[0].onsetDate;
+                                //                //compute the error
+                                //                var thisYearError = (simOnsetDate - year_onsetDate[hour.Year]).Days;
+                                //                errors.Add((float)LossTerm(thisYearError)); // Huber al posto dell'errore quadratico
+                                //                isAlreadyEvaluated = true;
+                                //            }
+                                //        }
+                                //    }
+                                //}
+                                //--- NUOVO ---
                                 if (modelUnderOptimization == "UCSC")
                                 {
                                     var simOnsetDate = new DateTime();
-                                    if (outputs.outputsUCSC.infectionEvents.Count >= 1)
+                                    var ucscOnsets = outputs.outputsUCSC.infectionEvents
+                                        .Where(e => e.onsetDate.Year > 1)
+                                        .Select(e => e.onsetDate)
+                                        .ToList();
+                                    if (ucscOnsets.Count >= 1)
                                     {
-                                        if (outputs.outputsUCSC.infectionEvents[0].onsetDate.Year > 1)
+                                        if (!isAlreadyEvaluated)
                                         {
-                                            if (!isAlreadyEvaluated)
-                                            {
-                                                //take the onset date
-                                                simOnsetDate = outputs.outputsUCSC.infectionEvents[0].onsetDate;
-                                                //compute the error
-                                                var thisYearError = (simOnsetDate - year_onsetDate[hour.Year]).Days;
-                                                errors.Add((float)Math.Pow(thisYearError, 2));
-                                                isAlreadyEvaluated = true;
-                                            }
+                                            //take the onset date (earliest among all cohorts)
+                                            simOnsetDate = ucscOnsets.Min();
+                                            //compute the error
+                                            var thisYearError = (simOnsetDate - year_onsetDate[hour.Year]).Days;
+                                            errors.Add((float)LossTerm(thisYearError)); // Huber al posto dell'errore quadratico
+                                            isAlreadyEvaluated = true;
                                         }
                                     }
                                 }
@@ -701,6 +742,17 @@ namespace octoPusAI.ModelCallers
                         }
                     }
 
+                }
+                // Penalità: gli anni di riferimento coperti dal meteo ma senza onset simulato
+                // ricevono un errore fisso invece di essere esclusi dal calcolo.
+                if (calibrationVariable != "Phenology")
+                {
+                    int firstY = Math.Max(startYear, weatherData[site].Keys.First().Year);
+                    int lastY = x.Year;
+                    int nExpected = year_onsetDate.Keys.Count(y => y >= firstY && y <= lastY);
+                    int nMissing = nExpected - (errors.Count - nErrBefore);
+                    for (int k = 0; k < nMissing; k++)
+                        errors.Add((float)LossTerm(MissingOnsetPenalty));
                 }
                 //writeOctoPusOutputs(site, date_outputs);
                 //Console.WriteLine("site {0} run", site);
@@ -751,9 +803,9 @@ namespace octoPusAI.ModelCallers
 
 
             Console.ForegroundColor = ConsoleColor.White;
-            Console.Write($"\rRMSE = {Math.Round(objectiveFunction, 2)} days");
+            Console.Write($"\rHuber-RMSE = {Math.Round(objectiveFunction, 2)} days"); // non è più un RMSE classico
 
-            
+
 
             return objectiveFunction;
             
