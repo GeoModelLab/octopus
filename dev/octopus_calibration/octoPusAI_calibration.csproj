@@ -20,14 +20,11 @@
   <ItemGroup>
     <None Include="Files\Parameters\hostSusceptibilityParameters.csv" />
     <None Include="Files\Parameters\octoPusParameters.csv" />
-    <None Include="Files\Reference\bbch_Reference.csv">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="Files\Reference\reference_file_cluster.csv">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="Files\Reference\reference_file_ok.csv" />
-    <None Include="Files\Reference\reference_file.csv" />
+    <None Include="Files\Parameters\par_p3\hostSusceptibilityParameters.csv" />
+    <None Include="Files\Parameters\par_p3\octoPusParameters.csv" />
+    <None Include="Files\Reference\ref_P3\bbch_Reference_2026_cleaned.csv" />
+    <None Include="Files\Reference\ref_P3\reference_file_2026_Cluster.csv" />
+    <None Include="Files\Reference\ref_P3\reference_file_2026_Cluster_window.csv" />
     <None Include="Files\Weather\daily\rome.csv" />
     <None Include="Files\Weather\hourly\Bergamo.csv" />
     <None Include="Files\Weather\hourly\Chieti.csv" />

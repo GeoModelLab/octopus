@@ -31,7 +31,7 @@ namespace octoPusAI.Readers
 
             foreach (var file in files)
             {
-                string newKey = file.Name.Substring(11);
+                string newKey = Path.GetFileNameWithoutExtension(file.Name).Substring(11);
                 site_namePhenoParam.Add(newKey, new Dictionary<string, float>());
                 //read parameters
                 StreamReader sr = new StreamReader(file.FullName);

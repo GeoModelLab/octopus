@@ -25,7 +25,7 @@ DMCast,muK1,98,145,118,unitless,x
 DMCast,sigmaK1,10,16,13.5,unitless,x
 DMCast,thresholdPOM,0.024,0.038,0.03,fraction,x
 DMCast,precThresholdOosporeGerm,2,3.2,2.5,mm,x
-DMCast,tempThresholdOosporeGerm,9.3,14.5,11,Â°C,x
+DMCast,tempThresholdOosporeGerm,10,16,11,Â°C,x
 DMCast,tempThresholdSporangiaGerm,10,14.4,12,Â°C,x
 DMCast,daysForSporangiaGerm,6.4,9.6,8,days,x
 DMCast,precThresholdInf,0.16,0.24,0.2,mm,
@@ -43,10 +43,10 @@ IPI,alertThreshold,9.2,14,13,unitless,x
 IPI,tempThresholdInf,9,15,11,Â°C,x
 IPI,precThresholdInf,2,3,2.5,mm,
 IPI,bbchThreshold,8,15,11,BBCH code,
-UCSC,vpdThreshold,360,540,450,Kpa,x
-UCSC,dormancyBrakingLowerThreshold,0.024,0.036,0.03,unitless,x
-UCSC,dormancyBrakingUpperThreshold,0.776,1.164,0.97,unitless,x
-UCSC,germinationThreshold,0.8,1.2,1,unitless,x
+UCSC,vpdThreshold,350,560,450,Kpa,x
+UCSC,dormancyBrakingLowerThreshold,0.024,0.038,0.03,unitless,x
+UCSC,dormancyBrakingUpperThreshold,0.776,1.166,0.97,unitless,x
+UCSC,germinationThreshold,0.7,1.2,1,unitless,x
 UCSC,sporangiaSurvivalThreshold,0.8,1.2,1,unitless,
 UCSC,zoosporeSurvivalThreshold,1,3,1,unitless,
 UCSC,infectionThreshold,48,72,60,unitless,
@@ -59,7 +59,7 @@ Misfits,TminMacrosporangiaInfection,10,12,10,Â°C,x
 Misfits,ToptMacrosporangiaInfection,14.4,21.6,18,Â°C,x
 Misfits,TmaxMacrosporangiaInfection,20,28.8,24,Â°C,x
 Misfits,LWminMacrosporangiaInfection,1,3,2,hours,x
-Misfits,RainStartMacrosporangiaSpread,4.2,6.8,5,mm,x
+Misfits,RainStartMacrosporangiaSpread,4.2,7,5,mm,x
 Misfits,RHminMacrosporangiaFormation,65,90,75,%,x
 Misfits,TminMacrosporangiaFormation,8,12,10,Â°C,x
 Misfits,ToptMacrosporangiaFormation,14.4,21.6,18,Â°C,x

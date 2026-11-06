@@ -36,7 +36,7 @@ namespace Models.Infections
                 if (infectionEvent.GerminationHours < Convert.ToInt32(Parameters.magareyParameters.numberOfHoursToConsiderGermination))
                 {
                     infectionEvent.TemperatureAverageGerm += Input.Temperature /
-                        Parameters.magareyParameters.numberOfHoursToConsiderGermination;
+                    (Convert.ToInt32(Parameters.magareyParameters.numberOfHoursToConsiderGermination) - 1); // media sulle N-1 ore effettivamente accumulate
                     infectionEvent.RainSumGerm += Input.Precipitation;
                 }
                 else if (infectionEvent.GerminationHours == Convert.ToInt32(Parameters.magareyParameters.numberOfHoursToConsiderGermination))
@@ -54,24 +54,27 @@ namespace Models.Infections
                 //verify splashing occurrence
                 if (infectionEvent.Germination == 1 && infectionEvent.Splashing == 0)
                 {
-                    infectionEvent.InfectionHours += 1;
+                    infectionEvent.InfectionHours += 1;          // ore trascorse dalla germinazione
                     infectionEvent.SplashingHours += 1;
                     if (infectionEvent.InfectionHours <= Convert.ToInt32(Parameters.magareyParameters.numberOfHoursToConsiderInfection))
                     {
-                        infectionEvent.TemperatureAverageSplash += Input.Temperature;
-                        infectionEvent.RainSumSplash = Input.Precipitation;
+                        infectionEvent.TemperatureAverageSplash += Input.Temperature;   // <-- QUI si accumula la somma
+                        infectionEvent.RainSumSplash = Input.Precipitation;             // pioggia dell'ora corrente
 
                         if (infectionEvent.RainSumSplash >= Parameters.magareyParameters.rainTriggeringSplash)
                         {
-                            infectionEvent.TemperatureAverageSplash = infectionEvent.TemperatureAverageSplash / infectionEvent.InfectionHours;
-                            if (infectionEvent.TemperatureAverageSplash >= Parameters.magareyParameters.baseTemperatureInfection)
+                            // FIX: TemperatureAverageSplash contiene la SOMMA delle temperature orarie.
+                            // Prima veniva sovrascritta con la media: se lo splash falliva, all'ora successiva
+                            // si sommava una temperatura a una media e si ridivideva, e il valore crollava.
+                            // Ora la media si calcola a parte e la somma resta intatta.
+                            double avgSplash = infectionEvent.TemperatureAverageSplash / infectionEvent.InfectionHours;  // <-- QUI si usa
+                            if (avgSplash >= Parameters.magareyParameters.baseTemperatureInfection)
                             {
                                 infectionEvent.Splashing = 1;
                                 infectionEvent.splashingDate = Input.Date;
                             }
                         }
                     }
-
                 }
                 #endregion
 

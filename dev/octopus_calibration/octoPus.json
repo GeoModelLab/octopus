@@ -12,15 +12,15 @@
         "useLLM": false,
         "useRandomForest": false,
         "useConsole": false,
-        "modelsToRun": [ "UCSC" ],
-        "calibrationVariable": "onset"
+        "modelsToRun": [ "Rule310" ],
+        "calibrationVariable": "Phenology"
     },
     "paths": {
         "weatherDir": "..\\..\\..\\Files\\Weather\\sites_openMeteo",
-        "octoPusParametersPath": "..\\..\\..\\files\\Parameters\\octoPusParameters.csv",
-        "susceptibilityFileBBCH": "..\\..\\..\\files\\Parameters\\hostSusceptibilityParameters.csv",
+        "octoPusParametersPath": "..\\..\\..\\files\\Parameters\\par_p3\\octoPusParameters.csv",
+        "susceptibilityFileBBCH": "..\\..\\..\\files\\Parameters\\par_p3\\hostSusceptibilityParameters.csv",
         "outputDir": "..\\..\\..\\outputs\\",
-        "referenceFile": "..\\..\\..\\Files\\Reference\\reference_file_2026_Cluster.csv",
-        "bbchReference": "..\\..\\..\\Files\\Reference\\bbch_Reference_2026_cleaned.csv"
+        "referenceFile": "..\\..\\..\\Files\\Reference\\ref_P3\\reference_file_2026_Cluster_window.csv",
+        "bbchReference": "..\\..\\..\\Files\\Reference\\ref_P3\\bbch_Reference_2026_cleaned.csv"
     }
 }
