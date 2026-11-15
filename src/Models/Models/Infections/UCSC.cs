@@ -234,6 +234,7 @@ namespace Models.Infections
 
 
         #region intermediate functions
+        // TO FIX --> 1 OTTOBRE
         //calculate hydro-thermal time (HT)
         public double HTi(Input Input, OutputsUCSC uCSCOutputs, parametersUCSC rossiParameters)
         {

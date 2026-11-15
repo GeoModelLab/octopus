@@ -91,7 +91,7 @@ if (calibrationVariable == "Phenology")
 //onset date
 ReferenceReader _refReader = new ReferenceReader();
 var refData = _refReader.readReference(referenceFile);
-
+var refLower = _refReader.readLowerReference(referenceFile);
 // bbch 
 BBCHReferenceReader _refReaderbbch = new BBCHReferenceReader();
 var refDatabbch = _refReaderbbch.BbchreadReference(bbch_Reference);
@@ -275,9 +275,9 @@ else
     var incubationByCluster = new Dictionary<string, float>
 {
     { "C1",  14f },
-    { "C2", 12f },
-    { "C3", 20f },
-    { "all", 15 }
+    { "C2", 11f },
+    { "C3", 16f },
+    //{ "all", 15 }
 };
 
 
@@ -338,11 +338,11 @@ else
                     var msx = new MultiStartSimplex();
                     msx.NofSimplexes = 10;
                     msx.Ftol = 0.0001;
-                    msx.Itmax = 10000;
+                    msx.Itmax = 5000;
 
                     #endregion
 
-                    #region Define parameter settings for calibration
+                    #region Define paraermeter settings for calibration
 
                     // FIX 2: build a FRESH COPY of the parameter dictionary for this model
                     // (old code used a reference: Dictionary<string,ParameterRange> nameParam = model_param_range[model]
@@ -448,6 +448,7 @@ else
                     _runner.param_outCalibration = param_outCalibration;
                     _runner.areEPIDMCASTexecutable = true;
                     _runner.site_year_onsetDate = thisRefData;
+                    _runner.site_year_lowerDate = refLower[cluster];
                     _runner.cluster = cluster;
                     _runner.fixedIncubationDuration = fixedIncubation;
                     _runner.site_phenoParam_value = site_phenoParam;

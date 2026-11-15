@@ -45,8 +45,7 @@ namespace Models.Infections
             }
 
            
-            // note for the calibration: the alertThreshold is negative, cold'n be calibrated; so the 
-            // parameters is removed from the calibration
+            
             //if (Output.outputsEPI.infectionEvents.Count == 0)
             //{
             InfectionCount.Add(Input);
@@ -54,7 +53,16 @@ namespace Models.Infections
             if (Input.Date.Hour == 00)
             {
                 Output.outputsEPI.epi = KES + PES;
-                if (Output.outputsEPI.epi > Parameters.epiParameters.alertThreshold && Input.Date.Month < 10)
+                // ---- Soglia di allerta EPI: lasciare attiva UNA SOLA opzione ----------
+                // OPZIONE A - soglia letta dal file parametri (calibrata). ATTIVA ADESSO.
+                double epiAlertThreshold = Parameters.epiParameters.alertThreshold;
+
+                // OPZIONE B - soglia fissa al valore originale -10 (Strizyk 1983;
+                //             Sanna et al. 2014); il valore nel file parametri e' ignorato.
+                // double epiAlertThreshold = -10;
+                // -----------------------------------------------------------------------
+
+                if (Output.outputsEPI.epi > epiAlertThreshold && Input.Date.Month < 10)
                 {
                     double DailyPrec = InfectionCount.Where(x => x.Precipitation > 0.2).
                                         Select(x => x.Precipitation).Sum();

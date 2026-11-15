@@ -253,8 +253,8 @@ namespace Models.Infections
         {
             double HTi = 0;
 
-            // ✅ RESET stagionale: azzera la lista SOLO il 1 ottobre alle 00
-            if (Input.Date.Month == 10 && Input.Date.Day == 1 && Input.Date.Hour == 0)
+            // ✅ RESET stagionale: azzera la lista il 31 gennaio
+            if (Input.Date.Month == 1 && Input.Date.Day == 1 && Input.Date.Hour == 0)
             {
                 HT_List.Clear();
             }

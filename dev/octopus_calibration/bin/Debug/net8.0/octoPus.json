@@ -12,8 +12,8 @@
         "useLLM": false,
         "useRandomForest": false,
         "useConsole": false,
-        "modelsToRun": [ "Rule310" ],
-        "calibrationVariable": "Phenology"
+        "modelsToRun": [ "UCSC","EPI" ],
+        "calibrationVariable": "onset"
     },
     "paths": {
         "weatherDir": "..\\..\\..\\Files\\Weather\\sites_openMeteo",

@@ -106,6 +106,15 @@ namespace octoPusAI.ModelCallers
             double a = Math.Abs(e);
             return a <= HuberDelta ? e * e : 2 * HuberDelta * a - HuberDelta * HuberDelta;
         }
+
+        // Errore rispetto alla finestra [L, U]: 0 dentro, sim - L se in anticipo, sim - U se in ritardo.
+        // Con L = U coincide con l'errore classico (sim - U).
+        private int WindowError(DateTime sim, DateTime U, DateTime L)
+        {
+            if (sim < L) return (sim - L).Days;
+            if (sim > U) return (sim - U).Days;
+            return 0;
+        }
         public int startYear;
         public int endYear; 
         public float assistantRisk;
@@ -126,8 +135,8 @@ namespace octoPusAI.ModelCallers
         public string modelUnderOptimization;
         public Dictionary<string, float> param_outCalibration = new Dictionary<string, float>();
         public Dictionary<string, Dictionary<int, DateTime>> site_year_onsetDate = new Dictionary<string, Dictionary<int, DateTime>>();
-        public Dictionary<int, Dictionary<int, DateTime>> Year_bbchDate_Ref =
-            new Dictionary<int, Dictionary<int, DateTime>>();
+        public Dictionary<string, Dictionary<int, DateTime>> site_year_lowerDate = new Dictionary<string, Dictionary<int, DateTime>>();
+        public Dictionary<int, Dictionary<int, DateTime>> Year_bbchDate_Ref = new Dictionary<int, Dictionary<int, DateTime>>();
         #endregion
 
         #region local variables to compute daily data
@@ -374,10 +383,11 @@ namespace octoPusAI.ModelCallers
 
                 //take the reference data for this site (only for onset/epi calibration)
                 Dictionary<int, DateTime> year_onsetDate = new Dictionary<int, DateTime>();
+                Dictionary<int, DateTime> year_lowerDate = new Dictionary<int, DateTime>();
                 if (calibrationVariable != "Phenology")
                 {
                     year_onsetDate = site_year_onsetDate[site];
-
+                    year_lowerDate = site_year_lowerDate[site];
                     //adjust simulation period
                     if (modelUnderOptimization == "EPI" ||
                         modelUnderOptimization == "DMCast" ||
@@ -566,7 +576,7 @@ namespace octoPusAI.ModelCallers
                                                 //take the onset date
                                                 simOnsetDate = outputs.outputsRule310.infectionEvents[0].onsetDate;
                                                 //compute the error
-                                                var thisYearError = (simOnsetDate - year_onsetDate[hour.Year]).Days;
+                                                var thisYearError = WindowError(simOnsetDate, year_onsetDate[hour.Year], year_lowerDate[hour.Year]);
                                                 errors.Add((float)LossTerm(thisYearError)); // Huber al posto dell'errore quadratico
                                                 isAlreadyEvaluated = true;
                                             }
@@ -586,7 +596,7 @@ namespace octoPusAI.ModelCallers
                                                 //take the onset date
                                                 simOnsetDate = outputs.outputsLaore.infectionEvents[0].onsetDate;
                                                 //compute the error
-                                                var thisYearError = (simOnsetDate - year_onsetDate[hour.Year]).Days;
+                                                var thisYearError = WindowError(simOnsetDate, year_onsetDate[hour.Year], year_lowerDate[hour.Year]);
                                                 errors.Add((float)LossTerm(thisYearError)); // Huber al posto dell'errore quadratico
                                                 isAlreadyEvaluated = true;
                                             }
@@ -606,7 +616,7 @@ namespace octoPusAI.ModelCallers
                                                 //take the onset date
                                                 simOnsetDate = outputs.outputsEPI.infectionEvents[0].onsetDate;
                                                 //compute the error
-                                                var thisYearError = (simOnsetDate - year_onsetDate[hour.Year]).Days;
+                                                var thisYearError = WindowError(simOnsetDate, year_onsetDate[hour.Year], year_lowerDate[hour.Year]);
                                                 errors.Add((float)LossTerm(thisYearError)); // Huber al posto dell'errore quadratico
                                                 isAlreadyEvaluated = true;
                                             }
@@ -626,7 +636,7 @@ namespace octoPusAI.ModelCallers
                                                 //take the onset date
                                                 simOnsetDate = outputs.outputsIPI.infectionEvents[0].onsetDate;
                                                 //compute the error
-                                                var thisYearError = (simOnsetDate - year_onsetDate[hour.Year]).Days;
+                                                var thisYearError = WindowError(simOnsetDate, year_onsetDate[hour.Year], year_lowerDate[hour.Year]);
                                                 errors.Add((float)LossTerm(thisYearError)); // Huber al posto dell'errore quadratico
                                                 isAlreadyEvaluated = true;
                                             }
@@ -634,22 +644,25 @@ namespace octoPusAI.ModelCallers
                                     }
                                 }
                                 //DMCast
+                                //FIX-2026-11-06 onset-tutti-gli-eventi (come UCSC FIX-2026-09-28): il primo evento di DMCast
+                                //e' una germinazione che puo' non infettare mai; si prende l'onset piu' precoce.
                                 if (modelUnderOptimization == "DMCast")
                                 {
                                     var simOnsetDate = new DateTime();
-                                    if (outputs.outputsDMCast.infectionEvents.Count >= 1)
+                                    var dmcastOnsets = outputs.outputsDMCast.infectionEvents
+                                        .Where(e => e.onsetDate.Year > 1)
+                                        .Select(e => e.onsetDate)
+                                        .ToList();
+                                    if (dmcastOnsets.Count >= 1)
                                     {
-                                        if (outputs.outputsDMCast.infectionEvents[0].onsetDate.Year > 1)
+                                        if (!isAlreadyEvaluated)
                                         {
-                                            if (!isAlreadyEvaluated)
-                                            {
-                                                //take the onset date
-                                                simOnsetDate = outputs.outputsDMCast.infectionEvents[0].onsetDate;
-                                                //compute the error
-                                                var thisYearError = (simOnsetDate - year_onsetDate[hour.Year]).Days;
-                                                errors.Add((float)LossTerm(thisYearError)); // Huber al posto dell'errore quadratico
-                                                isAlreadyEvaluated = true;
-                                            }
+                                            //take the onset date (earliest among all events)
+                                            simOnsetDate = dmcastOnsets.Min();
+                                            //compute the error on the window [L, U]
+                                            var thisYearError = WindowError(simOnsetDate, year_onsetDate[hour.Year], year_lowerDate[hour.Year]);
+                                            errors.Add((float)LossTerm(thisYearError)); // Huber al posto dell'errore quadratico
+                                            isAlreadyEvaluated = true;
                                         }
                                     }
                                 }
@@ -666,7 +679,7 @@ namespace octoPusAI.ModelCallers
                                                 //take the onset date
                                                 simOnsetDate = outputs.outputsMagarey.infectionEvents[0].onsetDate;
                                                 //compute the error
-                                                var thisYearError = (simOnsetDate - year_onsetDate[hour.Year]).Days;
+                                                var thisYearError = WindowError(simOnsetDate, year_onsetDate[hour.Year], year_lowerDate[hour.Year]);
                                                 errors.Add((float)LossTerm(thisYearError)); // Huber al posto dell'errore quadratico
                                                 isAlreadyEvaluated = true;
                                             }
@@ -686,7 +699,7 @@ namespace octoPusAI.ModelCallers
                                                 //take the onset date
                                                 simOnsetDate = outputs.outputsMisfits.infectionEvents[0].onsetDate;
                                                 //compute the error
-                                                var thisYearError = (simOnsetDate - year_onsetDate[hour.Year]).Days;
+                                                var thisYearError = WindowError(simOnsetDate, year_onsetDate[hour.Year], year_lowerDate[hour.Year]);
                                                 errors.Add((float)LossTerm(thisYearError)); // Huber al posto dell'errore quadratico
                                                 isAlreadyEvaluated = true;
                                             }
@@ -732,7 +745,7 @@ namespace octoPusAI.ModelCallers
                                             //take the onset date (earliest among all cohorts)
                                             simOnsetDate = ucscOnsets.Min();
                                             //compute the error
-                                            var thisYearError = (simOnsetDate - year_onsetDate[hour.Year]).Days;
+                                            var thisYearError = WindowError(simOnsetDate, year_onsetDate[hour.Year], year_lowerDate[hour.Year]);
                                             errors.Add((float)LossTerm(thisYearError)); // Huber al posto dell'errore quadratico
                                             isAlreadyEvaluated = true;
                                         }

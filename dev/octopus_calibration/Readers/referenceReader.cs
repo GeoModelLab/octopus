@@ -54,6 +54,43 @@ namespace octoPusAI.Readers
             }
             return refData;
         }
+
+        // Limite inferiore della finestra di onset (L, 5a colonna "lowerDate").
+        // Colonna assente o vuota -> L = U (errore classico).
+        public Dictionary<string, Dictionary<string, Dictionary<int, DateTime>>> readLowerReference(string file)
+        {
+            var lowData = new Dictionary<string, Dictionary<string, Dictionary<int, DateTime>>>();
+            using (var sr = new StreamReader(new BufferedStream(new FileStream(file, FileMode.Open))))
+            {
+                sr.ReadLine();
+                while (!sr.EndOfStream)
+                {
+                    string[] line = sr.ReadLine().Split(',');
+                    string cluster = line[0].Trim();
+                    string site = line[1].Trim();
+                    int year = int.TryParse(line[3].Trim(), out int y) ? y : 0;
+
+                    DateTime onsetDate;
+                    DateTime.TryParseExact(line[2].Trim(), "M/d/yyyy", CultureInfo.InvariantCulture,
+                        DateTimeStyles.None, out onsetDate);
+
+                    DateTime lowerDate = onsetDate; // default L = U
+                    if (line.Length > 4 && !string.IsNullOrWhiteSpace(line[4]) &&
+                        DateTime.TryParseExact(line[4].Trim(), "M/d/yyyy", CultureInfo.InvariantCulture,
+                            DateTimeStyles.None, out DateTime l))
+                    {
+                        lowerDate = l;
+                    }
+
+                    if (!lowData.ContainsKey(cluster))
+                        lowData.Add(cluster, new Dictionary<string, Dictionary<int, DateTime>>());
+                    if (!lowData[cluster].ContainsKey(site))
+                        lowData[cluster].Add(site, new Dictionary<int, DateTime>());
+                    lowData[cluster][site].Add(year, lowerDate);
+                }
+            }
+            return lowData;
+        }
     }
     public class BBCHReferenceReader
     {
