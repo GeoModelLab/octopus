@@ -371,7 +371,8 @@ namespace octoPusAI.ModelCallers
                     date_outputs.Add(hour, outputsDaily);
                 }
             }
-
+            //create the output folder if it does not exist (outputs are not tracked in the repository)
+            Directory.CreateDirectory(Path.Combine("outputs", "diseaseModels"));
             //write the outputs from the octoPus models
             if (!detailedRun)
             {
