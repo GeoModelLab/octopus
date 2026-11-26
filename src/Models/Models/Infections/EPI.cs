@@ -38,7 +38,7 @@ namespace Models.Infections
             double KES = kesum.Sum();
 
             //empty Lists at 1 October
-            if (Input.Date.Month == 10)
+            if (Input.Date.Month == 10 && Input.Date.Day == 1 && Input.Date.Hour == 0)
             {
                 pesum = new List<double>();
                 kesum = new List<double>();
@@ -80,7 +80,7 @@ namespace Models.Infections
             //calculate incubation
             foreach (var infEvent in Output.outputsEPI.infectionEvents)
             {
-                if (infEvent.phenophase>= 10)
+                if (infEvent.phenophase >= 10 && infEvent.onsetDate.Year == 1)
                 {
                     Utils.utilities.incubationEstimate(infEvent, Parameters.incubationParameters, Input);
                 }
@@ -125,7 +125,7 @@ namespace Models.Infections
                     //define UR range calculation
                     double Um = (5 * ClimaticRelativeHumidityNight[Input.Date.Month] +
                                                 3 * RelativeHumidityDay) / 8;
-                    if (Um <= epiParameters.urLowerThreshold && Um >= epiParameters.urUpperThreshold)
+                    if (Um <= epiParameters.urLowerThreshold || Um >= epiParameters.urUpperThreshold)
                     {
                         Um = 0;
                     }
@@ -198,6 +198,11 @@ namespace Models.Infections
             //Pe is calculated between 1 October and 31 March 
             if (currentDate.Month >= 9 || currentDate.Month <= 3)
             {
+                //restart the decade window on 1 October (hours added in September must not block the 240-hour check)
+                if (currentDate.Month == 10 && currentDate.Day == 1 && currentDate.Hour == 0)
+                {
+                    DecadeCounts = new List<Input>();
+                }
                 //add one grid weather (hour) to the list
                 DecadeCounts.Add(Input);
                 MonthlyCounts.Add(Input);
