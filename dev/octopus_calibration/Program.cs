@@ -274,10 +274,10 @@ else
     // poi metti calibrateIncubationDuration = false.
     var incubationByCluster = new Dictionary<string, float>
 {
-    { "C1",  14f },
-    { "C2", 11f },
-    { "C3", 16f },
-    //{ "all", 15 }
+    //{ "C1",  14f },
+    //{ "C2", 11f },
+    //{ "C3", 16f },
+    { "all", 14f }
 };
 
 

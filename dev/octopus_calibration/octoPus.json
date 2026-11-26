@@ -12,15 +12,15 @@
         "useLLM": false,
         "useRandomForest": false,
         "useConsole": false,
-        "modelsToRun": [ "UCSC","EPI" ],
+        "modelsToRun": [ "Rule310","Laore","DMCast","IPI","UCSC","EPI", "Misfits", "Magarey"],
         "calibrationVariable": "onset"
     },
     "paths": {
         "weatherDir": "..\\..\\..\\Files\\Weather\\sites_openMeteo",
-        "octoPusParametersPath": "..\\..\\..\\files\\Parameters\\par_p3\\octoPusParameters.csv",
+        "octoPusParametersPath": "..\\..\\..\\files\\Parameters\\par_p3\\octoPusParameters_all.csv",
         "susceptibilityFileBBCH": "..\\..\\..\\files\\Parameters\\par_p3\\hostSusceptibilityParameters.csv",
         "outputDir": "..\\..\\..\\outputs\\",
-        "referenceFile": "..\\..\\..\\Files\\Reference\\ref_P3\\reference_file_2026_Cluster_window.csv",
+        "referenceFile": "..\\..\\..\\Files\\Reference\\ref_P3\\reference_file_2026_Cluster_window_ALL.csv",
         "bbchReference": "..\\..\\..\\Files\\Reference\\ref_P3\\bbch_Reference_2026_cleaned.csv"
     }
 }

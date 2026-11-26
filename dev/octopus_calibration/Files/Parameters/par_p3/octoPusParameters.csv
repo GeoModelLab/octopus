@@ -13,13 +13,13 @@ Magarey,numberOfHoursToConsiderInfection,6.2,9.6,8,hours,x,
 Magarey,degreeHoursThresholdInfection,38.4,57.6,45,Â°C day,x,
 Magarey,rainTriggeringSplash,0.12,0.8,0.5,mm,x,
 Magarey,bbchThreshold,8,15,11,BBCH code,,
-EPI,keConstant,0.0096,0.0144,0.012,unitless,x,todo again
+EPI,keConstant,0.0096,0.0148,0.012,unitless,x,todo again
 EPI,urUpperThreshold,98,100,100,%,,
-EPI,urLowerThreshold,48,78,65,%,x,todo again
+EPI,urLowerThreshold,45,72,65,%,x,todo again
 EPI,peConstant,0.16,0.24,0.2,fraction,,
-EPI,alertThreshold,-13,-5,-10,unitless,x,todo again
+EPI,alertThreshold,-15,-5,-10,unitless,x,todo again
 EPI,tempThresholdInf,8.8,15,11,Â°C,x,todo again
-EPI,precThresholdInf,2,3,2.5,mm,x,todo again
+EPI,precThresholdInf,2,3.5,2.5,mm,x,todo again
 EPI,bbchThreshold,12,15,11,BBCH code,,
 DMCast,muK1,94.4,141.6,118,unitless,x,
 DMCast,sigmaK1,10.8,16.2,13.5,unitless,x,
@@ -43,10 +43,10 @@ IPI,alertThreshold,10,15.6,13,unitless,x,
 IPI,tempThresholdInf,7.3,13.2,11,Â°C,x,
 IPI,precThresholdInf,1.7,3.2,2.5,mm,x,
 IPI,bbchThreshold,8,15,11,BBCH code,,
-UCSC,vpdThreshold,350,550,450,Kpa,x,todo again
+UCSC,vpdThreshold,345,570,450,Kpa,x,todo again
 UCSC,dormancyBrakingLowerThreshold,0.024,0.036,0.03,unitless,x,todo again
 UCSC,dormancyBrakingUpperThreshold,0.776,1,0.97,unitless,x,todo again
-UCSC,germinationThreshold,0.6,1.2,1,unitless,x,todo again
+UCSC,germinationThreshold,0.5,1.2,1,unitless,x,todo again
 UCSC,sporangiaSurvivalThreshold,0.8,1.2,1,unitless,,
 UCSC,zoosporeSurvivalThreshold,1,3,1,unitless,,
 UCSC,infectionThreshold,48,72,60,unitless,,
