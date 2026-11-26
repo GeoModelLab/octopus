@@ -20,7 +20,8 @@ namespace Models.Infections
             //send GER to output
             Outputs.outputsUCSC.ger = ger;
 
-            if (ger == 1)
+            double BBCH = Outputs.outputsPhenology.bbchPhenophaseCode;
+            if (ger == 1 && BBCH >= Parameters.ucscParameters.bbchThreshold)
             {
                 var infectionEvent = new UCSCInfectionEvent();
                 infectionEvent.startGermination = Input.Date;
