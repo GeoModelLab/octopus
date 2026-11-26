@@ -100,7 +100,8 @@ namespace Models.Infections
                         infectionEvent.wetHoursRelease += 0;
                     }
                     //Zoospore release
-                    double releaseThreshold = Math.Exp((-1.022 + 19.634) /
+                    //Rossi et al. 2008, p. 484: WD >= exp(-1.022 + 19.634 / TWD)
+                    double releaseThreshold = Math.Exp(-1.022 + 19.634 /
                         infectionEvent.averageTempWetHoursRel);
                     if (infectionEvent.wetHoursRelease >= releaseThreshold)
                     {
@@ -128,7 +129,8 @@ namespace Models.Infections
                         infectionEvent.wetHoursSurvival += 0;
                     }
                     //define survival threshold
-                    int survivalTime = infectionEvent.hoursAfterRelease / infectionEvent.wetHoursSurvival;
+                    //real ratio (Rossi et al. 2008, eq. 7): integer division truncated the value
+                    double survivalTime = (double)infectionEvent.hoursAfterRelease / infectionEvent.wetHoursSurvival;
                     if (survivalTime > Parameters.ucscParameters.zoosporeSurvivalThreshold)
                     {
                         infectionEvent.releasedZoospores = 0;
@@ -160,18 +162,16 @@ namespace Models.Infections
                     {
                         infectionEvent.wetHoursInfection += 0;
                     }
-                    //Infection condition
-                    double WDTWD = infectionEvent.wetHoursInfection * infectionEvent.averageTempWetHoursInf;
-                    if (WDTWD >= Parameters.ucscParameters.infectionThreshold)
+                    //Infection condition (evaluated only until the infection occurs: the infection date is set once)
+                    if (infectionEvent.infection == 0)
                     {
-                        infectionEvent.infection = 1;
-                        infectionEvent.infectionDate = Input.Date;
-                        infectionEvent.zoosporesCausingInfection = infectionEvent.dispersedZoospores;
-                    }
-                    else
-                    {
-                        infectionEvent.infection = 0;
-                        infectionEvent.zoosporesCausingInfection = 0;
+                        double WDTWD = infectionEvent.wetHoursInfection * infectionEvent.averageTempWetHoursInf;
+                        if (WDTWD >= Parameters.ucscParameters.infectionThreshold)
+                        {
+                            infectionEvent.infection = 1;
+                            infectionEvent.infectionDate = Input.Date;
+                            infectionEvent.zoosporesCausingInfection = infectionEvent.dispersedZoospores;
+                        }
                     }
                 }
                 #endregion
@@ -221,7 +221,8 @@ namespace Models.Infections
 
                 if (PosInfEvent == null) continue;
 
-                if (PosInfEvent.phenophase >= 10 && PosInfEvent.infection == 1)
+                if ((PosInfEvent.infection == 1 || PosInfEvent.incubationProgress > 0) &&
+                    PosInfEvent.phenophase >= 10 && PosInfEvent.onsetDate.Year == 1)
                 {
                     Utils.utilities.incubationEstimate(PosInfEvent, Parameters.incubationParameters, Input);
                 }
