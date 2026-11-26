@@ -149,3 +149,7 @@ dev/octopus_calibration/bin/Debug/net8.0/calibratedParametersPhenology
 
 # weather file
 dev/octopus_calibration/Files/Weather/
+
+
+# simulation outputs (the folder is created at run time)
+src/bin/**/outputs/
