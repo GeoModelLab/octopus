@@ -19,7 +19,7 @@
         "useConsole": false
     },
     "paths": {
-        "weatherDir": "C:\\Users\\Git\\octopus\\src\\Files\\Weather\\",
+        "weatherDir": "..\\..\\..\\files\\Weather\\",
         "octoPusParametersPath": "..\\..\\..\\files\\Parameters\\octoPusParameters_optimized.csv",
         "susceptibilityFileBBCH": "..\\..\\..\\files\\Parameters\\hostSusceptibilityParameters.csv",
         "outputDir": "..\\..\\..\\outputs\\",
