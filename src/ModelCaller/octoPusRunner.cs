@@ -106,6 +106,31 @@ namespace octoPusAI.ModelCallers
              //reinitialize the date_outputs object
              date_outputs = new Dictionary<DateTime, OutputsDaily>();
 
+            #region reset instances and buffers (the runner is reused across sites in Program.cs)
+            rule310 = new Rule310();
+            magarey = new Magarey();
+            epi = new EPI();
+            ipi = new IPI();
+            laore = new Laore();
+            misfits = new Misfits();
+            ucsc = new UCSC();
+            dmcast = new DMCast();
+            output = new Output();
+
+            pressureRule310 = 0; pressureEPI = 0; pressureIPI = 0; pressureDMCast = 0;
+            pressureMagarey = 0; pressureUCSC = 0; pressureMisfits = 0; pressureLaore = 0;
+
+            Temperatures = new List<double>();
+            Precipitation = new List<double>();
+            RelativeHumidity = new List<double>();
+            Leafwetness = new List<double>();
+            EPI_ke = new List<double>(); EPI_pe = new List<double>();
+            DMCast_Pom = new List<double>(); DMCast_Ra = new List<double>();
+            IPI_Ri = new List<double>(); IPI_Tmeani = new List<double>();
+            IPI_Lwi = new List<double>(); IPI_Rhi = new List<double>(); IPI_index = new List<double>();
+            UCSC_HTi = new List<double>(); UCSC_DOR = new List<double>(); UCSC_GER = new List<int>();
+            #endregion
+
             #region assign parameters
 
             #region instance of the parameters class
@@ -346,7 +371,8 @@ namespace octoPusAI.ModelCallers
                     date_outputs.Add(hour, outputsDaily);
                 }
             }
-
+            //create the output folder if it does not exist (outputs are not tracked in the repository)
+            Directory.CreateDirectory(Path.Combine("outputs", "diseaseModels"));
             //write the outputs from the octoPus models
             if (!detailedRun)
             {
@@ -944,10 +970,10 @@ namespace octoPusAI.ModelCallers
                     .Where(rossiInfection => rossiInfection.infectionDate > weatherData.Date.AddHours(-24))
                     .ToList();
                 modelsOutput.infectionUCSC = uCSCInfectionsToRemove.Any() ? 1 : 0;
-                foreach (var rossiInfection in uCSCInfectionsToRemove)
-                {
-                    outputs.outputsUCSC.infectionEvents.Remove(rossiInfection);
-                }
+                //foreach (var rossiInfection in uCSCInfectionsToRemove)
+                //{
+                //    outputs.outputsUCSC.infectionEvents.Remove(rossiInfection);
+                //}
                 pressureUCSC += modelsOutput.infectionUCSC;
                 modelsOutput.pressureUCSC += pressureUCSC;
                 // Misfits

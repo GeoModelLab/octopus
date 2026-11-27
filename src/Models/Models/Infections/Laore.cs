@@ -50,7 +50,9 @@ namespace Models.Infections
                     if (Risk < 0) Risk = 0;
 
                     Output.outputsLaore.dailyInfectionRisk = Risk;
-                    if (Risk > Parameters.laoreParameters.infectionThresholdRisk)
+                    double BBCH = Output.outputsPhenology.bbchPhenophaseCode;
+                    if (Risk > Parameters.laoreParameters.infectionThresholdRisk &&
+                        BBCH >= Parameters.laoreParameters.bbchThreshold)
                     {
                         var infectionEvent = new GenericInfection();
                         infectionEvent.infectionDate = Input.Date;
@@ -68,7 +70,7 @@ namespace Models.Infections
             //calculate incubation
             foreach (var infEvent in Output.outputsLaore.infectionEvents)
             {
-                if (infEvent.phenophase >= 10)
+                if (infEvent.phenophase >= 10 && infEvent.onsetDate.Year == 1)
                 {
                     Utils.utilities.incubationEstimate(infEvent, Parameters.incubationParameters, Input);
                 }

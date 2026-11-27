@@ -18,7 +18,8 @@ namespace Models.Infections
             //add one hour
             Past_24hours.Add(Input);
             //delete the hour at n hours
-            if (Past_24hours.Count == Parameters.rule310Parameters.numberOfHoursToConsider)
+            int nHours = Convert.ToInt32(Parameters.rule310Parameters.numberOfHoursToConsider);
+            if (Past_24hours.Count >= nHours)
             {
                 Past_24hours.RemoveAt(0);
             }
@@ -36,7 +37,7 @@ namespace Models.Infections
             double Temperature = Temperatures.Average();
 
             //TODO: not used here 
-            double BBCH = 0;
+            double BBCH = Output.outputsPhenology.bbchPhenophaseCode;
 
             //The rule
             if (Precipitation >= Parameters.rule310Parameters.precipitationThreshold &&
@@ -56,7 +57,7 @@ namespace Models.Infections
             //calculate incubation
             foreach (var infEvent in Output.outputsRule310.infectionEvents)
             {
-                if (infEvent.phenophase>= 10)
+                if (infEvent.phenophase >= 10 && infEvent.onsetDate.Year == 1)
                 {
                     Utils.utilities.incubationEstimate(infEvent, Parameters.incubationParameters, Input);
                 }

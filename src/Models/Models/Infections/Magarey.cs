@@ -32,13 +32,14 @@ namespace Models.Infections
 
                 #region Germination occurrence
                 infectionEvent.GerminationHours += 1;
-                if (infectionEvent.GerminationHours < Parameters.magareyParameters.numberOfHoursToConsiderGermination)
+                if (infectionEvent.GerminationHours < Convert.ToInt32(Parameters.magareyParameters.numberOfHoursToConsiderGermination))
                 {
+                    //average over the N-1 hours actually accumulated before the check
                     infectionEvent.TemperatureAverageGerm += Input.Temperature /
-                        Parameters.magareyParameters.numberOfHoursToConsiderGermination;
+                        (Convert.ToInt32(Parameters.magareyParameters.numberOfHoursToConsiderGermination) - 1);
                     infectionEvent.RainSumGerm += Input.Precipitation;
                 }
-                else if (infectionEvent.GerminationHours == Parameters.magareyParameters.numberOfHoursToConsiderGermination)
+                else if (infectionEvent.GerminationHours == Convert.ToInt32(Parameters.magareyParameters.numberOfHoursToConsiderGermination))
                 {
                     //verify germination occurrence
                     if (infectionEvent.TemperatureAverageGerm >= Parameters.magareyParameters.baseTemperatureInfection &&
@@ -55,15 +56,16 @@ namespace Models.Infections
                 {
                     infectionEvent.InfectionHours += 1;
                     infectionEvent.SplashingHours += 1;
-                    if (infectionEvent.InfectionHours <= Parameters.magareyParameters.numberOfHoursToConsiderInfection)
+                    if (infectionEvent.InfectionHours <= Convert.ToInt32(Parameters.magareyParameters.numberOfHoursToConsiderInfection))
                     {
                         infectionEvent.TemperatureAverageSplash += Input.Temperature;
                         infectionEvent.RainSumSplash = Input.Precipitation;
 
                         if (infectionEvent.RainSumSplash >= Parameters.magareyParameters.rainTriggeringSplash)
                         {
-                            infectionEvent.TemperatureAverageSplash = infectionEvent.TemperatureAverageSplash / infectionEvent.InfectionHours;
-                            if (infectionEvent.TemperatureAverageSplash >= Parameters.magareyParameters.baseTemperatureInfection)
+                            //the average is computed separately: TemperatureAverageSplash keeps the sum of hourly temperatures
+                            double avgSplash = infectionEvent.TemperatureAverageSplash / infectionEvent.InfectionHours;
+                            if (avgSplash >= Parameters.magareyParameters.baseTemperatureInfection)
                             {
                                 infectionEvent.Splashing = 1;
                                 infectionEvent.splashingDate = Input.Date;
@@ -79,7 +81,7 @@ namespace Models.Infections
                 if (infectionEvent.Splashing == 1)
                 {
                     infectionEvent.InfectionHours += 1;
-                    if (infectionEvent.InfectionHours <= Parameters.magareyParameters.numberOfHoursToConsiderInfection)
+                    if (infectionEvent.InfectionHours <= Convert.ToInt32(Parameters.magareyParameters.numberOfHoursToConsiderInfection))
                     {
                         infectionEvent.DegreeHours += Input.Temperature;
 
@@ -87,8 +89,10 @@ namespace Models.Infections
                         {
                             infectionEvent.TemperatureAverageInf = infectionEvent.DegreeHours / infectionEvent.InfectionHours;
 
-                            if (infectionEvent.InfectionHours <= Parameters.magareyParameters.numberOfHoursToConsiderInfection &&
-                                infectionEvent.TemperatureAverageInf >= Parameters.magareyParameters.baseTemperatureInfection)
+                            double BBCH = Output.outputsPhenology.bbchPhenophaseCode;
+                            if (infectionEvent.InfectionHours <= Convert.ToInt32(Parameters.magareyParameters.numberOfHoursToConsiderInfection) &&
+                                infectionEvent.TemperatureAverageInf >= Parameters.magareyParameters.baseTemperatureInfection &&
+                                BBCH >= Parameters.magareyParameters.bbchThreshold)
                             {
                                 infectionEvent.Infection = 1;
                                 infectionEvent.infectionDate = Input.Date;
@@ -118,7 +122,7 @@ namespace Models.Infections
 
                 if (PosInfEvent == null) continue;
 
-                if (PosInfEvent.phenophase >= 10 && PosInfEvent.Infection == 1)
+                if (PosInfEvent.Infection == 1 && PosInfEvent.phenophase >= 10 && PosInfEvent.onsetDate.Year == 1)
                 {
                     Utils.utilities.incubationEstimate(PosInfEvent, Parameters.incubationParameters, Input);
                 }
@@ -133,8 +137,10 @@ namespace Models.Infections
             int output = 0;
             //add one hour
             Past_24hours.Add(Input);
-            //delete the hour at n hours
-            if (Past_24hours.Count == magareyParameters.numberOfHoursToConsiderRule210)
+            //delete the oldest hour when the window is full (window length rounded to an integer, at least 2 hours)
+            int nHours210 = Convert.ToInt32(magareyParameters.numberOfHoursToConsiderRule210);
+            if (nHours210 < 2) nHours210 = 2;
+            if (Past_24hours.Count >= nHours210)
             {
                 Past_24hours.RemoveAt(0);
             }

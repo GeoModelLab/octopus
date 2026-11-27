@@ -103,7 +103,8 @@ namespace Models.Infections
             #endregion
 
 
-            if (Output.outputsMisfits.downyMildew_infection_hourly == 1)
+            double BBCH = Output.outputsPhenology.bbchPhenophaseCode;
+            if (Output.outputsMisfits.downyMildew_infection_hourly == 1 && BBCH >= Parameters.misfitsParameters.bbchThreshold)
             {
                 var infectionEvent = new misfitsInfectionEvent();
                 infectionEvent.germinationDate = Input.Date;
@@ -124,7 +125,7 @@ namespace Models.Infections
             //calculate incubation
             foreach (var infEvent in Output.outputsMisfits.infectionEvents)
             {
-                if (infEvent.phenophase >= 10)
+                if (infEvent.phenophase >= 10 && infEvent.onsetDate.Year == 1)
                 {
                     Utils.utilities.incubationEstimate(infEvent, Parameters.incubationParameters, Input);
                 }

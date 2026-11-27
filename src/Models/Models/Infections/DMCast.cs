@@ -15,13 +15,16 @@ namespace Models.Infections
         public Dictionary<int, double> ClimaticRainfallSum = new Dictionary<int, double>();
         public Dictionary<int, double> ClimaticRainyDays = new Dictionary<int, double>();
         public Dictionary<int, double> ClimaticStdRainfallSum = new Dictionary<int, double>();
+        //monthly accumulators for the rain effect index (Tran Manh Sung et al., 1990)
+        private double _posM = 0, _excM = 0, _lacM = 0;
+        private int _raLastMonth = -1;
         #endregion
 
         #region model run
         //N.B. This section could be changed as new versions of the models implement only a simple threshold
         //Based on the temperatures and Precipitations considered for estimating oospore germination (see above)
         //plus a treshold on BBCH 15, see "Plant Health Progress, 2007, 8.1: 66"
-         
+
         public void run(Input Input, Parameters Parameters, Output Output)
         {
             #region Infection compute
@@ -62,8 +65,8 @@ namespace Models.Infections
                 #endregion
 
                 #region Infection occurrence
-                //TODO: not used here
-                double BBCH = 0;
+                
+                double BBCH = Output.outputsPhenology.bbchPhenophaseCode;
                 if (infectionEvent.SporangiaGermination == 1)
                 {
                     infectionEvent.InfectionHours += 1;
@@ -75,7 +78,7 @@ namespace Models.Infections
                         {
                             if (infectionEvent.TemperatureSum >= Parameters.dmcastParameters.tempThresholdInf * 24 &&
                                 infectionEvent.RainSumSplash > Parameters.dmcastParameters.precThresholdInf &&
-                                BBCH >= 0)
+                                BBCH >= Parameters.dmcastParameters.bbchThreshold)
                             {
                                 infectionEvent.Infection = 1;
                                 infectionEvent.infectionDate = Input.Date;
@@ -109,7 +112,7 @@ namespace Models.Infections
 
                 if (PosInfEvent == null) continue;
 
-                if (PosInfEvent.phenophase >= 10 && PosInfEvent.Infection == 1)
+                if (PosInfEvent.Infection == 1 && PosInfEvent.phenophase >= 10 && PosInfEvent.onsetDate.Year == 1)
                 {
                     Utils.utilities.incubationEstimate(PosInfEvent, Parameters.incubationParameters, Input);
                 }
@@ -155,7 +158,7 @@ namespace Models.Infections
             DateTime currentDate = Input.Date;
             DateTime endDate = new DateTime(Input.Date.Year, 1, 31);
             DateTime startDate = new DateTime(Input.Date.Year, 09, 21); //change to 30 sept in updated model
-                                                                        //add weather variables to the list
+            //add weather variables to the list
             PastMonth.Add(Input);
             if (currentDate <= endDate || currentDate >= startDate)
             {
@@ -164,6 +167,13 @@ namespace Models.Infections
 
                 if (currentDate.Hour == 00)
                 {
+                    //restart at the beginning of the maturation season
+                    if (currentDate.Date == startDate.Date)
+                    {
+                        RaList = new List<double>();
+                        _posM = 0; _excM = 0; _lacM = 0; _raLastMonth = -1;
+                    }
+
                     //define minimum threshold for daily rainfall Hm
                     double Hm = ClimaticRainfallSum[currentDate.Month] / ClimaticRainyDays[currentDate.Month];
                     //define maximum threshold for daily rainfall HM
@@ -172,38 +182,30 @@ namespace Models.Infections
                     double POS = 0; //positive effect of Rain over oospore maturation
                     double LAC = 0; //lack of rain - negative effect of rain on oospore maturation
                     double EXC = 0; //excess of rain - negative effect of rain on oospore maturation
-                                    //Try considering only rainy days
                     if (_Ri > 0.2)
                     {
-                        if (_Ri <= HM && _Ri > Hm)
-                        {
-                            POS = _Ri;
-                        }
-                        else if (_Ri < Hm)
-                        {
-                            LAC = Hm - _Ri;
-                        }
-                        else if (_Ri > HM)
-                        {
-                            EXC = _Ri - HM;
-                            POS = HM;
-                        }
+                        if (_Ri <= HM && _Ri > Hm) { POS = _Ri; }
+                        else if (_Ri < Hm) { LAC = Hm - _Ri; }
+                        else if (_Ri > HM) { EXC = _Ri - HM; POS = HM; }
                     }
-                    //negative effect of rain on oospore maturation
-                    double NEG = Math.Abs(EXC - LAC);
-                    //final calculation of the maturation index
-                    double Rai = POS - NEG;
-                    RaList.Add(Rai);
 
-                    //restart after 31st January 
-                    if (currentDate.Date == startDate)
+                    //Tran Manh Sung et al. (1990), Plant Disease 74:120-124:
+                    //POS(M) = SUM POS(d); NEG(M) = |SUM EXC(d) - SUM LAC(d)|; Im(M) = [POS(M) - NEG(M)] + Im(M-1).
+                    //The negative effect is computed on monthly sums, so that excess and lack of rain compensate.
+                    if (_raLastMonth != -1 && Input.Date.Month != _raLastMonth)
                     {
-                        RaList = new List<double>();
+                        RaList.Add(_posM - Math.Abs(_excM - _lacM)); //index of the month just closed
+                        _posM = 0; _excM = 0; _lacM = 0;
                     }
+                    _raLastMonth = Input.Date.Month;
+
+                    _posM += POS;
+                    _excM += EXC;
+                    _lacM += LAC;
                 }
             }
-            //Compute cumulative effect of rainfall (Ra)
-            Ra = RaList.Sum();
+            //cumulative effect of rainfall (Ra), including the month still open
+            Ra = RaList.Sum() + (_posM - Math.Abs(_excM - _lacM));
             return Ra;
         }
 
@@ -246,22 +248,24 @@ namespace Models.Infections
             dmcastOutput.pomsum = PomSum;
             DateTime endDate = new DateTime(Input.Date.Year, 09, 22); //change to 1 Oct in updated model
 
-            if (PomSum >= Parameters.dmcastParameters.thresholdPOM && Input.Date < endDate)
+            //the hourly window is closed every day, also before the POM threshold is reached
+            if (Input.Date.Hour == 00)
             {
-                if (Input.Date.Hour == 00)
+                double DailyPrec = ooGermCount.Where(x => x.Precipitation > 0.2).
+                                  Select(x => x.Precipitation).Sum();
+
+                double DailyTemp = ooGermCount.Select(x => x.Temperature).Average();
+
+                if (PomSum >= Parameters.dmcastParameters.thresholdPOM && Input.Date < endDate)
                 {
-                    double DailyPrec = ooGermCount.Where(x => x.Precipitation > 0.2).
-                                      Select(x => x.Precipitation).Sum();
-
-                    double DailyTemp = ooGermCount.Select(x => x.Temperature).Average();
-
-                    if (DailyTemp > Parameters.dmcastParameters.tempThresholdOosporeGerm && DailyPrec > Parameters.dmcastParameters.precThresholdOosporeGerm)
+                    if (DailyTemp > Parameters.dmcastParameters.tempThresholdOosporeGerm &&
+                        DailyPrec > Parameters.dmcastParameters.precThresholdOosporeGerm)
                     {
                         ooGerm = 1;
                     }
-
-                    ooGermCount = new List<Input>();
                 }
+
+                ooGermCount = new List<Input>();
             }
             return ooGerm;
         }
