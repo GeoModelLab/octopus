@@ -1,6 +1,6 @@
 ﻿{
     "settings": {
-        "startYear": 2005,
+        "startYear": 2010,
         "endYear": 2025,
         "sites": [
             "example_Bergamo.csv",
@@ -9,7 +9,7 @@
             "example_Oristano.csv"
         ],
         "assistantRisk": 3,
-        "veryHighModelsThreshold": 4,
+        "veryHighModelsThreshold": 6,
         "WeatherTimeStep": "hourly",
         "colorScale": "Viridis",
         "consoleTextColor": "White",
@@ -19,7 +19,7 @@
         "useConsole": false
     },
     "paths": {
-        "weatherDir": "C:\\Users\\Git\\octopus\\src\\Files\\Weather\\",
+        "weatherDir": "..\\..\\..\\files\\Weather\\",
         "octoPusParametersPath": "..\\..\\..\\files\\Parameters\\octoPusParameters_optimized.csv",
         "susceptibilityFileBBCH": "..\\..\\..\\files\\Parameters\\hostSusceptibilityParameters.csv",
         "outputDir": "..\\..\\..\\outputs\\",

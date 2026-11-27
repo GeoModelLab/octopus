@@ -382,6 +382,16 @@ namespace octoPusAI.ModelCallers
             {
                 writeOctoPusOutputsDetailed(weatherFile, date_outputs);
             }
+            //write the ensemble outputs (Random Forest risk)
+            if (useRandomForest)
+            {
+                writeEnsembleOutputs(weatherFile, date_outputs);
+            }
+            else
+            {
+                Console.WriteLine("useRandomForest = false: the ensemble output was not written.");
+            }
+
             if (WeatherTimeStep == "daily")
             {
                 //write the estimated weather data to csv
@@ -749,6 +759,85 @@ namespace octoPusAI.ModelCallers
             #endregion
 
         }
+        //write the ensemble outputs (weather, phenology, daily infections, pressure and Random Forest risk)
+        public void writeEnsembleOutputs(string site, Dictionary<DateTime, OutputsDaily> date_outputs)
+        {
+            //invariant culture: decimal point regardless of the PC settings
+            var ci = System.Globalization.CultureInfo.InvariantCulture;
+
+            //create the output folder if it does not exist
+            string ensembleDir = Path.Combine("outputs", "ensemble");
+            Directory.CreateDirectory(ensembleDir);
+
+            List<string> toWrite = new List<string>();
+
+            string header = "site,Date,year,doy," +
+                "Tmax,Tmin,Tmean,Prec,LW,RHmax,RHmin,RHmean," +
+                "bbchCode,plantSusceptibility," +
+                "Rule310,Epi,Ipi,Dmcast,Magarey,UCSC,misfits,laore," +
+                "pressureRule310,pressureEpi,pressureIpi,pressureDmcast," +
+                "pressureMagarey,pressureUCSC,pressureMisfits,pressureLaore," +
+                "nModelsInfection,riskRF,riskLabelRF,riskLabelAdjusted";
+            toWrite.Add(header);
+
+            int lastIndex = site.LastIndexOf('\\');
+            string siteShort = site.Substring(lastIndex + 1);
+            string siteName = Path.GetFileNameWithoutExtension(siteShort);
+
+            foreach (var date in date_outputs.Keys)
+            {
+                if (date.Hour != 00) { continue; }
+
+                var o = date_outputs[date];
+                var line = new StringBuilder();
+
+                line.Append(siteName + ",");
+                line.Append(date.ToString("yyyy-MM-dd") + ",");
+                line.Append(date.Year.ToString(ci) + ",");
+                line.Append(date.DayOfYear.ToString(ci) + ",");
+
+                line.Append(o.Input.Tmax.ToString(ci) + ",");
+                line.Append(o.Input.Tmin.ToString(ci) + ",");
+                line.Append(o.Tmean.ToString(ci) + ",");
+                line.Append(o.Input.Precipitation.ToString(ci) + ",");
+                line.Append(o.Input.LeafWetnessDuration.ToString(ci) + ",");
+                line.Append(o.Input.RHmax.ToString(ci) + ",");
+                line.Append(o.Input.RHmin.ToString(ci) + ",");
+                line.Append(o.RHmean.ToString(ci) + ",");
+
+                line.Append(o.bbchCode.ToString(ci) + ",");
+                line.Append(o.plantSusceptibility.ToString(ci) + ",");
+
+                line.Append(o.infectionRule310.ToString(ci) + ",");
+                line.Append(o.infectionEPI.ToString(ci) + ",");
+                line.Append(o.infectionIPI.ToString(ci) + ",");
+                line.Append(o.infectionDMCast.ToString(ci) + ",");
+                line.Append(o.infectionMagarey.ToString(ci) + ",");
+                line.Append(o.infectionUCSC.ToString(ci) + ",");
+                line.Append(o.infectionMisfits.ToString(ci) + ",");
+                line.Append(o.infectionLaore.ToString(ci) + ",");
+
+                line.Append(o.pressureRule310.ToString(ci) + ",");
+                line.Append(o.pressureEPI.ToString(ci) + ",");
+                line.Append(o.pressureIPI.ToString(ci) + ",");
+                line.Append(o.pressureDMCast.ToString(ci) + ",");
+                line.Append(o.pressureMagarey.ToString(ci) + ",");
+                line.Append(o.pressureUCSC.ToString(ci) + ",");
+                line.Append(o.pressureMisfits.ToString(ci) + ",");
+                line.Append(o.pressureLaore.ToString(ci) + ",");
+
+                line.Append(o.nModelsInfection.ToString(ci) + ",");
+                //risk columns are empty outside the epidemic window (Random Forest not called)
+                line.Append((string.IsNullOrEmpty(o.predictedRiskLabel)
+                    ? "" : o.predictedRisk.ToString(ci)) + ",");
+                line.Append(o.predictedRiskLabel + ",");
+                line.Append(o.riskLabelAdjusted);
+
+                toWrite.Add(line.ToString());
+            }
+
+            System.IO.File.WriteAllLines(Path.Combine(ensembleDir, siteShort), toWrite);
+        }
         #endregion
 
 
@@ -1093,10 +1182,29 @@ namespace octoPusAI.ModelCallers
                 ModelOutputsML.susceptibility = modelsOutput.plantSusceptibility;
                 MLmodel.modelOutputsML = ModelOutputsML;
 
-                if (useRandomForest)
+                //count the models simulating an infection today
+                modelsOutput.nModelsInfection =
+                    modelsOutput.infectionRule310 + modelsOutput.infectionEPI +
+                    modelsOutput.infectionIPI + modelsOutput.infectionDMCast +
+                    modelsOutput.infectionMagarey + modelsOutput.infectionUCSC +
+                    modelsOutput.infectionMisfits + modelsOutput.infectionLaore;
+
+                //the Random Forest is called only inside the epidemic window (BBCH > 11, until 31 August):
+                //outside it the predictors are far from the training domain
+                bool isRFwindow = modelsOutput.bbchCode > 11 && weatherData.Date.DayOfYear <= 243;
+
+                if (useRandomForest && isRFwindow)
                 {
                     //call the machine learning model
                     ModelOutputsML = MLmodel.MLmodelCall(Rversion);
+
+                    //store the Random Forest outputs in the daily output object
+                    modelsOutput.predictedRisk = ModelOutputsML.predictedRisk;
+                    modelsOutput.predictedRiskLabel = ModelOutputsML.predictedRiskLabel;
+                    modelsOutput.riskLabelAdjusted =
+                        modelsOutput.nModelsInfection >= veryHighModelsThreshold
+                        ? "VERY HIGH"
+                        : ModelOutputsML.predictedRiskLabel;
                 }
 
                 if (modelsOutput.bbchCode > 11 && weatherData.Date.DayOfYear <= 243) //until August 31
