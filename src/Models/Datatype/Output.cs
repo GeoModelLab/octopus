@@ -100,6 +100,14 @@ namespace Models.Datatype
         public float plantSusceptibility { get; set; } //daily plant susceptibility (0-100)
         #endregion
 
+
+        #region ensemble (Random Forest) outputs
+        public float predictedRisk { get; set; }              //continuous risk (1-5) predicted by the Random Forest
+        public string predictedRiskLabel { get; set; } = "";  //risk class: VERY LOW ... VERY HIGH
+        public string riskLabelAdjusted { get; set; } = "";   //risk class after the veryHighModelsThreshold rule
+        public int nModelsInfection { get; set; }             //number of models simulating an infection today
+        #endregion
+
     }
 
     #region Classes for specific infection model outputs 
