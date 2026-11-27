@@ -3,7 +3,10 @@
         "startYear": 2005,
         "endYear": 2025,
         "sites": [
-            "Bergamo.csv"
+            "example_Bergamo.csv",
+            "example_Treviso.csv",
+            "example_Perugia.csv",
+            "example_Oristano.csv"
         ],
         "assistantRisk": 3,
         "veryHighModelsThreshold": 4,
